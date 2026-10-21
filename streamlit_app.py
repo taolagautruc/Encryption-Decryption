@@ -1,16 +1,11 @@
-import sys
-import os
-
-sys.path.insert(0, os.path.abspath(os.path.dirname(__file__)))
-
 import streamlit as st
-from core.cipher_engine import build_custom_key, load_massive_symbol_pool, encrypt_core, decrypt_core, BASE_CHARS
-from core.camouflage import encode_english_camouflage, decode_english_camouflage, inspect_camouflage_structure
-from core.steganography import encode_image_lsb, decode_image_lsb, inspect_pixel_lsb
-from core.chat_storage import load_all_rooms, create_room, get_room_messages, add_message_to_room
+import random
+import string
+import time
+import json
+import os
 from PIL import Image, ImageDraw
 import io
-import time
 from datetime import datetime, timezone
 
 st.set_page_config(
@@ -20,25 +15,100 @@ st.set_page_config(
     initial_sidebar_state="expanded"
 )
 
-# --- 1. THANH ĐIỀU KHIỂN TOÀN CỤC (SIDEBAR) ---
+# --- 1. CORE CIPHER & STORAGE LOGIC ---
+VIETNAMESE_CHARS = (
+    "àáạảãâầấậẩẫăằắặẳẵèéẹẻẽêềếệểễìíịỉĩòóọỏõôồốộổổơờớợởỡùúụủũưừứựửữỳýỵỷỹđ"
+    "ÀÁẠẢÃÂẦẤẬẨẪĂẰẮẶẲẴÈÉẸẺẼÊỀẾỆỂỄÌÍỊỈĨÒÓỌỎÕÔỒỐỘỔỖƠỜỚỢỞỠÙÚỤỦŨƯỪỨỰỬỮỲÝỴỶỸĐ"
+)
+BASE_CHARS = list(" " + string.punctuation + string.digits + string.ascii_letters + VIETNAMESE_CHARS)
+
+@st.cache_data
+def load_massive_symbol_pool() -> list:
+    pool = []
+    for code_range in [(0x1F300, 0x1F5FF), (0x1F600, 0x1F64F), (0x1F680, 0x1F6FF), (0x1F900, 0x1F9FF), (0x2600, 0x26FF)]:
+        for code in range(code_range[0], code_range[1] + 1):
+            try:
+                pool.append(chr(code))
+            except ValueError:
+                continue
+    return pool
+
+def build_custom_key(secret_seed: str, pattern_list: list, shift_step: int, custom_pairs: str) -> list:
+    key = BASE_CHARS.copy()
+    rng = random.Random(f"{secret_seed}_{''.join(pattern_list)}")
+    rng.shuffle(key)
+    if shift_step > 0:
+        shift = shift_step % len(key)
+        key = key[shift:] + key[:shift]
+    if custom_pairs.strip():
+        for pair in custom_pairs.split(","):
+            if "=" in pair:
+                a, b = pair.split("=", 1)
+                if a.strip() in BASE_CHARS and b.strip() in key:
+                    ia, ib = BASE_CHARS.index(a.strip()), key.index(b.strip())
+                    key[ia], key[ib] = key[ib], key[ia]
+    return key
+
+def encrypt_core(plain_text: str, key: list, reverse_rule: bool, mode: str = "NONE", target_ts: int = 0) -> str:
+    payload = f"TMODE:{mode}:{target_ts}|{plain_text}"
+    res = "".join(key[BASE_CHARS.index(c)] if c in BASE_CHARS else c for c in payload)
+    return res[::-1] if reverse_rule else res
+
+def decrypt_core(cypher_text: str, key: list, reverse_rule: bool) -> tuple[bool, str]:
+    txt = cypher_text[::-1] if reverse_rule else cypher_text
+    raw = "".join(BASE_CHARS[key.index(c)] if c in key else c for c in txt)
+    if not raw.startswith("TMODE:") or "|" not in raw:
+        return False, "❌ Decryption Failed: Incorrect Group Passphrase or Rules!"
+    header, actual_msg = raw.split("|", 1)
+    parts = header.split(":")
+    if len(parts) != 3:
+        return False, "❌ Corrupted timestamp header!"
+    mode, target_ts = parts[1], int(parts[2])
+    now_ts = int(time.time())
+    if mode == "EXPIRE" and target_ts > 0 and now_ts > target_ts:
+        return False, "💥 MESSAGE EXPIRED AND SELF-DESTRUCTED!"
+    if mode == "WAIT" and target_ts > 0 and now_ts < target_ts:
+        return False, "⏳ TIME-CAPSULE LOCKED! Please wait until target time."
+    return True, actual_msg
+
+# Xử lý lưu trữ chat an toàn
+DB_FILE = "chat_rooms_db.json"
+def load_all_rooms():
+    if not os.path.exists(DB_FILE):
+        return {}
+    try:
+        with open(DB_FILE, "r", encoding="utf-8") as f:
+            return json.load(f)
+    except:
+        return {}
+
+def save_all_rooms(data):
+    with open(DB_FILE, "w", encoding="utf-8") as f:
+        json.dump(data, f, ensure_ascii=False, indent=4)
+
+def add_msg(room_name, sender, ciphertext):
+    rooms = load_all_rooms()
+    if room_name not in rooms:
+        rooms[room_name] = {"messages": []}
+    rooms[room_name]["messages"].append({
+        "sender": sender,
+        "ciphertext": ciphertext,
+        "timestamp": datetime.now(timezone.utc).strftime("%Y-%m-%d %H:%M:%S UTC")
+    })
+    save_all_rooms(rooms)
+
+
+# --- 2. GIAO DIỆN ĐIỀU KHIỂN & THANH BÊN ---
 SYMBOLS_POOL = load_massive_symbol_pool()
 
 with st.sidebar:
     st.markdown("## 🛡️ Cipher Control Panel")
-    st.caption("Configure group rules below. Changes apply instantly.")
-
     secret_seed = st.text_input("🔑 Group Secret Passphrase:", type="password", placeholder="e.g. Nexus2026")
     shift_step = st.number_input("🔢 Shift Offset (0-200):", min_value=0, max_value=200, value=0)
-    
-    pattern_list = st.multiselect(
-        f"🎨 Symbol Vault ({len(SYMBOLS_POOL)}+ icons):",
-        options=SYMBOLS_POOL,
-        default=SYMBOLS_POOL[:3] if len(SYMBOLS_POOL) >= 3 else []
-    )
-    
+    pattern_list = st.multiselect(f"🎨 Symbol Vault:", options=SYMBOLS_POOL, default=SYMBOLS_POOL[:3] if SYMBOLS_POOL else [])
     custom_pairs = st.text_input("🔀 Custom Pairs (Optional):", placeholder="e.g. a=@, e=3")
     reverse_rule = st.checkbox("🔄 Reverse Structure", value=False)
-
+    
     st.divider()
     main_menu = st.radio(
         "🧭 Navigation Menu:",
@@ -46,99 +116,47 @@ with st.sidebar:
             "🏠 1. Home Dashboard",
             "🔐 2. Cipher Workspace",
             "💬 3. Secret Chat Rooms",
-            "🕹️ 4. Crypto Challenges (CTF)",
+            "🕹️ 4. Crypto Challenges",
             "📚 5. Security Academy",
             "🛠️ 6. Utilities & About"
         ]
     )
 
-# Xây dựng khóa nhóm
-group_key = []
-if secret_seed:
-    group_key = build_custom_key(secret_seed, pattern_list, shift_step, custom_pairs)
-
-group_config = {
-    "secret_seed": secret_seed,
-    "shift_step": shift_step,
-    "pattern_list": pattern_list,
-    "custom_pairs": custom_pairs,
-    "reverse_rule": reverse_rule
-}
+group_key = build_custom_key(secret_seed, pattern_list, shift_step, custom_pairs) if secret_seed else []
 
 
-# --- 2. ĐIỀU HƯỚNG CÁC TÍNH NĂNG ---
-
+# --- 3. ĐIỀU HƯỚNG HIỂN THỊ CÁC TRANG ---
 if "1. Home Dashboard" in main_menu:
     st.subheader("🌐 Global Cryptography Suite — Executive Dashboard")
-    st.markdown("Welcome to the **Multi-Layer Secret Communication Platform**. Designed for zero-trust group messaging, linguistic camouflage, and pixel-level steganography.")
-    
+    st.markdown("Welcome! Use the sidebar to set your **Group Passphrase** and explore encrypted chat rooms and tools.")
     c1, c2, c3, c4 = st.columns(4)
-    c1.metric("Base Character Set", f"{len(BASE_CHARS)} chars", "Global + VN")
-    c2.metric("Unicode Symbol Vault", f"{len(SYMBOLS_POOL)}+", "Dynamic Pool")
-    c3.metric("Active Secret Rooms", f"{len(load_all_rooms())} rooms", "SHA-256 Protected")
-    c4.metric("Universal Clock", datetime.now(timezone.utc).strftime("%H:%M:%S UTC"), "Timezone-Free")
-    
-    st.divider()
-    if not secret_seed:
-        st.warning("⚠️ Please enter a **Group Secret Passphrase** in the sidebar to unlock all encryption and chat tools!")
-    else:
-        st.success("🎉 Group cipher rules are fully active and synchronized across all modules!")
+    c1.metric("Base Chars", f"{len(BASE_CHARS)}", "Global + VN")
+    c2.metric("Symbol Vault", f"{len(SYMBOLS_POOL)}+", "Icons")
+    c3.metric("Chat Rooms", f"{len(load_all_rooms())}", "Persistent DB")
+    c4.metric("Universal Clock", datetime.now(timezone.utc).strftime("%H:%M:%S UTC"), "UTC")
 
 elif "2. Cipher Workspace" in main_menu:
-    st.subheader("🔐 Multi-Layer Text Cipher, Time-Lock & Steganography")
+    st.subheader("🔐 Multi-Layer Text Cipher & Time-Lock")
     if not secret_seed:
         st.warning("⚠️ Please enter a **Group Secret Passphrase** in the sidebar first!")
     else:
-        tab_t, tab_c, tab_i = st.tabs(["📤 Text Cipher & Time-Lock", "🎭 English Camouflage", "🖼️ Image Steganography"])
-        
-        with tab_t:
-            sub_t1, sub_t2 = st.tabs(["Encrypt", "Decrypt"])
-            with sub_t1:
-                p_in = st.text_area("Enter secret message:")
-                t_mode = st.selectbox("Time Mode (UTC):", ["No Time Limit", "🔥 Self-Destruct", "⏳ Time-Capsule"])
-                mins = st.number_input("Minutes:", 1, 10080, 20) if t_mode != "No Time Limit" else 20
-                if st.button("🔒 Encrypt Text", type="primary"):
-                    if p_in.strip():
-                        mode = "EXPIRE" if "Self-Destruct" in t_mode else ("WAIT" if "Time-Capsule" in t_mode else "NONE")
-                        ts = int(time.time()) + (mins * 60) if mode != "NONE" else 0
-                        res = encrypt_core(p_in, group_key, reverse_rule, mode, ts)
-                        st.success("Encrypted Ciphertext:")
-                        st.code(res, language=None)
-            with sub_t2:
-                c_in = st.text_area("Paste ciphertext:")
-                if st.button("🔓 Decode Text", type="primary"):
-                    if c_in.strip():
-                        ok, res = decrypt_core(c_in.strip(), group_key, reverse_rule)
-                        if ok: st.success(res)
-                        else: st.error(res)
-
-        with tab_c:
-            c_text = st.text_input("Enter text to disguise into English prose:")
-            if st.button("🎭 Convert to Camouflage", type="primary"):
-                if c_text.strip():
-                    cyph = encrypt_core(c_text, group_key, reverse_rule, "NONE", 0)
-                    st.code(encode_english_camouflage(cyph), language=None)
-
-        with tab_i:
-            img_mode = st.radio("Mode:", ["Hide", "Extract"], horizontal=True)
-            if img_mode == "Hide":
-                up = st.file_uploader("Upload Image (PNG):", type=["png", "jpg"])
-                s_msg = st.text_input("Secret message to hide:")
-                if st.button("🖼️ Embed into Pixels", type="primary") and up and s_msg:
-                    img = Image.open(up)
-                    cyph = encrypt_core(s_msg, group_key, reverse_rule, "NONE", 0)
-                    stego = encode_image_lsb(img, cyph)
-                    buf = io.BytesIO()
-                    stego.save(buf, format="PNG")
-                    st.download_button("⬇️ Download Stego PNG", buf.getvalue(), "stego.png", "image/png")
-            else:
-                stego_up = st.file_uploader("Upload Stego PNG:", type=["png"])
-                if st.button("🔍 Extract from Pixels", type="primary") and stego_up:
-                    img = Image.open(stego_up)
-                    extracted = decode_image_lsb(img)
-                    ok, res = decrypt_core(extracted, group_key, reverse_rule)
-                    if ok: st.success(res)
-                    else: st.error(res)
+        tab1, tab2 = st.tabs(["📤 Encrypt", "📥 Decrypt"])
+        with tab1:
+            msg = st.text_area("Secret message:")
+            mode_opt = st.selectbox("Mode:", ["Normal", "Self-Destruct", "Time-Capsule"])
+            mins = st.number_input("Minutes:", 1, 1440, 10) if mode_opt != "Normal" else 0
+            if st.button("🔒 Encrypt", type="primary") and msg.strip():
+                mode = "EXPIRE" if mode_opt == "Self-Destruct" else ("WAIT" if mode_opt == "Time-Capsule" else "NONE")
+                ts = int(time.time()) + (mins * 60) if mode != "NONE" else 0
+                res = encrypt_core(msg, group_key, reverse_rule, mode, ts)
+                st.success("Ciphertext:")
+                st.code(res)
+        with tab2:
+            cyph = st.text_area("Ciphertext:")
+            if st.button("🔓 Decrypt", type="primary") and cyph.strip():
+                ok, res = decrypt_core(cyph.strip(), group_key, reverse_rule)
+                if ok: st.success(res)
+                else: st.error(res)
 
 elif "3. Secret Chat Rooms" in main_menu:
     st.subheader("💬 Encrypted Persistent Chat Rooms")
@@ -146,52 +164,34 @@ elif "3. Secret Chat Rooms" in main_menu:
         st.warning("⚠️ Please enter a **Group Secret Passphrase** in the sidebar first!")
     else:
         rooms = load_all_rooms()
-        r_choice = st.selectbox("Select or Create Room:", ["-- Create New Room --"] + list(rooms.keys()))
-        if r_choice == "-- Create New Room --":
+        r_name = st.selectbox("Select Room:", ["-- Create New Room --"] + list(rooms.keys()))
+        if r_name == "-- Create New Room --":
             new_r = st.text_input("New Room Name:")
-            if st.button("Create Room") and new_r.strip():
-                create_room(new_r.strip(), secret_seed)
+            if st.button("Create") and new_r.strip():
+                save_all_rooms({**rooms, new_r.strip(): {"messages": []}})
                 st.success(f"Room '{new_r}' created!")
                 st.rerun()
         else:
-            st.markdown(f"### Active Room: `{r_choice}`")
-            msgs = get_room_messages(r_choice)
+            st.markdown(f"### Room: `{r_name}`")
+            msgs = rooms.get(r_name, {}).get("messages", [])
             for m in msgs:
                 st.markdown(f"**{m['sender']}** ({m['timestamp']}): `{m['ciphertext']}`")
-            
-            chat_msg = st.text_input("Type encrypted message:")
-            if st.button("Send Message", type="primary") and chat_msg.strip():
-                cyph = encrypt_core(chat_msg.strip(), group_key, reverse_rule, "NONE", 0)
-                add_message_to_room(r_choice, "Agent", cyph)
+            chat_in = st.text_input("Message:")
+            if st.button("Send", type="primary") and chat_in.strip():
+                c_out = encrypt_core(chat_in.strip(), group_key, reverse_rule, "NONE", 0)
+                add_msg(r_name, "Agent", c_out)
                 st.rerun()
 
-elif "4. Crypto Challenges (CTF)" in main_menu:
+elif "4. Crypto Challenges" in main_menu:
     st.subheader("🕹️ Crypto Challenges & CTF Arena")
-    st.write("Test your cryptanalysis skills across missions. Decode the flags using the rules specified in each level!")
-    st.info("💡 Go to **Cipher Workspace** to decode incoming CTF intercepts.")
-    st.markdown("- **Level 1:** Passphrase `ALPHA`, Shift `5`, No Symbols.\n- **Level 2:** Passphrase `SHADOW`, Camouflage Mode.\n- **Level 3:** Passphrase `PIXEL`, Shift `10`, LSB Steganography.")
+    st.write("Test your cryptanalysis skills! Use the **Cipher Workspace** to decode messages based on group rules.")
+    st.info("💡 Level 1: Passphrase `ALPHA`, Shift `5`. Level 2: Passphrase `SHADOW`.")
 
 elif "5. Security Academy" in main_menu:
     st.subheader("📚 Security Academy & Algorithm X-Ray")
-    st.write("Understand how bits, pixels, and linguistic matrices protect your secret data.")
-    sample = st.text_input("Test string for X-ray:", value="Hi")
-    if sample:
-        c1, c2 = st.columns(2)
-        with c1:
-            st.markdown("**Original Pixel LSB Sample:**")
-            st.table(inspect_pixel_lsb(Image.new("RGB", (30,30), color=(100,150,200)), 3))
-        with c2:
-            st.markdown("**Camouflage Breakdown:**")
-            cyph = encrypt_core(sample, group_key, reverse_rule, "NONE", 0) if group_key else sample
-            st.table(inspect_camouflage_structure(encode_english_camouflage(cyph)))
+    st.write("Understand how substitution tables, shifting, and UTC time locks protect messages.")
 
 elif "6. Utilities & About" in main_menu:
     st.subheader("🛠️ Utilities & Developer Profile")
-    st.markdown(
-        """
-        - **Project:** Ultimate Secret Messenger & Multi-Layer Cryptography Suite.
-        - **Tech Stack:** Python, Streamlit, Pillow (PIL), Custom Substitution & LSB Steganography.
-        - **Author:** Student at Faculty of Information Technology, University of Science, VNU-HCM (HCMUS).
-        """
-    )
+    st.markdown("- **Project:** Ultimate Secret Messenger & Multi-Layer Cryptography Suite.\n- **Author:** Student at HCMUS.")
     st.info("💡 *“Security is not a product, but a process.”* — Bruce Schneier")

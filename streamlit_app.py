@@ -1,3 +1,9 @@
+import sys
+import os
+
+# Thêm thư mục gốc vào system path để nhận diện các package core/ và views/
+sys.path.insert(0, os.path.abspath(os.path.dirname(__file__)))
+
 import streamlit as st
 from core.cipher_engine import build_custom_key, load_massive_symbol_pool
 from views.home import render_home

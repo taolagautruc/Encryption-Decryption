@@ -1019,7 +1019,285 @@ elif "5. Security Academy" in main_menu:
     st.subheader("📚 Security Academy & Algorithm X-Ray")
     st.write("Understand how substitution tables, shifting, and UTC time locks protect messages.")
 
+# ==============================================================================
+# PHẦN 6: UTILITIES, DEVELOPER PROFILE, VISION & COMPREHENSIVE DOCUMENTATION
+# ==============================================================================
 elif "6. Utilities & About" in main_menu:
-    st.subheader("🛠️ Utilities & Developer Profile")
-    st.markdown("- **Project:** Ultimate Secret Messenger & Multi-Layer Cryptography Suite.\n- **Author:** Student at HCMUS.")
-    st.info("💡 *“Security is not a product, but a process.”* — Bruce Schneier")
+    # CSS bổ sung riêng cho trang About & Documentation
+    st.markdown("""
+    <style>
+        .profile-card {
+            background: linear-gradient(135deg, #0f172a 0%, #1e293b 100%);
+            border: 1px solid #3b82f6;
+            border-radius: 16px;
+            padding: 26px 30px;
+            margin-bottom: 24px;
+            box-shadow: 0 8px 25px rgba(59, 130, 246, 0.12);
+        }
+        .dev-name {
+            font-size: 1.9rem;
+            font-weight: 800;
+            color: #f8fafc;
+            margin: 0 0 6px 0;
+        }
+        .dev-role {
+            color: #60a5fa;
+            font-size: 1.02rem;
+            font-weight: 600;
+            margin-bottom: 14px;
+        }
+        .contact-pill {
+            display: inline-block;
+            background: #111827;
+            border: 1px solid #374151;
+            color: #e5e7eb;
+            padding: 6px 14px;
+            border-radius: 999px;
+            font-size: 0.85rem;
+            margin-right: 10px;
+            margin-bottom: 8px;
+        }
+        .vision-box {
+            background: #111827;
+            border-left: 4px solid #8b5cf6;
+            border-top: 1px solid #1f2937;
+            border-right: 1px solid #1f2937;
+            border-bottom: 1px solid #1f2937;
+            border-radius: 12px;
+            padding: 22px 26px;
+            margin-bottom: 20px;
+            line-height: 1.7;
+            color: #cbd5e1;
+        }
+        .toc-box {
+            background: #0f172a;
+            border: 1px solid #1e293b;
+            border-radius: 12px;
+            padding: 20px 26px;
+            margin-bottom: 24px;
+        }
+        .doc-section {
+            background: #111827;
+            border: 1px solid #1f2937;
+            border-radius: 14px;
+            padding: 24px 28px;
+            margin-bottom: 20px;
+        }
+        .doc-section h4 {
+            color: #60a5fa;
+            margin-top: 0;
+            margin-bottom: 12px;
+            font-size: 1.2rem;
+            border-bottom: 1px solid #1f2937;
+            padding-bottom: 8px;
+        }
+        .step-badge {
+            background: rgba(59, 130, 246, 0.2);
+            color: #93c5fd;
+            padding: 2px 8px;
+            border-radius: 6px;
+            font-weight: 700;
+            font-size: 0.8rem;
+            margin-right: 6px;
+        }
+    </style>
+    """, unsafe_allow_html=True)
+
+    # Banner Đầu trang
+    st.markdown("""
+    <div class="hero-box" style="padding: 22px 30px; margin-bottom: 24px;">
+        <div class="hero-badge">👨‍💻 CREATOR PROFILE • PROJECT VISION • MASTER USER MANUAL</div>
+        <div class="hero-title" style="font-size: 2.1rem;">🛠️ About & Comprehensive Documentation</div>
+        <p class="hero-sub">
+            Meet the creator behind Ultimate Secret Messenger, explore our privacy-first mission, and master every cryptographic module with the complete step-by-step handbook below.
+        </p>
+    </div>
+    """, unsafe_allow_html=True)
+
+    # ==========================================================================
+    # SECTION 1: DEVELOPER PROFILE (LÊ HOÀNG PHÚ HIẾU - HCMUS)
+    # ==========================================================================
+    st.markdown("### 👨‍💻 1. Meet the Creator & Architect")
+    st.markdown("""
+    <div class="profile-card">
+        <div class="dev-name">Lê Hoàng Phú Hiếu</div>
+        <div class="dev-role">🎓 Sophomore in Information Technology — Faculty of Information Technology (FIT)<br>
+        🏛️ University of Science, VNU-HCM (HCMUS — Trường Đại học Khoa học Tự nhiên, ĐHQG-HCM)</div>
+        <p style="color: #94a3b8; line-height: 1.65; margin-bottom: 18px;">
+            Passionate software engineer and cybersecurity enthusiast dedicated to building mathematical, zero-trust, and user-centric privacy solutions. This platform was architected from scratch to bridge the gap between complex cryptographic theory and intuitive everyday communication.
+        </p>
+        <div>
+            <span class="contact-pill">📧 <b>Email:</b> phuhieu3001@gmail.com</span>
+            <span class="contact-pill">🐙 <b>GitHub:</b> <a href="https://github.com/taolagautruc" target="_blank" style="color:#60a5fa;text-decoration:none;">github.com/taolagautruc (@taolagautruc)</a></span>
+            <span class="contact-pill">🏫 <b>Institution:</b> HCMUS - VNUHCM</span>
+            <span class="contact-pill">📍 <b>Location:</b> Ho Chi Minh City, Vietnam</span>
+        </div>
+    </div>
+    """, unsafe_allow_html=True)
+
+    # ==========================================================================
+    # SECTION 2: PROJECT PURPOSE, MISSION & FUTURE ROADMAP
+    # ==========================================================================
+    st.markdown("### 🌍 2. Project Purpose, Philosophy & Future Vision")
+    col_v1, col_v2 = st.columns(2)
+
+    with col_v1:
+        st.markdown("""
+        <div class="vision-box">
+            <h4 style="color:#f8fafc; margin-top:0;">🛡️ Why Ultimate Secret Messenger Was Born</h4>
+            <p>
+                We live in an era where personal privacy is constantly compromised. Across mainstream social networks and messaging platforms, user metadata, private conversations, and behavioral footprints are routinely harvested, monetized, and traded on the open market—severely degrading user trust and digital safety.
+            </p>
+            <p style="margin-bottom:0;">
+                <b>Ultimate Secret Messenger</b> is the realization of a personal vision to push back against mass data exploitation. It creates a self-contained, <b>Zero-Trust Cryptographic Sanctuary</b> where users hold 100% ownership of their encryption keys, rules, and data lifespans—ensuring that no third party can ever intercept or monetize your private communication.
+            </p>
+        </div>
+        """, unsafe_allow_html=True)
+
+    with col_v2:
+        st.markdown("""
+        <div class="vision-box" style="border-left-color: #3b82f6;">
+            <h4 style="color:#f8fafc; margin-top:0;">🚀 Long-Term Goal & Social Platform Roadmap</h4>
+            <p>
+                This web platform is only the beginning. I am committed to actively listening to user feedback, refining the cryptographic engines, and expanding the feature set continuously.
+            </p>
+            <p style="margin-bottom:0;">
+                <b>The Ultimate Goal:</b> To evolve this project into a standalone, cross-platform downloadable application (Desktop & Mobile) that functions as a <b>Next-Generation Privacy-First Social Network</b>—a trusted digital haven where friends, teams, and communities can connect, share media, and converse with absolute mathematical security.
+            </p>
+        </div>
+        """, unsafe_allow_html=True)
+
+    st.divider()
+
+    # ==========================================================================
+    # SECTION 3: TABLE OF CONTENTS & COMPLETE MASTER USER GUIDE (LONG SCROLL)
+    # ==========================================================================
+    st.markdown("### 📖 3. Master Table of Contents & User Manual")
+    st.caption("Scroll down to explore the complete architectural breakdown and step-by-step instructions for every feature in the suite.")
+
+    st.markdown("""
+    <div class="toc-box">
+        <h4 style="color:#f8fafc; margin-top:0; margin-bottom:12px;">📑 Quick Directory (Table of Contents)</h4>
+        <ol style="color:#93c5fd; line-height:1.9; margin-bottom:0;">
+            <li><b>Module 0 — Global Sidebar Control Panel:</b> Configuring Multi-Layer Group Keys (Passphrase, Shift, 1,400+ Symbols, Custom Pairs & Reverse).</li>
+            <li><b>Module 1 — Executive Home Dashboard:</b> Monitoring Live Key Entropy, Brute-Force Resistance & Universal UTC Clock.</li>
+            <li><b>Module 2A — Multi-Layer Text Cipher & UTC Time-Locking:</b> Self-Destructing Messages & Time-Capsule Delays.</li>
+            <li><b>Module 2B — Linguistic Camouflage Studio:</b> Disguising Ciphertexts into Innocent English Prose (2-Way Markov Engine).</li>
+            <li><b>Module 2C — LSB Image Steganography Lab:</b> Hiding Encrypted Payloads Inside Lossless PNG Pixels.</li>
+            <li><b>Module 3 — Encrypted Persistent Chat Rooms:</b> Real-Time Multi-Modal Messaging & SHA-256 Admin Security Controls.</li>
+            <li><b>Module 4 — Group Rule Sharing Utility:</b> Exporting & Importing Non-Sensitive Team Configuration Strings.</li>
+        </ol>
+    </div>
+    """, unsafe_allow_html=True)
+
+    # --- GUIDE ITEM 1: SIDEBAR CONTROL PANEL ---
+    st.markdown("""
+    <div class="doc-section">
+        <h4>🎛️ Module 0: Mastering the Global Cipher Control Panel (Left Sidebar)</h4>
+        <p style="color:#cbd5e1;">
+            The left sidebar is the heart of the platform. Every encryption and decryption action across the entire website relies on the exact combination of <b>5 customizable parameters</b> you set here. Both the sender and receiver must configure identical sidebar rules to read messages:
+        </p>
+        <ul style="color:#94a3b8; line-height:1.75;">
+            <li><span class="step-badge">LAYER 1</span> <b>🔑 Group Secret Passphrase:</b> Your primary secret password (e.g., <code>Nexus2026</code>). It seeds the deterministic pseudo-random number generator (PRNG) that shuffles the 229-character base alphabet.</li>
+            <li><span class="step-badge">LAYER 2</span> <b>🔢 Shift Offset (0–200):</b> Rotates the shuffled substitution table by a specific number of positions, adding modular arithmetic protection.</li>
+            <li><span class="step-badge">LAYER 3</span> <b>🎨 Symbol Vault (1,400+ Unicode Icons):</b> Select an ordered chain of emojis/symbols. Even if an attacker knows your text password, missing a single icon or placing them in the wrong order completely alters the key matrix.</li>
+            <li><span class="step-badge">LAYER 4</span> <b>🔀 Custom Pairs (Optional):</b> Define manual character swaps separated by commas (e.g., <code>a=@, e=3, s=$</code>) to inject custom traps into the cipher table.</li>
+            <li><span class="step-badge">LAYER 5</span> <b>🔄 Reverse Structure:</b> Flips the entire encrypted output string backward prior to transmission.</li>
+        </ul>
+    </div>
+    """, unsafe_allow_html=True)
+
+    # --- GUIDE ITEM 2: HOME DASHBOARD ---
+    st.markdown("""
+    <div class="doc-section">
+        <h4>🏠 Module 1: Executive Home Dashboard & Live Security Audit</h4>
+        <p style="color:#cbd5e1;">
+            Provides a real-time command center displaying system metrics and evaluating the mathematical strength of your current sidebar configuration:
+        </p>
+        <ul style="color:#94a3b8; line-height:1.75;">
+            <li><b>Live Key Entropy Calculator:</b> Automatically calculates the bit-strength (e.g., <code>~128+ bits</code>) and estimates how many years a supercomputer testing 1 trillion keys per second would need to brute-force your configuration.</li>
+            <li><b>Universal UTC Synchronization:</b> Displays the current Coordinated Universal Time (UTC) used by all time-locks, ensuring two users in different timezones (e.g., Vietnam and the US) experience zero clock drift.</li>
+        </ul>
+    </div>
+    """, unsafe_allow_html=True)
+
+    # --- GUIDE ITEM 3: TEXT CIPHER & TIME-LOCK ---
+    st.markdown("""
+    <div class="doc-section">
+        <h4>📝 Module 2A: Multi-Layer Text Cipher & UTC Time-Locking</h4>
+        <p style="color:#cbd5e1;">
+            Located in <b>2. Cipher Workspace → Tab 1</b>. Allows you to encrypt plain text (supporting full English, Vietnamese diacritics, numbers, and punctuation) with embedded temporal rules:
+        </p>
+        <ul style="color:#94a3b8; line-height:1.75;">
+            <li><span class="step-badge">MODE 1</span> <b>Normal (No Time Limit):</b> Standard encryption that can be decoded anytime by teammates with the matching key.</li>
+            <li><span class="step-badge">MODE 2</span> <b>🔥 Self-Destruct After Time:</b> Embeds a UTC expiration deadline inside the encrypted header. If the recipient attempts to decode the message after the timer expires, the engine blocks decryption and permanently scrambles the payload.</li>
+            <li><span class="step-badge">MODE 3</span> <b>⏳ Time-Capsule (Wait Until):</b> Locks the message until a future UTC timestamp. Anyone attempting to decode it early will see a live countdown timer telling them how many minutes/seconds remain.</li>
+        </ul>
+    </div>
+    """, unsafe_allow_html=True)
+
+    # --- GUIDE ITEM 4: ENGLISH CAMOUFLAGE ---
+    st.markdown("""
+    <div class="doc-section">
+        <h4>🎭 Module 2B: Linguistic Camouflage Studio (2-Way Markov Prose)</h4>
+        <p style="color:#cbd5e1;">
+            Located in <b>2. Cipher Workspace → Tab 2</b>. Standard encrypted strings look suspicious to firewalls or human moderators. Linguistic Camouflage solves this:
+        </p>
+        <ul style="color:#94a3b8; line-height:1.75;">
+            <li><b>How to Disguise (Encode):</b> Type your secret message and click <i>"Encrypt & Disguise as English Prose"</i>. The engine first encrypts your text, splits every byte into 4-bit nibbles, and maps them to innocent IT/networking English vocabulary formatted as natural sentences.</li>
+            <li><b>How to Reveal (Decode):</b> Paste the innocent-looking English paragraph into the right column and click <i>"Extract & Decrypt Secret"</i> to reverse the prose back into your original message.</li>
+        </ul>
+    </div>
+    """, unsafe_allow_html=True)
+
+    # --- GUIDE ITEM 5: IMAGE STEGANOGRAPHY ---
+    st.markdown("""
+    <div class="doc-section">
+        <h4>🖼️ Module 2C: LSB Pixel Steganography Lab (Hide Secrets Inside Images)</h4>
+        <p style="color:#cbd5e1;">
+            Located in <b>2. Cipher Workspace → Tab 3</b>. Conceals your encrypted message directly inside the RGB color channels of an image using <b>Least Significant Bit (LSB)</b> manipulation:
+        </p>
+        <ul style="color:#94a3b8; line-height:1.75;">
+            <li><span class="step-badge">STEP 1</span> Choose a carrier image by uploading your own <code>PNG/JPG</code> photo or clicking <b>"Auto-Generate Cyber Carrier Image"</b> to create a custom matrix graphic on the fly.</li>
+            <li><span class="step-badge">STEP 2</span> Type your secret message and optional UTC Time-Lock. Check the <b>Pixel LSB Capacity Bar</b> on the right to see what percentage of the image's pixels will be used.</li>
+            <li><span class="step-badge">STEP 3</span> Click <b>"Encrypt & Embed Into Image Pixels"</b> and download the resulting lossless <code>.PNG</code> file. To the naked eye, the image looks 100% identical to the original!</li>
+            <li><span class="step-badge">STEP 4</span> To read a hidden message, switch to <b>Decode Mode</b>, upload the Stego <code>.PNG</code> file, and click <b>"Extract Bits & Decrypt Payload"</b>.</li>
+        </ul>
+    </div>
+    """, unsafe_allow_html=True)
+
+    # --- GUIDE ITEM 6: SECRET CHAT ROOMS & ADMIN CONTROLS ---
+    st.markdown("""
+    <div class="doc-section">
+        <h4>💬 Module 3: Encrypted Persistent Chat Rooms & SHA-256 Admin Protection</h4>
+        <p style="color:#cbd5e1;">
+            Located in <b>3. Secret Chat Rooms</b>. A full-featured team communication hub where only encrypted ciphertexts, camouflaged prose, or Stego PNG images are stored on the server:
+        </p>
+        <ul style="color:#94a3b8; line-height:1.75;">
+            <li><b>👑 Creating an Admin-Protected Room:</b> Select <i>"➕ Create New Secret Room"</i>, enter a Channel ID, and set a <b>Room Admin Master PIN</b>. Your PIN is hashed using <code>SHA-256</code> so even the database administrator cannot see it.</li>
+            <li><b>📤 Sending Multi-Modal Messages:</b> Use the 3 tabs at the bottom of the room to broadcast encrypted text (with UTC self-destruct timers), English Camouflage sentences, or embed secrets into an <b>LSB Stego Image</b> and post the image directly into the chat feed!</li>
+            <li><b>🔓 One-Click In-Room Decryption:</b> Click the <b>"🔓 Decode"</b> button next to any message or Stego Image in the chat feed to decrypt it instantly using your active sidebar rules.</li>
+            <li><b>🗑️ Granular & Admin Deletion Controls:</b> Any user can delete an individual message using the <b>"🗑️ Delete"</b> button. However, wiping the entire room history (<b>"🧹 Clear Chat History"</b>) or permanently deleting the room (<b>"💥 Destroy Room"</b>) requires unlocking the <b>Room Admin Security Panel</b> with the creator's Admin PIN.</li>
+        </ul>
+    </div>
+    """, unsafe_allow_html=True)
+
+    # ==========================================================================
+    # SECTION 4: INTERACTIVE GROUP CONFIG EXPORT UTILITY
+    # ==========================================================================
+    st.divider()
+    st.markdown("### 📦 4. Quick Utility: Export Non-Sensitive Group Rule Blueprint")
+    st.caption("Share your current Shift Offset, Symbol Vault sequence, and Custom Pairs with teammates (Passphrase is hidden for security).")
+    
+    export_blueprint = json.dumps({
+        "platform": "Ultimate Secret Messenger v2.0",
+        "author": "Le Hoang Phu Hieu (HCMUS)",
+        "shift_offset": shift_step,
+        "symbol_chain": pattern_list,
+        "custom_pairs": custom_pairs,
+        "reverse_structure": reverse_rule,
+        "passphrase_hint": f"{len(secret_seed)} characters (Communicate via secure offline channel)" if secret_seed else "Not set"
+    }, ensure_ascii=False, indent=2)
+    
+    st.code(export_blueprint, language="json")
+    st.info("💡 *“Security is not a product, but a process.”* — Bruce Schneier | Architected with ❤️ by **Lê Hoàng Phú Hiếu (FIT - HCMUS)**.")

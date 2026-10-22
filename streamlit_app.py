@@ -1011,7 +1011,7 @@ elif "3. Secret Chat Rooms" in main_menu:
                                     st.error(p_msg)
 
 # ==============================================================================
-# PHẦN 4: CRYPTO CHALLENGES & GLOBAL CTF ARENA (KIDS TO GRANDMASTER EDITION)
+# PHẦN 4: CRYPTO CHALLENGES & GLOBAL CTF ARENA (THEMED ENCYCLOPEDIA & STEP-BY-STEP EDITION)
 # ==============================================================================
 elif "4. Crypto Challenges" in main_menu:
     CTF_DB_FILE = "ctf_arena_db.json"
@@ -1071,121 +1071,197 @@ elif "4. Crypto Challenges" in main_menu:
         if score > 0:      return "🛡️ Junior Detective"
         return "🌱 Starter Explorer"
 
-    # --- KHO DỮ LIỆU BÁCH KHOA TOÀN THƯ THẾ GIỚI (GLOBAL ENCYCLOPEDIA POOL) ---
-    WORLD_KNOWLEDGE_POOL = [
-        # Countries & Iconic Landmarks
-        ("Country", "JAPAN", "The Land of the Rising Sun, famous for Mount Fuji, cherry blossoms, and Tokyo."),
-        ("Country", "EGYPT", "North African country famous for the Ancient Pyramids of Giza, the Sphinx, and the Nile River."),
-        ("Country", "FRANCE", "European country home to the Eiffel Tower, the Louvre Museum, and Paris."),
-        ("Country", "BRAZIL", "The largest country in South America, famous for the Amazon Rainforest and Christ the Redeemer."),
-        ("Country", "ITALY", "Boot-shaped European country famous for the Colosseum in Rome, Venice canals, and pizza."),
-        ("Country", "CANADA", "The second-largest country in the world, famous for maple leaf flags and Niagara Falls."),
-        ("Country", "AUSTRALIA", "Continent and country famous for the Sydney Opera House, kangaroos, and the Great Barrier Reef."),
-        ("Landmark", "STATUE OF LIBERTY", "Colossal neoclassical sculpture on Liberty Island in New York Harbor, gifted by France."),
-        ("Landmark", "GREAT WALL", "Ancient series of stone fortifications built across the historical northern borders of China."),
-        ("Landmark", "TAJ MAHAL", "Ivory-white marble mausoleum on the right bank of the river Yamuna in Agra, India."),
-        ("Landmark", "MACHU PICCHU", "15th-century Inca citadel located in the Eastern Cordillera of southern Peru."),
-        ("Landmark", "BIG BEN", "Famous nickname for the Great Bell of the striking clock at the Palace of Westminster in London."),
-        # US Presidents
-        ("US President", "GEORGE WASHINGTON", "The 1st President of the United States and Commander-in-Chief of the Continental Army."),
-        ("US President", "ABRAHAM LINCOLN", "The 16th US President who issued the Emancipation Proclamation and led the nation through the Civil War."),
-        ("US President", "THEODORE ROOSEVELT", "The 26th US President, famous for conservationism, the Panama Canal, and Mount Rushmore."),
-        ("US President", "FRANKLIN ROOSEVELT", "The 32nd US President (FDR) who led the United States through the Great Depression and World War II."),
-        ("US President", "JOHN F KENNEDY", "The 35th US President (JFK) who initiated the Apollo space program during the Cold War."),
-        ("US President", "THOMAS JEFFERSON", "The 3rd US President and the principal author of the Declaration of Independence in 1776."),
-        ("US President", "BARACK OBAMA", "The 44th President of the United States and the first African American to hold the office."),
-        # World Famous Figures & Scientists
-        ("World Figure", "ALBERT EINSTEIN", "German-born theoretical physicist who developed the Theory of Relativity (E = mc^2)."),
-        ("World Figure", "ISAAC NEWTON", "English mathematician and physicist who formulated the laws of motion and universal gravitation."),
-        ("World Figure", "LEONARDO DA VINCI", "Italian Renaissance polymath who painted the Mona Lisa and The Last Supper."),
-        ("World Figure", "ALAN TURING", "English mathematician and father of computer science who cracked the Nazi Enigma machine in WWII."),
-        ("World Figure", "MARIE CURIE", "Polish-French physicist and chemist who conducted pioneering research on radioactivity and won two Nobel Prizes."),
-        ("World Figure", "NIKOLA TESLA", "Serbian-American inventor best known for his contributions to the design of the modern alternating current (AC) electricity system."),
-        ("World Figure", "NELSON MANDELA", "South African anti-apartheid revolutionary and political leader who served as the 1st President of South Africa."),
-        ("World Figure", "NAPOLEON BONAPARTE", "French military commander and Emperor who rose to prominence during the French Revolution."),
-        ("World Figure", "WILLIAM SHAKESPEARE", "English playwright and poet, widely regarded as the greatest writer in the English language (Romeo and Juliet, Hamlet)."),
-        # Historical Wars, Conflicts & Major Global Events
-        ("Historical War", "WORLD WAR II", "Global conflict from 1939 to 1945 involving the Allies and the Axis powers, ending after Normandy and Hiroshima."),
-        ("Historical War", "WORLD WAR I", "Global war originating in Europe from 1914 to 1918, triggered by the assassination of Archduke Franz Ferdinand."),
-        ("Historical War", "COLD WAR", "Geopolitical tension between the United States and the Soviet Union from 1947 to 1991 without direct large-scale fighting."),
-        ("Historical War", "AMERICAN CIVIL WAR", "Civil war in the United States (1861-1865) fought between the Union (North) and the Confederacy (South)."),
-        ("Historical Battle", "BATTLE OF WATERLOO", "Famous 1815 battle in Belgium where Napoleon Bonaparte was defeated for the final time."),
-        ("Historical Event", "SEPTEMBER 11", "The 2001 terrorist attacks by al-Qaeda against the World Trade Center Twin Towers in New York and the Pentagon."),
-        ("Historical Event", "PEARL HARBOR", "Surprise military strike by the Imperial Japanese Navy Air Service upon the United States in Hawaii on December 7, 1941."),
-        ("Historical Event", "APOLLO 11", "Historic 1969 spaceflight that first landed humans—Neil Armstrong and Buzz Aldrin—on the Moon."),
-        ("Historical Event", "FALL OF BERLIN WALL", "Pivotal 1989 world event marking the destruction of the concrete barrier dividing East and West Berlin."),
-        ("Historical Event", "TITANIC DISASTER", "The 1912 sinking of the British passenger liner in the North Atlantic Ocean after striking an iceberg."),
-        ("Historical Event", "FRENCH REVOLUTION", "Period of radical political and societal change in France that began with the Storming of the Bastille in 1789."),
-        ("Historical Event", "CUBAN MISSILE CRISIS", "13-day confrontation in October 1962 between the US and USSR that brought the world closest to nuclear conflict.")
+    # ==========================================================================
+    # KHO BÁCH KHOA TOÀN THƯ ĐA CHỦ ĐỀ (PHÂN LOẠI ĐỘ DỄ CHO TIER 1-2 & CHUYÊN SÂU CHO TIER 3-5)
+    # Cấu trúc mỗi mục: (Main Theme, Specific Sub-Topic, Exact Answer, Clear Clue)
+    # ==========================================================================
+    EASY_KIDS_POOL = [
+        # 1. Animals (Land, Sky & Wildlife)
+        ("🐾 Animals & Wildlife", "Land Mammal (Động vật trên cạn)", "LION", "Known as the 'King of the Jungle', this big cat lives in African savannas and has a majestic mane."),
+        ("🐾 Animals & Wildlife", "Land Mammal (Động vật trên cạn)", "TIGER", "The largest wild cat in the world, famous for its orange fur and dark vertical stripes."),
+        ("🐾 Animals & Wildlife", "Land Mammal (Động vật trên cạn)", "ELEPHANT", "The largest land animal on Earth, famous for its long trunk, big ears, and ivory tusks."),
+        ("🐾 Animals & Wildlife", "Land Mammal (Động vật trên cạn)", "GIRAFFE", "The tallest living terrestrial animal in the world, famous for its extremely long neck."),
+        ("🐾 Animals & Wildlife", "Land Mammal (Động vật trên cạn)", "CHEETAH", "The fastest land animal on Earth, capable of running at speeds over 100 km/h."),
+        ("🐾 Animals & Wildlife", "Land Mammal (Động vật trên cạn)", "PANDA", "Black-and-white bear native to China that loves eating bamboo all day."),
+        ("🐾 Animals & Wildlife", "Land Mammal (Động vật trên cạn)", "KANGAROO", "Iconic Australian mammal that hops on powerful hind legs and carries its baby in a pouch."),
+        ("🐾 Animals & Wildlife", "Polar Bird (Chim vùng cực)", "PENGUIN", "Flightless black-and-white bird that lives in icy Antarctica and is an expert swimmer."),
+        # 2. Ocean, Marine Life & Deep Sea
+        ("🌊 Ocean & Deep Sea", "Marine Mammal (Sinh vật biển)", "DOLPHIN", "Highly intelligent marine mammal known for its friendly smile and acrobatic leaps out of the water."),
+        ("🌊 Ocean & Deep Sea", "Deep Sea Creature (Sinh vật đáy biển)", "OCTOPUS", "Soft-bodied sea creature with 8 tentacles, 3 hearts, blue blood, and the ability to spray ink."),
+        ("🌊 Ocean & Deep Sea", "Ocean Predator (Cá săn mồi đại dương)", "SHARK", "Apex ocean predator with dorsal fins and rows of sharp replaceable teeth."),
+        ("🌊 Ocean & Deep Sea", "Marine Giant (Khổng lồ đại dương)", "BLUE WHALE", "The largest animal ever known to have lived on Earth, swimming in the deep oceans."),
+        ("🌊 Ocean & Deep Sea", "Marine Ecosystem (Hệ sinh thái biển)", "CORAL REEF", "Colorful underwater ecosystem built by tiny marine invertebrates, often called the 'Rainforest of the Sea'."),
+        ("🌊 Ocean & Deep Sea", "World Ocean (Đại dương thế giới)", "PACIFIC OCEAN", "The largest and deepest of Earth's five oceanic divisions, stretching from Asia to the Americas."),
+        # 3. Plants, Trees & Flowers
+        ("🌿 Plants & Botany", "Famous Flower (Loài hoa nổi tiếng)", "SUNFLOWER", "Tall, bright yellow flower that always turns its head to face the sun."),
+        ("🌿 Plants & Botany", "Desert Plant (Thực vật sa mạc)", "CACTUS", "Spiky desert plant that stores water in its thick stem to survive extreme heat."),
+        ("🌿 Plants & Botany", "Fast-Growing Plant (Thực vật thân đốt)", "BAMBOO", "The fastest-growing woody plant in the world, and the favorite food of giant pandas."),
+        ("🌿 Plants & Botany", "Iconic Flower (Hoa biểu tượng)", "LOTUS", "Sacred aquatic flower that grows in mud and blooms beautifully on the water surface."),
+        # 4. Space, Planets & Stars
+        ("🪐 Space & Cosmos", "Solar System Planet (Hành tinh Hệ Mặt Trời)", "MARS", "The 4th planet from the Sun, famous as the 'Red Planet' due to iron oxide on its surface."),
+        ("🪐 Space & Cosmos", "Solar System Planet (Hành tinh Hệ Mặt Trời)", "SATURN", "The 6th planet from the Sun, famous for its spectacular system of icy rings."),
+        ("🪐 Space & Cosmos", "Solar System Planet (Hành tinh Hệ Mặt Trời)", "JUPITER", "The largest planet in our Solar System, a gas giant famous for its Great Red Spot storm."),
+        ("🪐 Space & Cosmos", "Star & Astronomy (Ngôi sao trung tâm)", "THE SUN", "The giant burning star at the center of our Solar System that gives light and life to Earth."),
+        ("🪐 Space & Cosmos", "Cosmic Galaxy (Thiên hà vũ trụ)", "MILKY WAY", "The spiral galaxy that contains our Solar System and billions of shining stars."),
+        # 5. Basic Science & Countries
+        ("🔬 Science & Nature", "Precious Mineral (Khoáng vật quý)", "DIAMOND", "The hardest known natural material on Earth, formed from pure carbon under extreme pressure."),
+        ("🔬 Science & Nature", "Essential Gas (Khí sự sống)", "OXYGEN", "The life-supporting chemical element (O2) in the air that humans and animals breathe."),
+        ("🗺️ World Countries", "Asian Country (Quốc gia Châu Á)", "JAPAN", "Island nation in East Asia known as the Land of the Rising Sun, famous for Mount Fuji and Tokyo."),
+        ("🗺️ World Countries", "European Country (Quốc gia Châu Âu)", "FRANCE", "European country famous for the Eiffel Tower in Paris and the Louvre Museum."),
+        ("🗺️ World Countries", "African Country (Quốc gia Châu Phi)", "EGYPT", "Country famous for the Ancient Pyramids of Giza, the Sphinx, and the Nile River.")
     ]
 
-    def caesar_shift_ascii(text: str, shift: int) -> str:
-        """Chỉ dịch chuyển 26 chữ cái tiếng Anh A-Z để người chơi dễ nhìn, không sinh ký tự lạ."""
-        out = []
+    ADVANCED_GLOBAL_POOL = [
+        # Deep Sea & Oceanography
+        ("🌊 Ocean & Deep Sea", "Deepest Ocean Trench (Rãnh đại dương sâu nhất)", "MARIANA TRENCH", "The deepest oceanic trench on Earth (~11,000 meters deep), located in the western Pacific Ocean."),
+        ("🌊 Ocean & Deep Sea", "Deep Sea Monster (Quái vật biển sâu)", "GIANT SQUID", "Deep-ocean dwelling cephalopod with gigantic eyes that can grow up to 13 meters long."),
+        ("🌊 Ocean & Deep Sea", "Apex Ocean Predator (Cá mập trắng lớn)", "GREAT WHITE SHARK", "The world's largest known predatory fish, famous for patrolling coastal surface waters."),
+        # Space, Stars & Astrophysics
+        ("🪐 Space & Cosmos", "Astrophysics Phenomenon (Hiện tượng Vũ trụ)", "BLACK HOLE", "A region of spacetime where gravity is so strong that nothing—not even light—can escape."),
+        ("🪐 Space & Cosmos", "Stellar Explosion (Vụ nổ siêu tân tinh)", "SUPERNOVA", "A powerful and luminous explosion of a massive star at the end of its evolutionary life."),
+        ("🪐 Space & Cosmos", "Guiding Star (Ngôi sao dẫn đường)", "NORTH STAR", "Also known as Polaris, the bright star positioned almost directly above Earth's North Pole."),
+        ("🪐 Space & Cosmos", "Neighboring Galaxy (Thiên hà láng giềng)", "ANDROMEDA", "The closest major spiral galaxy to our Milky Way, located about 2.5 million light-years away."),
+        ("🪐 Space & Cosmos", "Historic Space Mission (Sứ mệnh Không gian)", "APOLLO 11", "Historic 1969 NASA spaceflight that first landed humans—Neil Armstrong and Buzz Aldrin—on the Moon."),
+        # Science & Biology
+        ("🔬 Science & Nature", "Botanical Process (Quá trình Quang hợp)", "PHOTOSYNTHESIS", "The biological process used by green plants to convert sunlight, water, and CO2 into oxygen and energy."),
+        ("🔬 Science & Nature", "Fundamental Physics (Lực Vạn vật hấp dẫn)", "GRAVITY", "The natural phenomenon by which all things with mass or energy are attracted toward one another, described by Newton."),
+        ("🔬 Science & Nature", "Rainforest Ecosystem (Rừng nhiệt đới lớn nhất)", "AMAZON RAINFOREST", "The world's largest tropical rainforest, covering much of northwestern Brazil and South America."),
+        # US Presidents
+        ("🦅 US Presidents", "1st US President (Tổng thống Mỹ đầu tiên)", "GEORGE WASHINGTON", "Founding Father who served as the 1st President of the United States (1789–1797)."),
+        ("🦅 US Presidents", "16th US President (Tổng thống Mỹ thứ 16)", "ABRAHAM LINCOLN", "US President who abolished slavery with the Emancipation Proclamation and led the nation through the Civil War."),
+        ("🦅 US Presidents", "3rd US President (Tổng thống Mỹ thứ 3)", "THOMAS JEFFERSON", "Principal author of the Declaration of Independence (1776) and the 3rd US President."),
+        ("🦅 US Presidents", "35th US President (Tổng thống Mỹ thứ 35)", "JOHN F KENNEDY", "Charismatic US President (JFK) who navigated the Cuban Missile Crisis and initiated Project Apollo."),
+        ("🦅 US Presidents", "44th US President (Tổng thống Mỹ thứ 44)", "BARACK OBAMA", "The 44th President of the United States and the first African American to hold the office."),
+        # World Figures & Scientists
+        ("🏛️ World Figures", "Theoretical Physicist (Nhà vật lý thiên tài)", "ALBERT EINSTEIN", "German-born physicist who developed the Theory of Relativity (E = mc^2) and won the Nobel Prize."),
+        ("🏛️ World Figures", "Father of Computer Science (Cha đẻ Khoa học Máy tính)", "ALAN TURING", "British mathematician who cracked the Nazi Enigma cipher machine during World War II."),
+        ("🏛️ World Figures", "Renaissance Master (Danh họa Phục Hưng)", "LEONARDO DA VINCI", "Italian polymath who painted the Mona Lisa and The Last Supper."),
+        ("🏛️ World Figures", "Pioneering Scientist (Nhà bác học nữ 2 giải Nobel)", "MARIE CURIE", "Physicist and chemist who discovered radium and polonium, winning Nobel Prizes in both Physics and Chemistry."),
+        # Wars, Battles & Global Historical Events
+        ("⚔️ History & Wars", "Global Conflict (Chiến tranh Thế giới thứ II)", "WORLD WAR II", "Global war from 1939 to 1945 between the Allies and the Axis powers."),
+        ("⚔️ History & Wars", "Geopolitical Stand-off (Chiến tranh Lạnh)", "COLD WAR", "Decades-long geopolitical tension between the United States and the Soviet Union after WWII."),
+        ("⚔️ History & Wars", "Famous European Battle (Trận chiến Waterloo)", "BATTLE OF WATERLOO", "The 1815 battle in Belgium where French Emperor Napoleon Bonaparte suffered his final defeat."),
+        ("⚔️ History & Wars", "2001 Global Tragedy (Sự kiện khủng bố 11/9)", "SEPTEMBER 11", "The 2001 terrorist attacks on the World Trade Center Twin Towers in New York City and the Pentagon."),
+        ("⚔️ History & Wars", "Maritime Tragedy (Thảm họa tàu Titanic)", "TITANIC DISASTER", "The 1912 sinking of the 'unsinkable' British passenger liner after striking an iceberg in the North Atlantic.")
+    ]
+
+    def caesar_shift_with_steps(text: str, shift: int) -> tuple[str, str]:
+        """Mã hóa Caesar và trả về luôn chuỗi giải thích từng ký tự một để người đọc hiểu 100%."""
+        encoded_chars = []
+        step_logs = []
         for ch in text.upper():
             if "A" <= ch <= "Z":
-                out.append(chr((ord(ch) - ord("A") + shift) % 26 + ord("A")))
+                enc_c = chr((ord(ch) - ord("A") + shift) % 26 + ord("A"))
+                encoded_chars.append(enc_c)
+                step_logs.append(f"`{enc_c}` (-{shift}) → **`{ch}`**")
             else:
-                out.append(ch)
-        return "".join(out)
+                encoded_chars.append(ch)
+                step_logs.append(f"`[Space]`")
+        return "".join(encoded_chars), " | ".join(step_logs)
 
-    def atbash_ascii(text: str) -> str:
-        """Đảo ngược bảng chữ cái tiếng Anh: A<->Z, B<->Y, C<->X..."""
-        out = []
+    def atbash_with_steps(text: str) -> tuple[str, str]:
+        """Đảo bảng chữ cái A<->Z kèm lời giải thích từng chữ cái."""
+        encoded_chars = []
+        step_logs = []
         for ch in text.upper():
             if "A" <= ch <= "Z":
-                out.append(chr(ord("Z") - (ord(ch) - ord("A"))))
+                enc_c = chr(ord("Z") - (ord(ch) - ord("A")))
+                encoded_chars.append(enc_c)
+                step_logs.append(f"`{enc_c}` ↔ **`{ch}`**")
             else:
-                out.append(ch)
-        return "".join(out)
-
-    def leetspeak_encode(text: str) -> str:
-        mapping = {"A": "4", "E": "3", "I": "1", "O": "0", "S": "5", "T": "7"}
-        return "".join(mapping.get(ch, ch) for ch in text.upper())
+                encoded_chars.append(ch)
+                step_logs.append("`[Space]`")
+        return "".join(encoded_chars), " | ".join(step_logs)
 
     def generate_dynamic_challenge(username: str, tier: int, q_num: int) -> dict:
-        seed_str = f"GLOBAL_ENCYCLOPEDIA_V3_{username}_T{tier}_Q{q_num}"
+        seed_str = f"ENCYCLOPEDIA_V4_{username}_T{tier}_Q{q_num}"
         rng = random.Random(seed_str)
-
-        category, answer_raw, trivia_clue = rng.choice(WORLD_KNOWLEDGE_POOL)
-        clean_answer = answer_raw.upper().strip()
 
         tier_pts = {1: 100, 2: 250, 3: 500, 4: 1000, 5: 2500}
         base_pts = tier_pts[tier]
 
+        # Chọn ngân hàng câu hỏi phù hợp theo cấp độ: Tier 1 & 2 dùng từ ngắn siêu dễ; Tier 3, 4, 5 kết hợp cả kho
+        if tier in [1, 2]:
+            main_theme, sub_topic, answer_raw, clue = rng.choice(EASY_KIDS_POOL)
+        else:
+            combined_pool = EASY_KIDS_POOL + ADVANCED_GLOBAL_POOL
+            main_theme, sub_topic, answer_raw, clue = rng.choice(combined_pool)
+
+        clean_answer = answer_raw.upper().strip()
+        words_list = clean_answer.split()
+        word_structure = f"{len(words_list)} word(s), {len(clean_answer.replace(' ', ''))} letters total (Starts with '{clean_answer[0]}', ends with '{clean_answer[-1]}')"
+
+        # Khung Banner Chủ đề rõ ràng cho mọi câu hỏi
+        topic_header = (
+            f"📂 **Main Category:** `{main_theme}` &nbsp;|&nbsp; "
+            f"🎯 **Specific Topic:** `{sub_topic}` &nbsp;|&nbsp; "
+            f"📏 **Structure:** `{word_structure}`"
+        )
+
         # ======================================================================
-        # TIER 1: KIDS & BEGINNERS (SIÊU DỄ — ĐẢO NGƯỢC CHỮ HOẶC KHỚP NGUYÊN ÂM)
+        # TIER 1: KIDS & BEGINNERS (SIÊU DỄ — ĐIỀN NGUYÊN ÂM HOẶC ĐÁNH VẦN NGƯỢC)
         # ======================================================================
         if tier == 1:
-            sub_type = q_num % 2
-            if sub_type == 0:
-                # Kiểu 1A: Viết ngược từ (Mirror / Backwards Word)
-                encoded_puzzle = clean_answer[::-1]
-                rule_desc = "🔄 **Mirror Word Puzzle (Read Backwards):** The letters of the answer have simply been flipped from right to left!"
+            if q_num % 2 == 1:
+                # Kiểu 1A: Ẩn nguyên âm (A, E, I, O, U) và cho sẵn danh sách các chữ cái bị ẩn!
+                vowels = set("AEIOU")
+                masked_chars = []
+                removed_vowels = []
+                for idx, ch in enumerate(clean_answer):
+                    # Giữ nguyên chữ cái đầu tiên để cực kỳ dễ đoán
+                    if idx > 0 and ch in vowels:
+                        masked_chars.append("_")
+                        removed_vowels.append(ch)
+                    else:
+                        masked_chars.append(ch)
+                encoded_puzzle = " ".join(masked_chars)
+                vowels_hint_str = ", ".join(removed_vowels) if removed_vowels else "None"
+
+                briefing = (
+                    f"### 🎈 Tier 1 (Kids & Beginners) Mission #{q_num}\n"
+                    f"{topic_header}\n\n"
+                    f"**🌍 Fun Fact Clue:** *{clue}*\n\n"
+                    f"🧩 **How to Solve (Missing Vowels Game):** We hid the vowels (`A, E, I, O, U`) inside this `{sub_topic}` name! "
+                    f"Put the missing vowels **`[{vowels_hint_str}]`** back into the `_` blanks below to complete the word!"
+                )
                 step_hint = (
-                    f"1. Read the clue: *{trivia_clue}*\n"
-                    f"2. Read the puzzle string **`{encoded_puzzle}`** from right to left.\n"
-                    f"3. It starts with **`{clean_answer[0]}`** and ends with **`{clean_answer[-1]}`** ({len(clean_answer)} characters total)."
+                    f"1. **Topic:** `{sub_topic}` — *{clue}*\n"
+                    f"2. **Missing Vowels in exact order:** **`{vowels_hint_str}`**\n"
+                    f"3. Fill them one by one into `{encoded_puzzle}` $\\rightarrow$ It starts with **`{clean_answer[:2]}...`**!"
+                )
+                solution_box = (
+                    f"✅ **Exact Answer to Type:** `{clean_answer}`\n\n"
+                    f"📖 **Step-by-Step How It Was Encoded & Decoded:**\n"
+                    f"- **Step 1 (Original Word):** `{clean_answer}` *(Topic: {sub_topic})*\n"
+                    f"- **Step 2 (Encryption Rule):** Hide vowels after the first letter $\\rightarrow$ `{encoded_puzzle}` (Removed vowels: `{vowels_hint_str}`)\n"
+                    f"- **Step 3 (Decryption):** Put `{vowels_hint_str}` back into the blanks `_` in order $\\rightarrow$ **`{clean_answer}`**!"
                 )
             else:
-                # Kiểu 1B: Dịch chuyển đúng 1 chữ cái (Next Letter in Alphabet: A->B, B->C)
-                encoded_puzzle = caesar_shift_ascii(clean_answer, 1)
-                rule_desc = "🔤 **Alphabet Step +1 (Kids Cipher):** Each letter was moved forward by **1 step** in the English alphabet (`A -> B`, `B -> C`, ..., `Z -> A`). Move each letter **1 step backward** to solve!"
+                # Kiểu 1B: Đánh vần ngược từng từ (Reverse Spelling)
+                reversed_words = [w[::-1] for w in words_list]
+                encoded_puzzle = "   ".join([" - ".join(list(rw)) for rw in reversed_words])
+                forward_demo = "   ".join([" - ".join(list(w)) for w in words_list])
+
+                briefing = (
+                    f"### 🎈 Tier 1 (Kids & Beginners) Mission #{q_num}\n"
+                    f"{topic_header}\n\n"
+                    f"**🌍 Fun Fact Clue:** *{clue}*\n\n"
+                    f"🔄 **How to Solve (Backwards Mirror Spelling):** Each word below is spelled **backwards from right to left**! "
+                    f"Read the letters from right to left to discover the `{sub_topic}`."
+                )
                 step_hint = (
-                    f"1. Shift each letter 1 step back in `A B C D E F G H I J K L M N O P Q R S T U V W X Y Z`.\n"
-                    f"2. First word starts with **`{clean_answer[:2]}...`** and ends with **`...{clean_answer[-2:]}`**."
+                    f"1. **Topic:** `{sub_topic}` — *{clue}*\n"
+                    f"2. Look at the puzzle `{encoded_puzzle}` and read each word from **right to left**.\n"
+                    f"3. The first letter is **`{clean_answer[0]}`** and the last letter is **`{clean_answer[-1]}`**."
+                )
+                solution_box = (
+                    f"✅ **Exact Answer to Type:** `{clean_answer}`\n\n"
+                    f"📖 **Step-by-Step How It Was Encoded & Decoded:**\n"
+                    f"- **Step 1 (Encrypted Backwards Letters):** `{encoded_puzzle}`\n"
+                    f"- **Step 2 (Flip Letters Right-to-Left):** `{forward_demo}`\n"
+                    f"- **Step 3 (Final Combined Answer):** **`{clean_answer}`** *(Matches clue: {clue})*"
                 )
 
-            briefing = (
-                f"### 🎈 Kids & Beginners Puzzle #{q_num} — Category: **{category}**\n"
-                f"**🌍 World Knowledge Clue:** *{trivia_clue}*\n\n"
-                f"{rule_desc}\n"
-                f"*(💡 You can solve this right here in your head—no complex tools needed! Just type the answer below)*"
-            )
-            solution_box = (
-                f"✅ **Exact Answer to Type:** `{clean_answer}`\n\n"
-                f"📖 **Explanation:** Based on the clue (*{trivia_clue}*), decoding `{encoded_puzzle}` gives **`{clean_answer}`**."
-            )
             return {
                 "id": f"T{tier}_{q_num}", "tier": tier, "pts": base_pts,
                 "briefing": briefing, "payload": encoded_puzzle, "is_img": False,
@@ -1193,44 +1269,62 @@ elif "4. Crypto Challenges" in main_menu:
             }
 
         # ======================================================================
-        # TIER 2: YOUNG EXPLORERS (LEETSPEAK SỐ HÓA HOẶC CAESAR SHIFT +3)
+        # TIER 2: YOUNG EXPLORERS (DỄ — MẬT MÃ SỐ LEETSPEAK HOẶC CAESAR +1 CÓ GIỮ CHỮ ĐẦU)
         # ======================================================================
         elif tier == 2:
-            shift_val = rng.choice([2, 3])
             if q_num % 2 == 0:
-                encoded_puzzle = leetspeak_encode(clean_answer)[::-1]
-                rule_desc = (
-                    "🕹️ **Reversed Gamer Code (Leetspeak + Mirror):**\n"
-                    "- Numbers replaced vowels/letters: **`4 = A`**, **`3 = E`**, **`1 = I`**, **`0 = O`**, **`5 = S`**, **`7 = T`**.\n"
-                    "- Then the whole word was **written backwards**!"
+                # Kiểu 2A: Thay chữ thành số (Number Replacement Code)
+                leet_map = {"A": "4", "E": "3", "I": "1", "O": "0", "S": "5", "T": "7"}
+                enc_chars = [leet_map.get(c, c) for c in clean_answer]
+                encoded_puzzle = " ".join(enc_chars)
+                # Giải thích từng chữ số đã thay thế
+                replacements_used = [f"`{v}` → **`{k}`**" for k, v in leet_map.items() if k in clean_answer]
+                rep_explain = ", ".join(replacements_used) if replacements_used else "No numbers needed"
+
+                briefing = (
+                    f"### 🧭 Tier 2 (Young Explorers) Mission #{q_num}\n"
+                    f"{topic_header}\n\n"
+                    f"**🌍 Knowledge Clue:** *{clue}*\n\n"
+                    f"🔢 **How to Solve (Secret Number-to-Letter Code):** Some letters in this `{sub_topic}` were disguised as numbers! "
+                    f"Use this secret key to swap numbers back into letters:\n"
+                    f"- **`4 = A`** &nbsp;|&nbsp; **`3 = E`** &nbsp;|&nbsp; **`1 = I`** &nbsp;|&nbsp; **`0 = O`** &nbsp;|&nbsp; **`5 = S`** &nbsp;|&nbsp; **`7 = T`**"
                 )
                 step_hint = (
-                    f"1. Flip the string first: **`{leetspeak_encode(clean_answer)}`**\n"
-                    f"2. Replace numbers (`4->A, 3->E, 1->I, 0->O, 5->S, 7->T`).\n"
-                    f"3. The answer starts with **`{clean_answer[:3]}...`**!"
+                    f"1. **Topic:** `{sub_topic}`\n"
+                    f"2. Swap only these numbers in `{encoded_puzzle}`: {rep_explain}.\n"
+                    f"3. The decoded word starts with **`{clean_answer[:2]}...`**!"
+                )
+                solution_box = (
+                    f"✅ **Exact Answer to Type:** `{clean_answer}`\n\n"
+                    f"📖 **Step-by-Step How It Was Encoded & Decoded:**\n"
+                    f"- **Step 1 (Encrypted Number Code):** `{encoded_puzzle}`\n"
+                    f"- **Step 2 (Apply Number-to-Letter Swaps):** {rep_explain}\n"
+                    f"- **Step 3 (Final Decoded Result):** **`{clean_answer}`**"
                 )
             else:
-                encoded_puzzle = caesar_shift_ascii(clean_answer, shift_val)
-                rule_desc = (
-                    f"🏛️ **Julius Caesar Shift +{shift_val} Cipher:**\n"
-                    f"- Every English letter was shifted forward by **`+{shift_val}`** positions in the alphabet (`A B C D E F G H I J K L M N O P Q R S T U V W X Y Z`).\n"
-                    f"- Shift every letter **backward by `{shift_val}`** to reveal the {category}!"
+                # Kiểu 2B: Caesar Shift +1 đơn giản kèm giải thích từng ký tự
+                encoded_puzzle, char_by_char_log = caesar_shift_with_steps(clean_answer, 1)
+                briefing = (
+                    f"### 🧭 Tier 2 (Young Explorers) Mission #{q_num}\n"
+                    f"{topic_header}\n\n"
+                    f"**🌍 Knowledge Clue:** *{clue}*\n\n"
+                    f"🔤 **How to Solve (Alphabet Step +1 Cipher):**\n"
+                    f"- Every letter of the answer was shifted **1 step forward** in the English alphabet (`A→B`, `B→C`, `C→D` ... `Z→A`).\n"
+                    f"- To decode it: Move each letter in `{encoded_puzzle}` **1 step BACKWARD** (`B→A`, `C→B`, `D→C`...).\n"
+                    f"- 🎁 **Free Starter Gift:** The very first decoded letter is **`{clean_answer[0]}`**!"
                 )
                 step_hint = (
-                    f"1. Move each letter in `{encoded_puzzle}` back by `{shift_val}` steps in the English alphabet.\n"
-                    f"2. Clue check: *{trivia_clue}*\n"
-                    f"3. The decoded answer starts with **`{clean_answer[:3]}...`** and ends with **`...{clean_answer[-2:]}`**."
+                    f"1. Look at the Alphabet bar below and shift each letter of `{encoded_puzzle}` **1 position to the LEFT**.\n"
+                    f"2. Letter-by-letter preview of the first 3 letters: **`{clean_answer[:3]}...`**"
+                )
+                solution_box = (
+                    f"✅ **Exact Answer to Type:** `{clean_answer}`\n\n"
+                    f"📖 **Step-by-Step Letter-by-Letter Decoding (`Cipher (-1) → Plain`):**\n"
+                    f"- **Encrypted String:** `{encoded_puzzle}`\n"
+                    f"- **Character Breakdown:** {char_by_char_log}\n"
+                    f"- **Combined Result:** **`{clean_answer}`**"
                 )
 
-            briefing = (
-                f"### 🧭 Young Explorer Mission #{q_num} — Category: **{category}**\n"
-                f"**🌍 Trivia Clue:** *{trivia_clue}*\n\n"
-                f"{rule_desc}"
-            )
-            solution_box = (
-                f"✅ **Exact Answer to Type:** `{clean_answer}`\n\n"
-                f"📖 **Walkthrough:** Decoding `{encoded_puzzle}` using the rule above reveals the {category}: **`{clean_answer}`**."
-            )
             return {
                 "id": f"T{tier}_{q_num}", "tier": tier, "pts": base_pts,
                 "briefing": briefing, "payload": encoded_puzzle, "is_img": False,
@@ -1238,44 +1332,54 @@ elif "4. Crypto Challenges" in main_menu:
             }
 
         # ======================================================================
-        # TIER 3: STUDENTS & FRIENDS TRIVIA (ATBASH / HEX / CAESAR + WORKSPACE)
+        # TIER 3: STUDENTS & FRIENDS (TRUNG BÌNH — CAESAR +2/+3 HOẶC ATBASH CÓ BẢNG TRA CỨU)
         # ======================================================================
         elif tier == 3:
-            mode_t3 = q_num % 3
-            if mode_t3 == 0:
-                encoded_puzzle = atbash_ascii(clean_answer)
-                rule_desc = (
-                    "🪞 **Ancient Atbash Mirror Alphabet:**\n"
-                    "The alphabet is mapped to its reverse (`A ↔ Z`, `B ↔ Y`, `C ↔ X`, ..., `M ↔ N`).\n"
-                    "- Plain:  `A B C D E F G H I J K L M N O P Q R S T U V W X Y Z`\n"
-                    "- Cipher: `Z Y X W V U T S R Q P O N M L K J I H G F E D C B A`"
+            if q_num % 2 == 0:
+                shift_val = rng.choice([2, 3])
+                encoded_puzzle, char_by_char_log = caesar_shift_with_steps(clean_answer, shift_val)
+                briefing = (
+                    f"### 🎓 Tier 3 (Students & Friends Trivia) Mission #{q_num}\n"
+                    f"{topic_header}\n\n"
+                    f"**🌍 Encyclopedia Clue:** *{clue}*\n\n"
+                    f"🏛️ **How to Solve (Classic Caesar Shift +{shift_val}):**\n"
+                    f"- During encryption, each letter was shifted **`+{shift_val}` positions forward** in the alphabet.\n"
+                    f"- **To Decode:** Shift each letter in `{encoded_puzzle}` **`{shift_val}` positions BACKWARD (to the left)** in the alphabet bar below!"
                 )
-            elif mode_t3 == 1:
-                encoded_puzzle = " ".join(f"{ord(c):02X}" for c in clean_answer)
-                rule_desc = (
-                    "💻 **ASCII Hexadecimal Byte Stream:**\n"
-                    "Each character of the historical answer has been converted into its 2-digit Base-16 Hexadecimal ASCII code (`41 = A`, `42 = B`, ..., `20 = Space`)."
+                step_hint = (
+                    f"1. **Topic:** `{sub_topic}` | **Clue:** *{clue}*\n"
+                    f"2. Shift back by `{shift_val}` steps: The first 3 decoded characters are **`{clean_answer[:3]}...`**."
+                )
+                solution_box = (
+                    f"✅ **Exact Answer to Type:** `{clean_answer}`\n\n"
+                    f"📖 **Step-by-Step Mathematical Breakdown (`Shift -{shift_val}`):**\n"
+                    f"- **Ciphertext:** `{encoded_puzzle}`\n"
+                    f"- **Letter-by-Letter Transformation:** {char_by_char_log}\n"
+                    f"- **Final Decoded Entity:** **`{clean_answer}`**"
                 )
             else:
-                shift_t3 = rng.randint(5, 13)
-                encoded_puzzle = caesar_shift_ascii(clean_answer, shift_t3)
-                rule_desc = f"🔐 **ROT-{shift_t3} Historical Intercept:** Each letter is rotated forward by **`+{shift_t3}`** positions in the 26-letter English alphabet."
+                encoded_puzzle, char_by_char_log = atbash_with_steps(clean_answer)
+                briefing = (
+                    f"### 🎓 Tier 3 (Students & Friends Trivia) Mission #{q_num}\n"
+                    f"{topic_header}\n\n"
+                    f"**🌍 Encyclopedia Clue:** *{clue}*\n\n"
+                    f"🪞 **How to Solve (Atbash Mirror Alphabet Cipher):**\n"
+                    f"Every letter is swapped with its opposite mirror letter in the alphabet (`A↔Z`, `B↔Y`, `C↔X`...). Use this direct lookup table:\n"
+                    f"- **Top Row:**    `A B C D E F G H I J K L M N O P Q R S T U V W X Y Z`\n"
+                    f"- **Bottom Row:** `Z Y X W V U T S R Q P O N M L K J I H G F E D C B A`"
+                )
+                step_hint = (
+                    f"1. Find each letter of `{encoded_puzzle}` in the Top Row and replace it with the letter directly below it in the Bottom Row.\n"
+                    f"2. The answer starts with **`{clean_answer[:3]}...`** and ends with **`...{clean_answer[-2:]}`**."
+                )
+                solution_box = (
+                    f"✅ **Exact Answer to Type:** `{clean_answer}`\n\n"
+                    f"📖 **Step-by-Step Mirror Substitution Breakdown:**\n"
+                    f"- **Ciphertext:** `{encoded_puzzle}`\n"
+                    f"- **Mirror Mapping (`Cipher ↔ Plain`):** {char_by_char_log}\n"
+                    f"- **Final Decoded Entity:** **`{clean_answer}`**"
+                )
 
-            briefing = (
-                f"### 🎓 Student & Friends Challenge #{q_num} — Category: **{category}**\n"
-                f"**🌍 Historical / Global Clue:** *{trivia_clue}*\n\n"
-                f"{rule_desc}"
-            )
-            step_hint = (
-                f"💡 **Detailed Hint:**\n"
-                f"- Category: **{category}** | Clue: *{trivia_clue}*\n"
-                f"- Word Structure: `{len(clean_answer.split())}` word(s), `{len(clean_answer)}` total characters.\n"
-                f"- First 3 characters: **`{clean_answer[:3]}...`** | Last 2 characters: **`...{clean_answer[-2:]}`**."
-            )
-            solution_box = (
-                f"✅ **Exact Answer to Type:** `{clean_answer}`\n\n"
-                f"📖 **Full Solution:** The ciphertext `{encoded_puzzle}` decodes directly to **`{clean_answer}`** ({trivia_clue})."
-            )
             return {
                 "id": f"T{tier}_{q_num}", "tier": tier, "pts": base_pts,
                 "briefing": briefing, "payload": encoded_puzzle, "is_img": False,
@@ -1283,14 +1387,13 @@ elif "4. Crypto Challenges" in main_menu:
             }
 
         # ======================================================================
-        # TIER 4: CYBER SPECIALISTS (LSB STEGO IMAGE & MARKOV CAMOUFLAGE)
+        # TIER 4: CYBER SPECIALISTS (CHO SẴN KHÓA — THỰC HÀNH STEGO PNG & CAMOUFLAGE)
         # ======================================================================
         elif tier == 4:
-            pass_key = clean_answer.split()[0] # Dùng chữ đầu tiên của danh nhân/đất nước làm Passphrase
-            shift_val = rng.randint(5, 25)
+            pass_key = "CYBER"
+            shift_val = 5
             k = build_custom_key(pass_key, [], shift_val, "")
-            secret_payload_msg = f"CLASSIFIED INTEL: {clean_answer}"
-            raw_c = encrypt_core(secret_payload_msg, k, False, "NONE", 0)
+            raw_c = encrypt_core(clean_answer, k, False, "NONE", 0)
 
             if q_num % 2 == 0:
                 carrier = generate_sample_carrier_image(420, 220)
@@ -1298,23 +1401,26 @@ elif "4. Crypto Challenges" in main_menu:
                 buf = io.BytesIO()
                 stego_img.save(buf, format="PNG")
                 briefing = (
-                    f"### 🕵️‍♂️ Specialist Forensic Steganography #{q_num} ({category})\n"
-                    f"We intercepted a lossless PNG image containing a hidden historical entity.\n"
-                    f"1. **Passphrase Clue:** First word of the answer to: *{trivia_clue}* (Uppercase, `{len(pass_key)}` letters).\n"
-                    f"2. **Sidebar Rules:** Shift Offset = **`{shift_val}`** | Symbol Vault = **`Empty (Clear all icons)`** | Reverse = **`Unchecked`**.\n"
-                    f"3. Download the PNG below, configure your Sidebar, and decode it in **2. Cipher Workspace -> Tab 3 (LSB Image Lab)**!"
+                    f"### 🕵️‍♂️ Tier 4 (Cyber Specialist — LSB Steganography) Mission #{q_num}\n"
+                    f"{topic_header}\n\n"
+                    f"**🌍 Target Clue:** *{clue}*\n\n"
+                    f"🖼️ **How to Solve (Hands-On Image Steganography):**\n"
+                    f"We hid the encrypted name of this `{sub_topic}` inside the RGB pixels of the PNG image below!\n"
+                    f"1. Set Left Sidebar: **Passphrase** = **`{pass_key}`** | **Shift Offset** = **`{shift_val}`** | **Symbol Vault** = **`Empty (Remove all icons)`** | **Reverse** = **`Unchecked`**.\n"
+                    f"2. Download the Stego PNG below, open **2. Cipher Workspace → Tab 3 (Decode)**, and extract the secret answer!"
                 )
                 step_hint = (
-                    f"💡 **Step-by-Step Forensic Hint:**\n"
-                    f"1. In the Left Sidebar, set **Group Secret Passphrase** = **`{pass_key}`**\n"
-                    f"2. Set **Shift Offset** = **`{shift_val}`** and **remove all icons** from Symbol Vault.\n"
-                    f"3. Download the Stego PNG and extract it in **Cipher Workspace -> Tab 3**, or type the full entity starting with **`{clean_answer[:4]}...`**!"
+                    f"💡 **Direct Shortcut Hint:**\n"
+                    f"- Follow the exact Sidebar settings (`Passphrase = {pass_key}`, `Shift = {shift_val}`, `0 Symbols`) in Workspace Tab 3.\n"
+                    f"- Or solve directly from the clue (*{clue}*): It starts with **`{clean_answer[:3]}...`**!"
                 )
                 solution_box = (
                     f"✅ **Exact Answer to Type:** `{clean_answer}`\n\n"
-                    f"📖 **Forensic Breakdown:**\n"
-                    f"- **Sidebar Passphrase:** `{pass_key}` | **Shift Offset:** `{shift_val}` | **Symbols:** `None`\n"
-                    f"- **Extracted Stego Payload:** `{secret_payload_msg}` -> Answer: **`{clean_answer}`**"
+                    f"📖 **Step-by-Step Technical Explanation:**\n"
+                    f"- **Step 1 (Plaintext):** `{clean_answer}` *(Topic: {sub_topic})*\n"
+                    f"- **Step 2 (Cipher Engine):** Encrypted with Passphrase `{pass_key}`, Shift `{shift_val}`, 0 Icons $\\rightarrow$ Ciphertext `{raw_c}`\n"
+                    f"- **Step 3 (LSB Pixel Embedding):** Converted `{raw_c}` into 8-bit binary and embedded into the Least Significant Bits of the PNG image.\n"
+                    f"- **Step 4 (Extraction):** Decoding the PNG with `{pass_key}` + Shift `{shift_val}` restores **`{clean_answer}`**!"
                 )
                 return {
                     "id": f"T{tier}_{q_num}", "tier": tier, "pts": base_pts,
@@ -1324,19 +1430,25 @@ elif "4. Crypto Challenges" in main_menu:
             else:
                 camo_text = encode_english_camouflage(raw_c)
                 briefing = (
-                    f"### 🎭 Specialist Linguistic Camouflage #{q_num} ({category})\n"
-                    f"An operative disguised a secret historical target inside innocent English IT sentences.\n"
-                    f"1. **Passphrase:** **`{pass_key}`**\n"
-                    f"2. **Shift Offset:** **`{shift_val}`** | **Symbol Vault:** **`Empty (0 icons)`** | **Reverse:** **`Unchecked`**.\n"
-                    f"3. Copy the English prose below and decode it in **2. Cipher Workspace -> Tab 2 (English Camouflage Studio)**!"
+                    f"### 🎭 Tier 4 (Cyber Specialist — Linguistic Camouflage) Mission #{q_num}\n"
+                    f"{topic_header}\n\n"
+                    f"**🌍 Target Clue:** *{clue}*\n\n"
+                    f"🎭 **How to Solve (Hands-On Markov Prose Decoding):**\n"
+                    f"1. Set Left Sidebar: **Passphrase** = **`{pass_key}`** | **Shift Offset** = **`{shift_val}`** | **Symbol Vault** = **`Empty (Remove all icons)`** | **Reverse** = **`Unchecked`**.\n"
+                    f"2. Copy the English paragraph below and paste it into **2. Cipher Workspace → Tab 2 (Reveal Secret from English Prose)**!"
                 )
                 step_hint = (
-                    f"💡 **Step-by-Step Hint:**\n"
-                    f"Set Sidebar Passphrase = `{pass_key}`, Shift = `{shift_val}`, clear all icons in Symbol Vault, then paste the paragraph into **Cipher Workspace -> Tab 2 (Reveal Secret)**. Clue: *{trivia_clue}*."
+                    f"💡 **Direct Shortcut Hint:**\n"
+                    f"- Paste the paragraph into **Workspace -> Tab 2** with Passphrase `{pass_key}` & Shift `{shift_val}`.\n"
+                    f"- Or deduce from the `{sub_topic}` clue: Starts with **`{clean_answer[:3]}...`** and ends with **`...{clean_answer[-2:]}`**!"
                 )
                 solution_box = (
                     f"✅ **Exact Answer to Type:** `{clean_answer}`\n\n"
-                    f"📖 **Full Breakdown:** Using Passphrase `{pass_key}` and Shift `{shift_val}`, the camouflaged text decodes to `{secret_payload_msg}` -> Answer: **`{clean_answer}`**."
+                    f"📖 **Step-by-Step Technical Explanation:**\n"
+                    f"- **Step 1 (Plaintext):** `{clean_answer}` *(Topic: {sub_topic})*\n"
+                    f"- **Step 2 (Cipher Engine):** Encrypted using Passphrase `{pass_key}` and Shift `{shift_val}` $\\rightarrow$ `{raw_c}`\n"
+                    f"- **Step 3 (4-Bit Nibble Markov Mapping):** Each byte of `{raw_c}` was split into two 4-bit nibbles (0–15) and mapped to IT English words.\n"
+                    f"- **Step 4 (Decryption):** Reversing the English words back to bytes and decrypting with `{pass_key}` yields **`{clean_answer}`**!"
                 )
                 return {
                     "id": f"T{tier}_{q_num}", "tier": tier, "pts": base_pts,
@@ -1345,54 +1457,54 @@ elif "4. Crypto Challenges" in main_menu:
                 }
 
         # ======================================================================
-        # TIER 5: GRANDMASTER CRYPTANALYSTS (MULTI-LAYER CHAOS CHO CHUYÊN GIA)
+        # TIER 5: GRANDMASTER CRYPTANALYSTS (ĐA TẦNG CHUYÊN NGHIỆP)
         # ======================================================================
         else:
-            pass_key = clean_answer.replace(" ", "")
-            shift_val = rng.randint(15, 75)
-            chosen_icons = [SYMBOLS_POOL[rng.randint(0, min(15, len(SYMBOLS_POOL)-1))] for _ in range(2)]
-            pair_rule = "A=@, E=3"
+            pass_key = "GRANDMASTER"
+            shift_val = rng.randint(10, 30)
+            chosen_icons = [SYMBOLS_POOL[0], SYMBOLS_POOL[1]] if len(SYMBOLS_POOL) >= 2 else []
+            pair_rule = "a=@, e=3"
             k = build_custom_key(pass_key, chosen_icons, shift_val, pair_rule)
-            flag_code = f"FLAG{{{clean_answer.replace(' ', '_')}_{rng.randint(100,999)}}}"
-            raw_c = encrypt_core(f"VERIFIED GRANDMASTER TARGET: {flag_code}", k, True, "NONE", 0)
+            raw_c = encrypt_core(clean_answer, k, True, "NONE", 0)
             camo_payload = encode_english_camouflage(raw_c)
             icons_str = " , ".join(chosen_icons)
 
             briefing = (
-                f"### 👑 Grandmaster Cryptanalysis Matrix #{q_num}\n"
-                f"This mission requires full mastery of the **Ultimate Secret Messenger** multi-layer architecture:\n"
-                f"- **Passphrase Clue:** Answer to (*{trivia_clue}*) in **UPPERCASE WITH NO SPACES** (`{len(pass_key)}` chars).\n"
+                f"### 👑 Tier 5 (Grandmaster Multi-Layer Cryptanalysis) Mission #{q_num}\n"
+                f"{topic_header}\n\n"
+                f"**🌍 Target Clue:** *{clue}*\n\n"
+                f"🔐 **Multi-Layer Decryption Parameters:**\n"
+                f"- **Group Passphrase:** **`{pass_key}`**\n"
                 f"- **Shift Offset:** Hidden between **`{shift_val - 1}`** and **`{shift_val + 1}`**\n"
-                f"- **Symbol Vault (Exact Order):** **`{icons_str}`**\n"
-                f"- **Custom Pairs:** **`{pair_rule}`** | **Reverse Structure:** **`Checked (Enabled)`**\n"
-                f"- **Outer Layer:** Linguistic Camouflage Prose. Extract the exact `FLAG{{...}}`!"
+                f"- **Symbol Vault (First 2 default icons in order):** **`{icons_str}`**\n"
+                f"- **Custom Pairs:** **`{pair_rule}`** &nbsp;|&nbsp; **Reverse Structure:** **`Checked (Enabled)`**\n"
+                f"- **Outer Wrapper:** Linguistic English Camouflage (Decode via **Workspace → Tab 2**)."
             )
             step_hint = (
-                f"💡 **Grandmaster Decrypt Key:**\n"
-                f"- **Exact Passphrase:** **`{pass_key}`**\n"
-                f"- **Exact Shift Offset:** **`{shift_val}`**\n"
-                f"- **Symbol Vault:** Select `{icons_str}` in exact order.\n"
-                f"- **Custom Pairs:** `{pair_rule}` | **Reverse Structure:** `Checked`.\n"
-                f"- Paste the prose into **Cipher Workspace -> Tab 2** to get the Flag!"
+                f"💡 **Grandmaster Hint:**\n"
+                f"- The exact **Shift Offset** is **`{shift_val}`**.\n"
+                f"- Target `{sub_topic}` starts with **`{clean_answer[:3]}...`** and ends with **`...{clean_answer[-2:]}`**."
             )
             solution_box = (
-                f"✅ **Exact Answer to Type:** `{flag_code}`\n\n"
-                f"📖 **Complete Cryptanalysis Key:**\n"
-                f"- Passphrase: `{pass_key}` | Shift: `{shift_val}` | Symbols: `{icons_str}` | Pairs: `{pair_rule}` | Reverse: `True`\n"
-                f"- Decoded Flag: **`{flag_code}`**"
+                f"✅ **Exact Answer to Type:** `{clean_answer}`\n\n"
+                f"📖 **Complete Multi-Layer Cryptographic Walkthrough:**\n"
+                f"- **Layer 1 (Markov Unwrap):** Converting the English prose back into raw bytes yields reversed ciphertext `{raw_c}`.\n"
+                f"- **Layer 2 (Reverse Flip):** Un-reversing the string restores the forward substitution sequence.\n"
+                f"- **Layer 3 (Key Matrix Permutation):** Using Passphrase `{pass_key}`, Icons `{icons_str}`, Shift `{shift_val}`, and Pairs `{pair_rule}` reconstructs the exact 229-char key table.\n"
+                f"- **Final Plaintext:** **`{clean_answer}`** *(Topic: {sub_topic})*"
             )
             return {
                 "id": f"T{tier}_{q_num}", "tier": tier, "pts": base_pts,
                 "briefing": briefing, "payload": camo_payload, "is_img": False,
-                "hint": step_hint, "flag": flag_code, "solution": solution_box
+                "hint": step_hint, "flag": clean_answer, "solution": solution_box
             }
 
     # --- GIAO DIỆN ĐẤU TRƯỜNG CTF ---
     st.markdown("""
     <div class="hero-box" style="padding: 20px 28px; margin-bottom: 18px;">
-        <div class="hero-badge">🕹️ 5,000+ WORLD ENCYCLOPEDIA & CRYPTO MATRIX • KIDS TO GRANDMASTER</div>
+        <div class="hero-badge">🕹️ THEMED ENCYCLOPEDIA MATRIX • ANIMALS, SPACE, OCEAN, SCIENCE & HISTORY</div>
         <h2 style="color: #f8fafc; margin: 4px 0 6px 0; font-weight: 800;">Global Crypto Challenges & CTF Arena</h2>
-        <p class="hero-sub">From beginner-friendly World History, Countries & US Presidents puzzles (Tiers 1–2) to professional Steganography & Multi-Layer Cryptanalysis (Tiers 4–5).</p>
+        <p class="hero-sub">Clear topic boundaries, beginner-friendly word puzzles for kids (Tiers 1–2), trivia ciphers for friends (Tier 3), and full steganography labs for pros (Tiers 4–5).</p>
     </div>
     """, unsafe_allow_html=True)
 
@@ -1469,19 +1581,16 @@ elif "4. Crypto Challenges" in main_menu:
             f"💬 3. Friends & Direct Messenger ({len(u_reqs)} Requests)"
         ])
 
-        # ======================================================================
-        # TAB 1: MA TRẬN 5 CẤP ĐỘ TỪ TRẺ EM ĐẾN CHUYÊN GIA
-        # ======================================================================
         with arena_tab1:
-            sel_c1, sel_c2, sel_c3 = st.columns([2, 1, 1])
+            sel_c1, sel_c2, sel_c3 = st.columns([2.1, 0.9, 1])
             with sel_c1:
                 tier_choice = st.selectbox(
                     "🔥 Select Difficulty Tier:",
                     [
-                        "Tier 1 — Kids & Beginners (100 PTS | Fun Mirror & +1 Alphabet Puzzles)",
-                        "Tier 2 — Young Explorers (250 PTS | Classic Caesar & Gamer Leetspeak)",
-                        "Tier 3 — Students & Friends (500 PTS | World History, Wars & Hex/Atbash)",
-                        "Tier 4 — Cyber Specialists (1,000 PTS | LSB Image Stego & Camouflage)",
+                        "Tier 1 — Kids & Beginners (100 PTS | Missing Vowels & Backwards Short Words)",
+                        "Tier 2 — Young Explorers (250 PTS | Number-to-Letter Code & Guided +1 Step)",
+                        "Tier 3 — Students & Friends (500 PTS | Caesar +2/+3 & Mirror Alphabet Table)",
+                        "Tier 4 — Cyber Specialists (1,000 PTS | Guided LSB Image Stego & Camouflage)",
                         "Tier 5 — Grandmaster Pros (2,500 PTS | Full Multi-Layer Cryptanalysis)"
                     ]
                 )
@@ -1510,18 +1619,19 @@ elif "4. Crypto Challenges" in main_menu:
             st.markdown(f"""
             <div class="ws-banner">
                 <h4>🎯 Mission ID: <code>{cid}</code> — Base Reward: <b>{base_pts:,} PTS</b></h4>
-                <p>⚠️ <b>Fair Play Scoring Rules:</b> Clicking <b>Hint</b> reduces this mission's reward by <b>70%</b> (you earn <b>{int(base_pts*0.30)} PTS</b>). Clicking <b>Surrender & Show Answer</b> reveals the full solution immediately but deducts <b>92%</b> (<b>-{surrender_penalty} PTS</b> penalty) from your total score!</p>
+                <p>⚠️ <b>Fair Play Scoring Rules:</b> Clicking <b>Hint</b> reduces this mission's reward by <b>70%</b> (you earn <b>{int(base_pts*0.30)} PTS</b>). Clicking <b>Surrender & Show Answer</b> reveals the full step-by-step solution immediately but deducts <b>92%</b> (<b>-{surrender_penalty} PTS</b> penalty) from your total score!</p>
             </div>
             """, unsafe_allow_html=True)
 
             if is_solved:
                 st.success(f"🎉 **MISSION COMPLETED!** You solved `{cid}`! Exact Answer: **`{chal['flag']}`**")
+                with st.expander("📖 View Step-by-Step Cryptographic Explanation", expanded=True):
+                    st.markdown(chal["solution"])
             elif is_surrendered:
                 st.error(f"🏳️ **MISSION SURRENDERED!** (-{surrender_penalty} PTS penalty applied).")
 
             st.markdown(chal["briefing"])
 
-            # Hiển thị bảng chữ cái hỗ trợ dò nhanh cho Tier 1, 2, 3
             if tier_num in [1, 2, 3]:
                 st.caption("🔤 **Quick Reference English Alphabet:** `A B C D E F G H I J K L M N O P Q R S T U V W X Y Z`")
 
@@ -1537,7 +1647,6 @@ elif "4. Crypto Challenges" in main_menu:
                 st.markdown("**🧩 Encrypted Puzzle String to Decode:**")
                 st.code(chal["payload"], language=None)
 
-            # Hàng nút Hint (-70%) và Đầu hàng hiện rõ đáp án (-92%)
             h_col1, h_col2 = st.columns(2)
             with h_col1:
                 if not hint_used and not is_solved and not is_surrendered:
@@ -1558,20 +1667,22 @@ elif "4. Crypto Challenges" in main_menu:
                         save_ctf_db(ctf_db)
                         st.rerun()
                 elif is_surrendered:
-                    st.info(f"🔓 **OFFICIAL SOLUTION & EXACT ANSWER:**\n\n{chal['solution']}")
+                    st.info(f"🔓 **OFFICIAL SOLUTION & STEP-BY-STEP BREAKDOWN:**\n\n{chal['solution']}")
 
             st.divider()
             if not is_solved and not is_surrendered:
                 ans_col1, ans_col2 = st.columns([3, 1])
                 with ans_col1:
-                    placeholder_txt = "Type the decoded answer (e.g. FRANCE, ABRAHAM LINCOLN, WORLD WAR II)..." if tier_num < 5 else "Format: FLAG{...}"
-                    flag_input = st.text_input("🚩 Submit Your Decoded Answer:", placeholder=placeholder_txt, key=f"flag_in_{cid}")
+                    flag_input = st.text_input(
+                        "🚩 Submit Your Decoded Answer:",
+                        placeholder="Type the decoded word/name (e.g. LION, MARS, OCTOPUS, ABRAHAM LINCOLN)...",
+                        key=f"flag_in_{cid}"
+                    )
                 with ans_col2:
                     st.write("")
                     if st.button("✅ Submit Answer", type="primary", use_container_width=True):
-                        user_guess = flag_input.strip().upper()
+                        user_guess = " ".join(flag_input.strip().upper().split())
                         expected = chal["flag"].upper()
-                        # Cho phép người chơi nhập thẳng đáp án hoặc bọc trong FLAG{...} đều đúng
                         if user_guess == expected or user_guess == f"FLAG{{{expected}}}":
                             u_solved.append(cid)
                             ctf_db["users"][curr_user]["solved"] = u_solved
@@ -1582,11 +1693,8 @@ elif "4. Crypto Challenges" in main_menu:
                             time.sleep(1.2)
                             st.rerun()
                         else:
-                            st.error("❌ Not quite right! Check the clue or click 'Unlock Detailed Hint' if you need a hand.")
+                            st.error("❌ Not quite right! Check the Specific Topic & Clue above, or click 'Unlock Detailed Hint'.")
 
-        # ======================================================================
-        # TAB 2: BẢNG XẾP HẠNG PUBLIC & QUẢN LÝ NGƯỜI CHƠI
-        # ======================================================================
         with arena_tab2:
             st.markdown("""
             <div class="ws-banner">
@@ -1648,9 +1756,6 @@ elif "4. Crypto Challenges" in main_menu:
                         st.success("Removed all demo bots! Only real registered players are shown now.")
                         st.rerun()
 
-        # ======================================================================
-        # TAB 3: KẾT BẠN & KHUNG CHAT NHỎ 1-1
-        # ======================================================================
         with arena_tab3:
             f_col1, f_col2 = st.columns([1.2, 2.3])
 
@@ -1748,7 +1853,7 @@ elif "4. Crypto Challenges" in main_menu:
                                 if active_friend in ["ZeroCool_VN", "CipherQueen_HCMUS", "ShadowBroker_99", "AlexMercer_US", "ElenaRostova_UK", "KenjiSato_JP"]:
                                     ctf_db["direct_messages"][pair_key].append({
                                         "sender": active_friend,
-                                        "text": f"Hey @{curr_user}! Tier 1 & 2 are super fun warm-ups, and Tier 3 historical ciphers are awesome. Good luck climbing the ranks!",
+                                        "text": f"Hey @{curr_user}! The new Animal, Space & Ocean puzzles in Tier 1 & 2 are super fun. Let's race to the top of the leaderboard!",
                                         "time": datetime.now(timezone.utc).strftime("%H:%M UTC")
                                     })
                                 save_ctf_db(ctf_db)

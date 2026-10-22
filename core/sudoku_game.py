@@ -89,9 +89,8 @@ def check_board_conflicts(board: list[list[int]]) -> list[str]:
 
 def inject_compact_responsive_sudoku_css():
     """
-    CSS thu gọn bàn cờ 9x9 vào khung 410px chính giữa màn hình:
-    - Hiển thị trọn vẹn trên Laptop, iPad và Điện thoại (không bị rớt dòng).
-    - Độ tương phản cao (High-Contrast), không ảnh hưởng tới thanh Sidebar bên trái.
+    CSS cô lập 100%: Chỉ thu gọn đúng khung bàn cờ 9x9 (460px) ở giữa màn hình,
+    giữ nguyên độ rộng toàn trang (Full-Width) cho toàn bộ mục Game.
     """
     st.markdown("""
     <style>
@@ -115,111 +114,119 @@ def inject_compact_responsive_sudoku_css():
             line-height: 1.4;
         }
 
-        /* KHUNG BAO BÀN CỜ 9x9 NHỎ GỌN (410px) - CHUẨN LAPTOP, IPAD & ĐIỆN THOẠI */
-        div[data-testid="stVerticalBlock"]:has(> div .sdk-board-scope) {
-            max-width: 415px !important;
-            margin: 0 auto !important;
+        /* CHỈ THU GỌN ĐÚNG CONTAINER TRONG CÙNG CỦA BÀN CỜ 9x9 (KHÔNG BÓP TOÀN TRANG GAME) */
+        div[data-testid="stVerticalBlock"]:has(.sdk-board-scope):not(:has(div[data-testid="stVerticalBlock"] .sdk-board-scope)) {
+            max-width: 460px !important;
+            margin: 6px auto 14px auto !important;
             background: #0f172a !important;
             border: 2px solid #38bdf8 !important;
-            border-radius: 12px !important;
-            padding: 12px 14px 16px 14px !important;
+            border-radius: 14px !important;
+            padding: 14px 16px 18px 16px !important;
             box-shadow: 0 8px 28px rgba(56, 189, 248, 0.2) !important;
         }
-        /* Ép 9 cột luôn nằm trên 1 hàng ngang kể cả trên iPhone/iPad & thu sát khoảng cách */
-        div[data-testid="stVerticalBlock"]:has(> div .sdk-board-scope) div[data-testid="stHorizontalBlock"] {
-            gap: 3px !important;
+        /* Ép 9 cột bên trong bàn cờ luôn nằm trên 1 hàng ngang & thu sát khoảng cách */
+        div[data-testid="stVerticalBlock"]:has(.sdk-board-scope):not(:has(div[data-testid="stVerticalBlock"] .sdk-board-scope)) div[data-testid="stHorizontalBlock"] {
+            gap: 4px !important;
             flex-wrap: nowrap !important;
             align-items: center !important;
-            margin-bottom: -11px !important;
+            margin-bottom: -10px !important;
         }
-        div[data-testid="stVerticalBlock"]:has(> div .sdk-board-scope) div[data-testid="stColumn"],
-        div[data-testid="stVerticalBlock"]:has(> div .sdk-board-scope) div[data-testid="column"] {
+        div[data-testid="stVerticalBlock"]:has(.sdk-board-scope):not(:has(div[data-testid="stVerticalBlock"] .sdk-board-scope)) div[data-testid="stColumn"],
+        div[data-testid="stVerticalBlock"]:has(.sdk-board-scope):not(:has(div[data-testid="stVerticalBlock"] .sdk-board-scope)) div[data-testid="column"] {
             min-width: 0 !important;
             width: auto !important;
             flex: 1 1 0% !important;
             padding: 0 !important;
         }
-        /* Chỉ định dạng ô input bên trong bàn cờ Sudoku (Không chạm vào Sidebar) */
-        div[data-testid="stVerticalBlock"]:has(> div .sdk-board-scope) div[data-testid="stTextInput"] {
+        /* Ép chiều cao ô nhập số bằng đúng 38px y hệt ô màu xanh đề bài */
+        div[data-testid="stVerticalBlock"]:has(.sdk-board-scope):not(:has(div[data-testid="stVerticalBlock"] .sdk-board-scope)) div[data-testid="stTextInput"],
+        div[data-testid="stVerticalBlock"]:has(.sdk-board-scope):not(:has(div[data-testid="stVerticalBlock"] .sdk-board-scope)) div[data-baseweb="input"],
+        div[data-testid="stVerticalBlock"]:has(.sdk-board-scope):not(:has(div[data-testid="stVerticalBlock"] .sdk-board-scope)) div[data-baseweb="base-input"] {
+            height: 38px !important;
+            min-height: 38px !important;
+            max-height: 38px !important;
             margin: 0 !important;
             padding: 0 !important;
+            border-radius: 6px !important;
+            background-color: #1e293b !important;
+            border: none !important;
         }
-        div[data-testid="stVerticalBlock"]:has(> div .sdk-board-scope) div[data-testid="stTextInput"] > div {
-            height: 34px !important;
-            min-height: 34px !important;
-            border-radius: 5px !important;
-        }
-        div[data-testid="stVerticalBlock"]:has(> div .sdk-board-scope) div[data-testid="stTextInput"] input {
-            height: 34px !important;
-            min-height: 34px !important;
+        div[data-testid="stVerticalBlock"]:has(.sdk-board-scope):not(:has(div[data-testid="stVerticalBlock"] .sdk-board-scope)) div[data-testid="stTextInput"] input {
+            height: 38px !important;
+            min-height: 38px !important;
+            max-height: 38px !important;
             padding: 0 !important;
             text-align: center !important;
-            font-size: 1.08rem !important;
+            font-size: 1.1rem !important;
             font-weight: 800 !important;
-            color: #fde047 !important; /* Chữ Vàng Sáng cực rõ khi người chơi gõ số */
+            color: #fde047 !important;
             -webkit-text-fill-color: #fde047 !important;
-            background-color: #1e293b !important; /* Nền xám sáng tách biệt hẳn với nền đen */
-            border: 1.5px solid #94a3b8 !important; /* Viền bạc sáng dễ nhìn */
-            border-radius: 5px !important;
+            background-color: #1e293b !important;
+            border: 1.5px solid #94a3b8 !important;
+            border-radius: 6px !important;
+            box-sizing: border-box !important;
         }
-        div[data-testid="stVerticalBlock"]:has(> div .sdk-board-scope) div[data-testid="stTextInput"] input:focus {
-            background-color: #0f172a !important;
+        div[data-testid="stVerticalBlock"]:has(.sdk-board-scope):not(:has(div[data-testid="stVerticalBlock"] .sdk-board-scope)) div[data-testid="stTextInput"] input:focus {
+            background-color: #090d16 !important;
             border: 2px solid #fde047 !important;
             box-shadow: 0 0 8px rgba(253, 224, 71, 0.6) !important;
         }
 
-        /* Ô Đề Bài Cố Định (Màu Xanh Dương Sáng + Chữ Trắng Tinh, xen kẽ khối 3x3) */
+        /* Ô Đề Bài Cố Định (Cao đúng 38px bằng khít với ô nhập số) */
         .sdk-fixed-even {
-            height: 34px;
-            line-height: 34px;
+            height: 38px;
+            line-height: 35px;
             text-align: center;
             background: #2563eb;
             color: #ffffff !important;
-            font-size: 1.08rem;
+            font-size: 1.1rem;
             font-weight: 800;
-            border-radius: 5px;
+            border-radius: 6px;
             border: 1.5px solid #93c5fd;
+            box-sizing: border-box;
             user-select: none;
         }
         .sdk-fixed-odd {
-            height: 34px;
-            line-height: 34px;
+            height: 38px;
+            line-height: 35px;
             text-align: center;
             background: #1d4ed8;
             color: #e0f2fe !important;
-            font-size: 1.08rem;
+            font-size: 1.1rem;
             font-weight: 800;
-            border-radius: 5px;
+            border-radius: 6px;
             border: 1.5px solid #60a5fa;
+            box-sizing: border-box;
             user-select: none;
         }
-        /* Ô Mở Bằng Hint (Màu Xanh Ngọc Lục Bảo + Chữ Trắng) */
+        /* Ô Mở Bằng Hint (Màu Xanh Ngọc Lục Bảo + Chữ Trắng, cao 38px) */
         .sdk-hint-box {
-            height: 34px;
-            line-height: 34px;
+            height: 38px;
+            line-height: 35px;
             text-align: center;
             background: #059669;
             color: #ffffff !important;
-            font-size: 1.08rem;
+            font-size: 1.1rem;
             font-weight: 800;
-            border-radius: 5px;
+            border-radius: 6px;
             border: 1.5px solid #6ee7b7;
+            box-sizing: border-box;
             user-select: none;
         }
         .sdk-hdr {
             text-align: center;
             color: #38bdf8;
             font-weight: 800;
-            font-size: 0.76rem;
+            font-size: 0.78rem;
             padding-bottom: 2px;
         }
         .sdk-r-label {
-            height: 34px;
-            line-height: 34px;
+            height: 38px;
+            line-height: 38px;
             text-align: center;
             color: #38bdf8;
             font-weight: 800;
-            font-size: 0.78rem;
+            font-size: 0.8rem;
         }
         .sdk-3x3-line {
             border: 0;

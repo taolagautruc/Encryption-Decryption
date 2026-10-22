@@ -40,12 +40,15 @@ st.markdown("""
         margin-bottom: 10px;
     }
     .hero-title {
-        font-size: 2.4rem;
+        font-size: 2.5rem;
         font-weight: 800;
-        background: linear-gradient(90deg, #ffffff, #93c5fd, #c084fc);
-        -webkit-background-clip: text;
-        -webkit-text-fill-color: transparent;
-        margin: 0 0 8px 0;
+        color: #f8fafc !important;
+        text-shadow: 0 0 20px rgba(59, 130, 246, 0.6), 0 2px 4px rgba(0, 0, 0, 0.8);
+        margin: 6px 0 10px 0;
+        letter-spacing: -0.5px;
+    }
+    .hero-title span {
+        color: #60a5fa;
     }
     .hero-sub {
         color: #94a3b8;
@@ -221,7 +224,7 @@ if "1. Home Dashboard" in main_menu:
     st.markdown("""
     <div class="hero-box">
         <div class="hero-badge">⚡ ZERO-TRUST MULTI-LAYER CRYPTOGRAPHY PLATFORM</div>
-        <h1 class="hero-title">🛡️ Ultimate Secret Messenger</h1>
+        <div class="hero-title">🛡️ Ultimate <span>Secret Messenger</span></div>
         <p class="hero-sub">
             Global Cipher Suite — Custom Unicode Key Permutation • UTC Time-Locking • LSB Pixel Steganography • Encrypted Persistent Chat
         </p>

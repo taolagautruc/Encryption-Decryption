@@ -4,12 +4,16 @@ import string
 import time
 import json
 import os
+import sys
 import base64
 import hashlib
 from PIL import Image, ImageDraw
 import io
 from datetime import datetime, timezone
 
+# Đảm bảo nạp chính xác file core/sudoku_game.py trên Streamlit Cloud
+sys.path.insert(0, os.path.abspath(os.path.dirname(__file__)))
+from core.sudoku_game import render_sudoku_arcade
 st.set_page_config(
     page_title="Ultimate Secret Messenger | Global Cipher Suite",
     page_icon="🛡️",
@@ -396,7 +400,8 @@ with st.sidebar:
             "💬 3. Secret Chat Rooms",
             "🕹️ 4. Crypto Challenges",
             "📚 5. Security Academy",
-            "🛠️ 6. Utilities & About"
+            "🛠️ 6. Utilities & About",
+            "🧩 7. Mini-Games & Sudoku Arcade"
         ]
     )
 
@@ -3719,3 +3724,10 @@ elif "6. Utilities & About" in main_menu:
     
     st.code(export_blueprint, language="json")
     st.info("💡 *“Security is not a product, but a process.”* — Bruce Schneier | Architected with ❤️ by **Lê Hoàng Phú Hiếu (FIT - HCMUS)**.")
+
+# ==============================================================================
+# PHẦN 7: MINI-GAMES & 9x9 SUDOKU ARCADE (GỌI TỪ FILE RIÊNG core/sudoku_game.py)
+# ==============================================================================
+elif "7. Mini-Games & Sudoku Arcade" in main_menu:
+    active_player = st.session_state.get("ctf_user") or "taolagautruc"
+    render_sudoku_arcade(active_player)

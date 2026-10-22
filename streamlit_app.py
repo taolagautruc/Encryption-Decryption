@@ -1010,10 +1010,536 @@ elif "3. Secret Chat Rooms" in main_menu:
                                 else:
                                     st.error(p_msg)
 
+# ==============================================================================
+# PHẦN 4: CRYPTO CHALLENGES & GLOBAL CTF ARENA (5,000+ DYNAMIC MATRIX, LEADERBOARD & SOCIAL)
+# ==============================================================================
 elif "4. Crypto Challenges" in main_menu:
-    st.subheader("🕹️ Crypto Challenges & CTF Arena")
-    st.write("Test your cryptanalysis skills! Use the **Cipher Workspace** to decode messages based on group rules.")
-    st.info("💡 Level 1: Passphrase `ALPHA`, Shift `5`. Level 2: Passphrase `SHADOW`.")
+    CTF_DB_FILE = "ctf_arena_db.json"
+
+    def load_ctf_db() -> dict:
+        if not os.path.exists(CTF_DB_FILE):
+            # Khởi tạo sẵn vài cao thủ mẫu trên Bảng xếp hạng để người chơi có thể thử kết bạn ngay
+            seed_db = {
+                "users": {
+                    "ZeroCool_VN": {
+                        "pin_hash": hashlib.sha256(b"9999").hexdigest(),
+                        "score": 14850,
+                        "solved": ["T1_1", "T2_4", "T3_2", "T4_1", "T5_1"],
+                        "surrendered": [],
+                        "hints_used": [],
+                        "friends": [],
+                        "friend_requests": []
+                    },
+                    "CipherQueen_HCMUS": {
+                        "pin_hash": hashlib.sha256(b"9999").hexdigest(),
+                        "score": 9420,
+                        "solved": ["T1_2", "T2_1", "T3_5", "T4_2"],
+                        "surrendered": [],
+                        "hints_used": [],
+                        "friends": [],
+                        "friend_requests": []
+                    },
+                    "ShadowBroker_99": {
+                        "pin_hash": hashlib.sha256(b"9999").hexdigest(),
+                        "score": 4150,
+                        "solved": ["T1_3", "T2_2", "T3_1"],
+                        "surrendered": [],
+                        "hints_used": [],
+                        "friends": [],
+                        "friend_requests": []
+                    }
+                },
+                "direct_messages": {}
+            }
+            with open(CTF_DB_FILE, "w", encoding="utf-8") as f:
+                json.dump(seed_db, f, ensure_ascii=False, indent=4)
+            return seed_db
+        try:
+            with open(CTF_DB_FILE, "r", encoding="utf-8") as f:
+                return json.load(f)
+        except Exception:
+            return {"users": {}, "direct_messages": {}}
+
+    def save_ctf_db(data: dict):
+        with open(CTF_DB_FILE, "w", encoding="utf-8") as f:
+            json.dump(data, f, ensure_ascii=False, indent=4)
+
+    def get_agent_rank(score: int) -> str:
+        if score >= 25000: return "👑 Grandmaster Archon"
+        if score >= 10000: return "💎 Phantom Cryptanalyst"
+        if score >= 4000:  return "🔥 Elite Cipher Breaker"
+        if score >= 1000:  return "⚡ Field Specialist"
+        if score > 0:      return "🛡️ Junior Operative"
+        return "🌱 Cyber Recruit"
+
+    # Bộ sinh Ma trận 5.000+ Câu đố Động (Xáo trộn riêng cho từng người chơi)
+    PASS_BANK = [
+        ("QUANTUM", "The physics of subatomic particles and qubits (7 letters, uppercase)"),
+        ("ENIGMA", "Famous German WWII cipher machine cracked by Alan Turing (6 letters, uppercase)"),
+        ("FIREWALL", "Network security barrier that monitors incoming and outgoing traffic (8 letters, uppercase)"),
+        ("STEGANO", "First 7 letters of the art of hiding secret data inside ordinary files (uppercase)"),
+        ("SAIGON", "Historic 6-letter name of Ho Chi Minh City (uppercase)"),
+        ("MATRIX", "A rectangular array of numbers or symbols in linear algebra (6 letters, uppercase)"),
+        ("VORTEX", "A whirling mass of fluid or air; starts with V and ends with X (6 letters, uppercase)"),
+        ("SHADOW", "A dark area produced by a body coming between rays of light (6 letters, uppercase)"),
+        ("PHANTOM", "A ghost or apparition; starts with PH and ends with OM (7 letters, uppercase)"),
+        ("NEBULA", "A giant cloud of dust and gas in space where stars are born (6 letters, uppercase)"),
+        ("ORACLE", "A priest or agency acting as a medium of prophetic computing advice (6 letters, uppercase)"),
+        ("TITANIUM", "Strong, corrosion-resistant transition metal with atomic number 22 (8 letters, uppercase)")
+    ]
+    FLAG_WORDS = [
+        "ZERO_TRUST", "DARK_PIXEL", "NEON_PULSE", "GHOST_PROTOCOL", "BINARY_STORM",
+        "OMEGA_KEY", "SILENT_VECTOR", "CYBER_AEGIS", "DEEP_CIPHER", "VOID_WALKER",
+        "CRYPTO_KING", "QUANTUM_LEAP", "SHADOW_NODE", "HYPER_MATRIX", "ASTRAL_LOCK"
+    ]
+
+    def generate_dynamic_challenge(username: str, tier: int, q_num: int) -> dict:
+        """Tạo câu hỏi độc nhất và xáo trộn theo từng người chơi + cấp độ + số thứ tự (1..1000)."""
+        seed_str = f"CTF_MATRIX_V2_{username}_TIER{tier}_Q{q_num}"
+        rng = random.Random(seed_str)
+
+        pass_word, pass_riddle = rng.choice(PASS_BANK)
+        flag_core = rng.choice(FLAG_WORDS)
+        unique_hex = f"{rng.randint(1000, 9999)}"
+        expected_flag = f"FLAG{{{flag_core}_{unique_hex}}}"
+        secret_sentence = f"Mission Accomplished! Your secret verification flag is: {expected_flag}"
+
+        tier_configs = {
+            1: {"name": "Tier 1: Rookie (Direct Intercept)", "pts": 100},
+            2: {"name": "Tier 2: Operative (Riddle Key Recovery)", "pts": 250},
+            3: {"name": "Tier 3: Specialist (Linguistic Camouflage)", "pts": 500},
+            4: {"name": "Tier 4: Elite (LSB Pixel Steganography)", "pts": 1000},
+            5: {"name": "Tier 5: Grandmaster (Multi-Layer Chaos)", "pts": 2500},
+        }
+        base_pts = tier_configs[tier]["pts"]
+
+        if tier == 1:
+            shift = rng.randint(1, 25)
+            k = build_custom_key(pass_word, [], shift, "")
+            cipher = encrypt_core(secret_sentence, k, False, "NONE", 0)
+            briefing = (
+                f"**Intercepted Rookie Transmission #{q_num}:**\n"
+                f"Configure your Sidebar with Passphrase **`{pass_word}`**, Shift Offset **`{shift}`**, "
+                f"**0 Symbols** (clear all icons in Symbol Vault), no custom pairs, and Reverse **`Unchecked`**. "
+                f"Decrypt the payload in **2. Cipher Workspace** to extract the `FLAG{{...}}`!"
+            )
+            hint = f"Set Sidebar Passphrase = `{pass_word}`, Shift = `{shift}`, remove all symbols in Symbol Vault, then paste the ciphertext into Cipher Workspace -> Decrypt."
+            solution_note = f"Passphrase: `{pass_word}` | Shift: `{shift}` | Symbols: `None` | Flag: `{expected_flag}`"
+            return {"id": f"T{tier}_{q_num}", "tier": tier, "pts": base_pts, "briefing": briefing, "payload": cipher, "is_img": False, "hint": hint, "flag": expected_flag, "solution": solution_note}
+
+        elif tier == 2:
+            shift = rng.randint(5, 50)
+            k = build_custom_key(pass_word, [], shift, "")
+            cipher = encrypt_core(secret_sentence, k, True, "NONE", 0)
+            briefing = (
+                f"**Operative Cryptogram #{q_num}:**\n"
+                f"- **Passphrase Riddle:** *{pass_riddle}*\n"
+                f"- **Shift Offset:** **`{shift}`**\n"
+                f"- **Symbol Vault:** `Empty (0 icons)`\n"
+                f"- **Reverse Structure:** **`Checked (Enabled)`**"
+            )
+            hint = f"The answer to the Passphrase Riddle starts with **`{pass_word[:2]}...`** and ends with **`...{pass_word[-2:]}`** ({len(pass_word)} letters). Don't forget to check 'Reverse Structure'!"
+            solution_note = f"Passphrase: `{pass_word}` | Shift: `{shift}` | Reverse: `True` | Flag: `{expected_flag}`"
+            return {"id": f"T{tier}_{q_num}", "tier": tier, "pts": base_pts, "briefing": briefing, "payload": cipher, "is_img": False, "hint": hint, "flag": expected_flag, "solution": solution_note}
+
+        elif tier == 3:
+            shift = rng.randint(3, 12)
+            k = build_custom_key(pass_word, [], shift, "")
+            raw_c = encrypt_core(secret_sentence, k, False, "NONE", 0)
+            camo_payload = encode_english_camouflage(raw_c)
+            briefing = (
+                f"**Camouflaged Intelligence Report #{q_num}:**\n"
+                f"An enemy agent disguised a ciphertext into innocent English prose.\n"
+                f"- **Passphrase:** **`{pass_word}`**\n"
+                f"- **Shift Offset:** Hidden somewhere between **`{max(1, shift-2)}`** and **`{shift+2}`**\n"
+                f"- **Symbol Vault:** `Empty (0 icons)` | **Reverse:** `Unchecked`"
+            )
+            hint = f"The exact Shift Offset is **`{shift}`**. Go to **2. Cipher Workspace -> Tab 2 (English Camouflage Studio)** and paste the English sentences to reveal the flag."
+            solution_note = f"Passphrase: `{pass_word}` | Exact Shift: `{shift}` | Mode: `English Camouflage` | Flag: `{expected_flag}`"
+            return {"id": f"T{tier}_{q_num}", "tier": tier, "pts": base_pts, "briefing": briefing, "payload": camo_payload, "is_img": False, "hint": hint, "flag": expected_flag, "solution": solution_note}
+
+        elif tier == 4:
+            shift = rng.randint(10, 40)
+            k = build_custom_key(pass_word, [], shift, "")
+            raw_c = encrypt_core(secret_sentence, k, False, "NONE", 0)
+            carrier = generate_sample_carrier_image(420, 220)
+            stego_img = encode_image_lsb(carrier, raw_c)
+            buf = io.BytesIO()
+            stego_img.save(buf, format="PNG")
+            briefing = (
+                f"**Forensic Steganography Intercept #{q_num}:**\n"
+                f"We recovered this lossless PNG image from a suspect's server. Secret bits are embedded inside the RGB pixels.\n"
+                f"- **Passphrase Riddle:** *{pass_riddle}*\n"
+                f"- **Shift Offset:** **`{shift}`** | **Symbol Vault:** `Empty (0 icons)` | **Reverse:** `Unchecked`"
+            )
+            hint = f"The Passphrase is **`{pass_word}`** and Shift is **`{shift}`**. Download the Stego PNG below and upload it in **2. Cipher Workspace -> Tab 3 (Decode)**!"
+            solution_note = f"Passphrase: `{pass_word}` | Shift: `{shift}` | Stego PNG Decoded Flag: `{expected_flag}`"
+            return {"id": f"T{tier}_{q_num}", "tier": tier, "pts": base_pts, "briefing": briefing, "payload": buf.getvalue(), "is_img": True, "hint": hint, "flag": expected_flag, "solution": solution_note}
+
+        else:
+            shift = rng.randint(15, 60)
+            chosen_icons = [SYMBOLS_POOL[rng.randint(0, min(20, len(SYMBOLS_POOL)-1))] for _ in range(2)]
+            pair_rule = "a=@, e=3"
+            k = build_custom_key(pass_word, chosen_icons, shift, pair_rule)
+            raw_c = encrypt_core(secret_sentence, k, True, "NONE", 0)
+            camo_payload = encode_english_camouflage(raw_c)
+            icons_disp = " , ".join(chosen_icons)
+            briefing = (
+                f"**Grandmaster Multi-Layer Boss Matrix #{q_num}:**\n"
+                f"- **Passphrase Riddle:** *{pass_riddle}*\n"
+                f"- **Shift Offset:** Between **`{shift-1}`** and **`{shift+1}`**\n"
+                f"- **Symbol Vault Sequence (Exact Order):** **`{icons_disp}`**\n"
+                f"- **Custom Pairs:** **`{pair_rule}`**\n"
+                f"- **Reverse Structure:** **`Checked (Enabled)`**\n"
+                f"- **Outer Wrapper:** `Linguistic English Camouflage`"
+            )
+            hint = f"Passphrase = **`{pass_word}`** | Exact Shift = **`{shift}`** | Select exact icons `{icons_disp}`, type `{pair_rule}` in Custom Pairs, check Reverse Structure, then decode via English Camouflage Studio!"
+            solution_note = f"Passphrase: `{pass_word}` | Shift: `{shift}` | Icons: `{icons_disp}` | Pairs: `{pair_rule}` | Reverse: `True` | Flag: `{expected_flag}`"
+            return {"id": f"T{tier}_{q_num}", "tier": tier, "pts": base_pts, "briefing": briefing, "payload": camo_payload, "is_img": False, "hint": hint, "flag": expected_flag, "solution": solution_note}
+
+    # --- GIAO DIỆN ĐẤU TRƯỜNG CTF ---
+    st.markdown("""
+    <div class="hero-box" style="padding: 20px 28px; margin-bottom: 18px;">
+        <div class="hero-badge">🕹️ 5,000+ PROCEDURAL CRYPTO MATRIX • GLOBAL RANKING • AGENT SOCIAL HUB</div>
+        <h2 style="color: #f8fafc; margin: 4px 0 6px 0; font-weight: 800;">Global Crypto Challenges & CTF Arena</h2>
+        <p class="hero-sub">Crack personalized randomized cipher matrices across 5 difficulty tiers, climb the public leaderboard, and connect with top cryptanalysts.</p>
+    </div>
+    """, unsafe_allow_html=True)
+
+    ctf_db = load_ctf_db()
+    if "ctf_user" not in st.session_state:
+        st.session_state.ctf_user = None
+
+    # --- KHU VỰC ĐĂNG NHẬP / ĐĂNG KÝ TÀI KHOẢN ĐIỆP VIÊN ---
+    if not st.session_state.ctf_user:
+        st.markdown("""
+        <div class="ws-banner">
+            <h4>🔐 Agent Authentication Portal (Login / Register)</h4>
+            <p>Sign in or create a new Agent Callsign to generate your personalized 5,000-question matrix, track XP on the public leaderboard, and message friends.</p>
+        </div>
+        """, unsafe_allow_html=True)
+        l_col1, l_col2, l_col3 = st.columns([1.5, 1.5, 1])
+        with l_col1:
+            u_in = st.text_input("🕵️ Agent Callsign (Username):", placeholder="e.g. PhuHieu_HCMUS")
+        with l_col2:
+            p_in = st.text_input("🔑 Secret Agent PIN:", type="password", placeholder="Enter 4+ digit PIN")
+        with l_col3:
+            st.write("")
+            if st.button("🚀 Enter CTF Arena", type="primary", use_container_width=True):
+                u_clean = u_in.strip()
+                p_clean = p_in.strip()
+                if not u_clean or not p_clean:
+                    st.error("Please enter both a Username and PIN!")
+                else:
+                    p_hash = hashlib.sha256(p_clean.encode("utf-8")).hexdigest()
+                    users = ctf_db["users"]
+                    if u_clean in users:
+                        if users[u_clean]["pin_hash"] == p_hash:
+                            st.session_state.ctf_user = u_clean
+                            st.rerun()
+                        else:
+                            st.error("❌ Incorrect PIN for this Agent Callsign!")
+                    else:
+                        users[u_clean] = {
+                            "pin_hash": p_hash,
+                            "score": 0,
+                            "solved": [],
+                            "surrendered": [],
+                            "hints_used": [],
+                            "friends": [],
+                            "friend_requests": []
+                        }
+                        save_ctf_db(ctf_db)
+                        st.session_state.ctf_user = u_clean
+                        st.rerun()
+    else:
+        curr_user = st.session_state.ctf_user
+        u_data = ctf_db["users"].get(curr_user, {})
+        u_score = u_data.get("score", 0)
+        u_solved = u_data.get("solved", [])
+        u_surrendered = u_data.get("surrendered", [])
+        u_hints = u_data.get("hints_used", [])
+        u_friends = u_data.get("friends", [])
+        u_reqs = u_data.get("friend_requests", [])
+
+        # Thanh thông tin người chơi hiện tại
+        p_c1, p_c2, p_c3, p_c4, p_c5 = st.columns([1.6, 1.2, 1.1, 1.1, 0.8])
+        p_c1.metric("🕵️ Active Agent", curr_user, get_agent_rank(u_score))
+        p_c2.metric("🏆 Total Arena Score", f"{u_score:,} PTS", "Public Ranked")
+        p_c3.metric("✅ Missions Cracked", f"{len(u_solved)} / 5,000", f"{len(u_surrendered)} Surrendered")
+        p_c4.metric("🤝 Friends Network", f"{len(u_friends)} Agents", f"{len(u_reqs)} Pending Req")
+        with p_c5:
+            st.write("")
+            if st.button("🚪 Logout", use_container_width=True):
+                st.session_state.ctf_user = None
+                st.rerun()
+
+        st.write("")
+        arena_tab1, arena_tab2, arena_tab3 = st.tabs([
+            "🎯 1. Infinite Challenge Matrix (5,000 Missions)",
+            "🏆 2. Global Public Leaderboard & Add Friends",
+            f"💬 3. Friends & Direct Messenger ({len(u_reqs)} Requests)"
+        ])
+
+        # ======================================================================
+        # TAB 1: MA TRẬN 5.000 CÂU HỎI ĐỘNG + HINT (-70%) + ĐẦU HÀNG (-92%)
+        # ======================================================================
+        with arena_tab1:
+            sel_c1, sel_c2, sel_c3 = st.columns([1.8, 1, 1])
+            with sel_c1:
+                tier_choice = st.selectbox(
+                    "🔥 Select Difficulty Tier:",
+                    [
+                        "Tier 1 — Rookie (100 PTS | Direct Cipher Intercept)",
+                        "Tier 2 — Operative (250 PTS | Riddle Passphrase Recovery)",
+                        "Tier 3 — Specialist (500 PTS | English Camouflage Matrix)",
+                        "Tier 4 — Elite (1,000 PTS | LSB Steganography Forensics)",
+                        "Tier 5 — Grandmaster (2,500 PTS | Multi-Layer Chaos Boss)"
+                    ]
+                )
+                tier_num = int(tier_choice.split("Tier ")[1][0])
+            with sel_c2:
+                if "curr_q_num" not in st.session_state:
+                    st.session_state.curr_q_num = 1
+                q_num = st.number_input("🔢 Matrix Question # (1 - 1000):", min_value=1, max_value=1000, value=st.session_state.curr_q_num)
+                st.session_state.curr_q_num = q_num
+            with sel_c3:
+                st.write("")
+                if st.button("🎲 Shuffle Random Mission", use_container_width=True):
+                    st.session_state.curr_q_num = random.randint(1, 1000)
+                    st.rerun()
+
+            chal = generate_dynamic_challenge(curr_user, tier_num, q_num)
+            cid = chal["id"]
+            base_pts = chal["pts"]
+            is_solved = cid in u_solved
+            is_surrendered = cid in u_surrendered
+            hint_used = cid in u_hints
+
+            # Tính điểm thực nhận hoặc điểm phạt
+            effective_pts = int(base_pts * 0.30) if hint_used else base_pts
+            surrender_penalty = int(base_pts * 0.92)
+
+            st.markdown(f"""
+            <div class="ws-banner">
+                <h4>🎯 Mission ID: <code>{cid}</code> — Base Reward: <b>{base_pts:,} PTS</b></h4>
+                <p>⚠️ <b>Scoring Rules:</b> Using a Hint reduces reward by <b>70%</b> (you earn <b>{int(base_pts*0.30)} PTS</b>). Surrendering to reveal the answer deducts <b>92%</b> (<b>-{surrender_penalty} PTS</b> penalty) from your total score!</p>
+            </div>
+            """, unsafe_allow_html=True)
+
+            if is_solved:
+                st.success(f"✅ **MISSION COMPLETED!** You have already cracked Mission `{cid}`.")
+            elif is_surrendered:
+                st.error(f"🏳️ **MISSION SURRENDERED!** You forfeited Mission `{cid}` (-{surrender_penalty} PTS penalty applied).")
+
+            st.markdown(chal["briefing"])
+
+            if chal["is_img"]:
+                st.image(chal["payload"], caption=f"Intercepted Stego PNG — Mission {cid}", width=380)
+                st.download_button(
+                    "⬇️ Download Intercepted Stego PNG",
+                    data=chal["payload"],
+                    file_name=f"mission_{cid}.png",
+                    mime="image/png"
+                )
+            else:
+                st.markdown("**Intercepted Encrypted Payload:**")
+                st.code(chal["payload"], language=None)
+
+            # Hàng nút Hint (-70%) và Đầu hàng xem đáp án (-92%)
+            h_col1, h_col2 = st.columns(2)
+            with h_col1:
+                if not hint_used and not is_solved and not is_surrendered:
+                    if st.button(f"💡 Unlock Mission Hint (-70% Points -> Earn {int(base_pts*0.30)} PTS)", use_container_width=True):
+                        u_hints.append(cid)
+                        ctf_db["users"][curr_user]["hints_used"] = u_hints
+                        save_ctf_db(ctf_db)
+                        st.rerun()
+                elif hint_used:
+                    st.warning(f"💡 **HINT UNLOCKED (70% Point Reduction Active):**\n\n{chal['hint']}")
+
+            with h_col2:
+                if not is_solved and not is_surrendered:
+                    if st.button(f"🏳️ Surrender & Reveal Answer (-{surrender_penalty} PTS Penalty)", use_container_width=True):
+                        u_surrendered.append(cid)
+                        ctf_db["users"][curr_user]["surrendered"] = u_surrendered
+                        ctf_db["users"][curr_user]["score"] = u_score - surrender_penalty
+                        save_ctf_db(ctf_db)
+                        st.rerun()
+                elif is_surrendered:
+                    st.info(f"🔓 **REVEALED SOLUTION & ANSWER:**\n\n{chal['solution']}")
+
+            st.divider()
+            if not is_solved and not is_surrendered:
+                ans_col1, ans_col2 = st.columns([3, 1])
+                with ans_col1:
+                    flag_input = st.text_input("🚩 Submit Decoded Flag:", placeholder="Format: FLAG{...}", key=f"flag_in_{cid}")
+                with ans_col2:
+                    st.write("")
+                    if st.button("✅ Verify Flag", type="primary", use_container_width=True):
+                        if flag_input.strip() == chal["flag"]:
+                            u_solved.append(cid)
+                            ctf_db["users"][curr_user]["solved"] = u_solved
+                            ctf_db["users"][curr_user]["score"] = u_score + effective_pts
+                            save_ctf_db(ctf_db)
+                            st.balloons()
+                            st.success(f"🎉 **CORRECT FLAG!** +{effective_pts} PTS added to your global rank!")
+                            time.sleep(1.2)
+                            st.rerun()
+                        else:
+                            st.error("❌ Incorrect Flag! Check your Sidebar rules and try decoding again.")
+
+        # ======================================================================
+        # TAB 2: BẢNG XẾP HẠNG PUBLIC & KẾT BẠN TRỰC TIẾP
+        # ======================================================================
+        with arena_tab2:
+            st.markdown("""
+            <div class="ws-banner">
+                <h4>🏆 Global Cryptanalyst Leaderboard</h4>
+                <p>Live public rankings sorted by total XP. Spot a high-ranking agent? Send them a Friend Request to open a private 1-on-1 chat channel!</p>
+            </div>
+            """, unsafe_allow_html=True)
+
+            sorted_users = sorted(ctf_db["users"].items(), key=lambda x: x[1].get("score", 0), reverse=True)
+
+            for rank_idx, (agent_id, a_info) in enumerate(sorted_users, start=1):
+                a_score = a_info.get("score", 0)
+                a_solved = len(a_info.get("solved", []))
+                a_title = get_agent_rank(a_score)
+                medal = "🥇" if rank_idx == 1 else ("🥈" if rank_idx == 2 else ("🥉" if rank_idx == 3 else f"#{rank_idx}"))
+
+                lb_c1, lb_c2, lb_c3, lb_c4 = st.columns([2.2, 1.5, 1.2, 1.2])
+                with lb_c1:
+                    me_tag = " *(You)*" if agent_id == curr_user else ""
+                    st.markdown(f"**{medal} &nbsp; `{agent_id}`**{me_tag} — <span style='color:#60a5fa;'>{a_title}</span>", unsafe_allow_html=True)
+                with lb_c2:
+                    st.markdown(f"🏆 **{a_score:,} PTS**")
+                with lb_c3:
+                    st.markdown(f"✅ `{a_solved}` cracked")
+                with lb_c4:
+                    if agent_id != curr_user:
+                        if agent_id in u_friends:
+                            st.caption("🤝 Friends")
+                        elif curr_user in a_info.get("friend_requests", []):
+                            st.caption("⏳ Request Sent")
+                        else:
+                            if st.button(f"➕ Add Friend", key=f"add_fr_{agent_id}", use_container_width=True):
+                                target_reqs = ctf_db["users"][agent_id].get("friend_requests", [])
+                                if curr_user not in target_reqs:
+                                    target_reqs.append(curr_user)
+                                    ctf_db["users"][agent_id]["friend_requests"] = target_reqs
+                                    save_ctf_db(ctf_db)
+                                    st.toast(f"🤝 Friend request sent to {agent_id}!", icon="🤝")
+                                    st.rerun()
+
+        # ======================================================================
+        # TAB 3: QUẢN LÝ KẾT BẠN & KHUNG CHAT RIÊNG TƯ 1-1
+        # ======================================================================
+        with arena_tab3:
+            f_col1, f_col2 = st.columns([1.2, 2.3])
+
+            with f_col1:
+                st.markdown("##### 📩 Incoming Friend Requests")
+                if not u_reqs:
+                    st.caption("No pending friend requests.")
+                else:
+                    for req_sender in list(u_reqs):
+                        rc1, rc2, rc3 = st.columns([1.6, 1, 1])
+                        rc1.markdown(f"🕵️ **`{req_sender}`**")
+                        if rc2.button("✅ Accept", key=f"acc_{req_sender}", use_container_width=True):
+                            u_reqs.remove(req_sender)
+                            if req_sender not in u_friends:
+                                u_friends.append(req_sender)
+                            sender_friends = ctf_db["users"].get(req_sender, {}).get("friends", [])
+                            if curr_user not in sender_friends:
+                                sender_friends.append(curr_user)
+                            ctf_db["users"][curr_user]["friend_requests"] = u_reqs
+                            ctf_db["users"][curr_user]["friends"] = u_friends
+                            if req_sender in ctf_db["users"]:
+                                ctf_db["users"][req_sender]["friends"] = sender_friends
+                            save_ctf_db(ctf_db)
+                            st.rerun()
+                        if rc3.button("❌", key=f"dec_{req_sender}", use_container_width=True):
+                            u_reqs.remove(req_sender)
+                            ctf_db["users"][curr_user]["friend_requests"] = u_reqs
+                            save_ctf_db(ctf_db)
+                            st.rerun()
+
+                st.divider()
+                st.markdown("##### 🤝 Quick Add by Callsign")
+                manual_friend = st.text_input("Enter Agent Callsign:", placeholder="e.g. ZeroCool_VN")
+                if st.button("📨 Send Friend Request", use_container_width=True):
+                    mf = manual_friend.strip()
+                    if mf not in ctf_db["users"]:
+                        st.error("Agent not found in Arena database!")
+                    elif mf == curr_user:
+                        st.warning("You cannot add yourself!")
+                    elif mf in u_friends:
+                        st.info("Already in your friends list!")
+                    else:
+                        # Nếu kết bạn với 3 tài khoản Bot mẫu trên bảng xếp hạng thì tự động đồng ý luôn để test chat ngay!
+                        if mf in ["ZeroCool_VN", "CipherQueen_HCMUS", "ShadowBroker_99"]:
+                            u_friends.append(mf)
+                            ctf_db["users"][curr_user]["friends"] = u_friends
+                            ctf_db["users"][mf]["friends"].append(curr_user)
+                            save_ctf_db(ctf_db)
+                            st.success(f"🎉 **{mf}** accepted your friend request! You can chat on the right now.")
+                            st.rerun()
+                        else:
+                            t_reqs = ctf_db["users"][mf].get("friend_requests", [])
+                            if curr_user not in t_reqs:
+                                t_reqs.append(curr_user)
+                                ctf_db["users"][mf]["friend_requests"] = t_reqs
+                                save_ctf_db(ctf_db)
+                            st.success(f"Request sent to **{mf}**!")
+
+            with f_col2:
+                st.markdown("##### 💬 Private 1-on-1 Agent Messenger")
+                if not u_friends:
+                    st.info("💡 You have no connected friends yet. Go to the **Leaderboard (Tab 2)** or use **Quick Add** on the left to add an agent (Tip: Add `ZeroCool_VN` or `CipherQueen_HCMUS` to test instant messaging!).")
+                else:
+                    active_friend = st.selectbox("Select Friend to Chat With:", u_friends)
+                    pair_key = "__".join(sorted([curr_user, active_friend]))
+                    dm_list = ctf_db.get("direct_messages", {}).get(pair_key, [])
+
+                    # Khung hộp thoại nhỏ có thanh cuộn
+                    chat_box = st.container(height=280, border=True)
+                    with chat_box:
+                        if not dm_list:
+                            st.caption(f"🔒 Encrypted 1-on-1 channel established with **{active_friend}**. Say hello!")
+                        for dm in dm_list:
+                            align_color = "#60a5fa" if dm["sender"] == curr_user else "#c084fc"
+                            st.markdown(
+                                f"<div style='margin-bottom:8px;'><b style='color:{align_color};'>{dm['sender']}</b> "
+                                f"<span style='font-size:0.75rem;color:#64748b;'>({dm['time']})</span>:<br>"
+                                f"<span style='color:#e2e8f0;'>{dm['text']}</span></div>",
+                                unsafe_allow_html=True
+                            )
+
+                    dm_in_col, dm_btn_col = st.columns([3.5, 1])
+                    with dm_in_col:
+                        dm_txt = st.text_input("Write private message:", placeholder=f"Message @{active_friend}...", label_visibility="collapsed", key=f"dm_in_{active_friend}")
+                    with dm_btn_col:
+                        if st.button("📨 Send", type="primary", use_container_width=True):
+                            if dm_txt.strip():
+                                if "direct_messages" not in ctf_db:
+                                    ctf_db["direct_messages"] = {}
+                                if pair_key not in ctf_db["direct_messages"]:
+                                    ctf_db["direct_messages"][pair_key] = []
+                                ctf_db["direct_messages"][pair_key].append({
+                                    "sender": curr_user,
+                                    "text": dm_txt.strip(),
+                                    "time": datetime.now(timezone.utc).strftime("%H:%M UTC")
+                                })
+                                # Nếu nhắn cho cao thủ mẫu trên bảng xếp hạng thì có phản hồi tự động vui nhộn
+                                if active_friend in ["ZeroCool_VN", "CipherQueen_HCMUS", "ShadowBroker_99"]:
+                                    ctf_db["direct_messages"][pair_key].append({
+                                        "sender": active_friend,
+                                        "text": f"Hey @{curr_user}! Keep grinding the Tier 4 & Tier 5 matrices. Let me know if you need help cracking a Stego PNG!",
+                                        "time": datetime.now(timezone.utc).strftime("%H:%M UTC")
+                                    })
+                                save_ctf_db(ctf_db)
+                                st.rerun()
 
 elif "5. Security Academy" in main_menu:
     st.subheader("📚 Security Academy & Algorithm X-Ray")

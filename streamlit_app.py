@@ -1011,38 +1011,37 @@ elif "3. Secret Chat Rooms" in main_menu:
                                     st.error(p_msg)
 
 # ==============================================================================
-# PHẦN 4: CRYPTO CHALLENGES & GLOBAL CTF ARENA (5,000+ DYNAMIC MATRIX, LEADERBOARD & SOCIAL)
+# PHẦN 4: CRYPTO CHALLENGES & GLOBAL CTF ARENA (KIDS TO GRANDMASTER EDITION)
 # ==============================================================================
 elif "4. Crypto Challenges" in main_menu:
     CTF_DB_FILE = "ctf_arena_db.json"
 
     def load_ctf_db() -> dict:
         if not os.path.exists(CTF_DB_FILE):
-            # Khởi tạo sẵn vài cao thủ mẫu trên Bảng xếp hạng để người chơi có thể thử kết bạn ngay
             seed_db = {
                 "users": {
-                    "ZeroCool_VN": {
+                    "AlexMercer_US": {
                         "pin_hash": hashlib.sha256(b"9999").hexdigest(),
-                        "score": 14850,
-                        "solved": ["T1_1", "T2_4", "T3_2", "T4_1", "T5_1"],
+                        "score": 12500,
+                        "solved": ["T1_1", "T2_1", "T3_1", "T4_1", "T5_1"],
                         "surrendered": [],
                         "hints_used": [],
                         "friends": [],
                         "friend_requests": []
                     },
-                    "CipherQueen_HCMUS": {
+                    "ElenaRostova_UK": {
                         "pin_hash": hashlib.sha256(b"9999").hexdigest(),
-                        "score": 9420,
-                        "solved": ["T1_2", "T2_1", "T3_5", "T4_2"],
+                        "score": 6800,
+                        "solved": ["T1_2", "T2_2", "T3_2", "T4_2"],
                         "surrendered": [],
                         "hints_used": [],
                         "friends": [],
                         "friend_requests": []
                     },
-                    "ShadowBroker_99": {
+                    "KenjiSato_JP": {
                         "pin_hash": hashlib.sha256(b"9999").hexdigest(),
-                        "score": 4150,
-                        "solved": ["T1_3", "T2_2", "T3_1"],
+                        "score": 2350,
+                        "solved": ["T1_3", "T2_3", "T3_3"],
                         "surrendered": [],
                         "hints_used": [],
                         "friends": [],
@@ -1065,144 +1064,335 @@ elif "4. Crypto Challenges" in main_menu:
             json.dump(data, f, ensure_ascii=False, indent=4)
 
     def get_agent_rank(score: int) -> str:
-        if score >= 25000: return "👑 Grandmaster Archon"
-        if score >= 10000: return "💎 Phantom Cryptanalyst"
-        if score >= 4000:  return "🔥 Elite Cipher Breaker"
-        if score >= 1000:  return "⚡ Field Specialist"
-        if score > 0:      return "🛡️ Junior Operative"
-        return "🌱 Cyber Recruit"
+        if score >= 20000: return "👑 Grandmaster Archon"
+        if score >= 8000:  return "💎 Global Cryptanalyst"
+        if score >= 3000:  return "🔥 History & Cipher Master"
+        if score >= 800:   return "⚡ Puzzle Explorer"
+        if score > 0:      return "🛡️ Junior Detective"
+        return "🌱 Starter Explorer"
 
-    # Bộ sinh Ma trận 5.000+ Câu đố Động (Xáo trộn riêng cho từng người chơi)
-    PASS_BANK = [
-        ("QUANTUM", "The physics of subatomic particles and qubits (7 letters, uppercase)"),
-        ("ENIGMA", "Famous German WWII cipher machine cracked by Alan Turing (6 letters, uppercase)"),
-        ("FIREWALL", "Network security barrier that monitors incoming and outgoing traffic (8 letters, uppercase)"),
-        ("STEGANO", "First 7 letters of the art of hiding secret data inside ordinary files (uppercase)"),
-        ("SAIGON", "Historic 6-letter name of Ho Chi Minh City (uppercase)"),
-        ("MATRIX", "A rectangular array of numbers or symbols in linear algebra (6 letters, uppercase)"),
-        ("VORTEX", "A whirling mass of fluid or air; starts with V and ends with X (6 letters, uppercase)"),
-        ("SHADOW", "A dark area produced by a body coming between rays of light (6 letters, uppercase)"),
-        ("PHANTOM", "A ghost or apparition; starts with PH and ends with OM (7 letters, uppercase)"),
-        ("NEBULA", "A giant cloud of dust and gas in space where stars are born (6 letters, uppercase)"),
-        ("ORACLE", "A priest or agency acting as a medium of prophetic computing advice (6 letters, uppercase)"),
-        ("TITANIUM", "Strong, corrosion-resistant transition metal with atomic number 22 (8 letters, uppercase)")
+    # --- KHO DỮ LIỆU BÁCH KHOA TOÀN THƯ THẾ GIỚI (GLOBAL ENCYCLOPEDIA POOL) ---
+    WORLD_KNOWLEDGE_POOL = [
+        # Countries & Iconic Landmarks
+        ("Country", "JAPAN", "The Land of the Rising Sun, famous for Mount Fuji, cherry blossoms, and Tokyo."),
+        ("Country", "EGYPT", "North African country famous for the Ancient Pyramids of Giza, the Sphinx, and the Nile River."),
+        ("Country", "FRANCE", "European country home to the Eiffel Tower, the Louvre Museum, and Paris."),
+        ("Country", "BRAZIL", "The largest country in South America, famous for the Amazon Rainforest and Christ the Redeemer."),
+        ("Country", "ITALY", "Boot-shaped European country famous for the Colosseum in Rome, Venice canals, and pizza."),
+        ("Country", "CANADA", "The second-largest country in the world, famous for maple leaf flags and Niagara Falls."),
+        ("Country", "AUSTRALIA", "Continent and country famous for the Sydney Opera House, kangaroos, and the Great Barrier Reef."),
+        ("Landmark", "STATUE OF LIBERTY", "Colossal neoclassical sculpture on Liberty Island in New York Harbor, gifted by France."),
+        ("Landmark", "GREAT WALL", "Ancient series of stone fortifications built across the historical northern borders of China."),
+        ("Landmark", "TAJ MAHAL", "Ivory-white marble mausoleum on the right bank of the river Yamuna in Agra, India."),
+        ("Landmark", "MACHU PICCHU", "15th-century Inca citadel located in the Eastern Cordillera of southern Peru."),
+        ("Landmark", "BIG BEN", "Famous nickname for the Great Bell of the striking clock at the Palace of Westminster in London."),
+        # US Presidents
+        ("US President", "GEORGE WASHINGTON", "The 1st President of the United States and Commander-in-Chief of the Continental Army."),
+        ("US President", "ABRAHAM LINCOLN", "The 16th US President who issued the Emancipation Proclamation and led the nation through the Civil War."),
+        ("US President", "THEODORE ROOSEVELT", "The 26th US President, famous for conservationism, the Panama Canal, and Mount Rushmore."),
+        ("US President", "FRANKLIN ROOSEVELT", "The 32nd US President (FDR) who led the United States through the Great Depression and World War II."),
+        ("US President", "JOHN F KENNEDY", "The 35th US President (JFK) who initiated the Apollo space program during the Cold War."),
+        ("US President", "THOMAS JEFFERSON", "The 3rd US President and the principal author of the Declaration of Independence in 1776."),
+        ("US President", "BARACK OBAMA", "The 44th President of the United States and the first African American to hold the office."),
+        # World Famous Figures & Scientists
+        ("World Figure", "ALBERT EINSTEIN", "German-born theoretical physicist who developed the Theory of Relativity (E = mc^2)."),
+        ("World Figure", "ISAAC NEWTON", "English mathematician and physicist who formulated the laws of motion and universal gravitation."),
+        ("World Figure", "LEONARDO DA VINCI", "Italian Renaissance polymath who painted the Mona Lisa and The Last Supper."),
+        ("World Figure", "ALAN TURING", "English mathematician and father of computer science who cracked the Nazi Enigma machine in WWII."),
+        ("World Figure", "MARIE CURIE", "Polish-French physicist and chemist who conducted pioneering research on radioactivity and won two Nobel Prizes."),
+        ("World Figure", "NIKOLA TESLA", "Serbian-American inventor best known for his contributions to the design of the modern alternating current (AC) electricity system."),
+        ("World Figure", "NELSON MANDELA", "South African anti-apartheid revolutionary and political leader who served as the 1st President of South Africa."),
+        ("World Figure", "NAPOLEON BONAPARTE", "French military commander and Emperor who rose to prominence during the French Revolution."),
+        ("World Figure", "WILLIAM SHAKESPEARE", "English playwright and poet, widely regarded as the greatest writer in the English language (Romeo and Juliet, Hamlet)."),
+        # Historical Wars, Conflicts & Major Global Events
+        ("Historical War", "WORLD WAR II", "Global conflict from 1939 to 1945 involving the Allies and the Axis powers, ending after Normandy and Hiroshima."),
+        ("Historical War", "WORLD WAR I", "Global war originating in Europe from 1914 to 1918, triggered by the assassination of Archduke Franz Ferdinand."),
+        ("Historical War", "COLD WAR", "Geopolitical tension between the United States and the Soviet Union from 1947 to 1991 without direct large-scale fighting."),
+        ("Historical War", "AMERICAN CIVIL WAR", "Civil war in the United States (1861-1865) fought between the Union (North) and the Confederacy (South)."),
+        ("Historical Battle", "BATTLE OF WATERLOO", "Famous 1815 battle in Belgium where Napoleon Bonaparte was defeated for the final time."),
+        ("Historical Event", "SEPTEMBER 11", "The 2001 terrorist attacks by al-Qaeda against the World Trade Center Twin Towers in New York and the Pentagon."),
+        ("Historical Event", "PEARL HARBOR", "Surprise military strike by the Imperial Japanese Navy Air Service upon the United States in Hawaii on December 7, 1941."),
+        ("Historical Event", "APOLLO 11", "Historic 1969 spaceflight that first landed humans—Neil Armstrong and Buzz Aldrin—on the Moon."),
+        ("Historical Event", "FALL OF BERLIN WALL", "Pivotal 1989 world event marking the destruction of the concrete barrier dividing East and West Berlin."),
+        ("Historical Event", "TITANIC DISASTER", "The 1912 sinking of the British passenger liner in the North Atlantic Ocean after striking an iceberg."),
+        ("Historical Event", "FRENCH REVOLUTION", "Period of radical political and societal change in France that began with the Storming of the Bastille in 1789."),
+        ("Historical Event", "CUBAN MISSILE CRISIS", "13-day confrontation in October 1962 between the US and USSR that brought the world closest to nuclear conflict.")
     ]
-    FLAG_WORDS = [
-        "ZERO_TRUST", "DARK_PIXEL", "NEON_PULSE", "GHOST_PROTOCOL", "BINARY_STORM",
-        "OMEGA_KEY", "SILENT_VECTOR", "CYBER_AEGIS", "DEEP_CIPHER", "VOID_WALKER",
-        "CRYPTO_KING", "QUANTUM_LEAP", "SHADOW_NODE", "HYPER_MATRIX", "ASTRAL_LOCK"
-    ]
+
+    def caesar_shift_ascii(text: str, shift: int) -> str:
+        """Chỉ dịch chuyển 26 chữ cái tiếng Anh A-Z để người chơi dễ nhìn, không sinh ký tự lạ."""
+        out = []
+        for ch in text.upper():
+            if "A" <= ch <= "Z":
+                out.append(chr((ord(ch) - ord("A") + shift) % 26 + ord("A")))
+            else:
+                out.append(ch)
+        return "".join(out)
+
+    def atbash_ascii(text: str) -> str:
+        """Đảo ngược bảng chữ cái tiếng Anh: A<->Z, B<->Y, C<->X..."""
+        out = []
+        for ch in text.upper():
+            if "A" <= ch <= "Z":
+                out.append(chr(ord("Z") - (ord(ch) - ord("A"))))
+            else:
+                out.append(ch)
+        return "".join(out)
+
+    def leetspeak_encode(text: str) -> str:
+        mapping = {"A": "4", "E": "3", "I": "1", "O": "0", "S": "5", "T": "7"}
+        return "".join(mapping.get(ch, ch) for ch in text.upper())
 
     def generate_dynamic_challenge(username: str, tier: int, q_num: int) -> dict:
-        """Tạo câu hỏi độc nhất và xáo trộn theo từng người chơi + cấp độ + số thứ tự (1..1000)."""
-        seed_str = f"CTF_MATRIX_V2_{username}_TIER{tier}_Q{q_num}"
+        seed_str = f"GLOBAL_ENCYCLOPEDIA_V3_{username}_T{tier}_Q{q_num}"
         rng = random.Random(seed_str)
 
-        pass_word, pass_riddle = rng.choice(PASS_BANK)
-        flag_core = rng.choice(FLAG_WORDS)
-        unique_hex = f"{rng.randint(1000, 9999)}"
-        expected_flag = f"FLAG{{{flag_core}_{unique_hex}}}"
-        secret_sentence = f"Mission Accomplished! Your secret verification flag is: {expected_flag}"
+        category, answer_raw, trivia_clue = rng.choice(WORLD_KNOWLEDGE_POOL)
+        clean_answer = answer_raw.upper().strip()
 
-        tier_configs = {
-            1: {"name": "Tier 1: Rookie (Direct Intercept)", "pts": 100},
-            2: {"name": "Tier 2: Operative (Riddle Key Recovery)", "pts": 250},
-            3: {"name": "Tier 3: Specialist (Linguistic Camouflage)", "pts": 500},
-            4: {"name": "Tier 4: Elite (LSB Pixel Steganography)", "pts": 1000},
-            5: {"name": "Tier 5: Grandmaster (Multi-Layer Chaos)", "pts": 2500},
-        }
-        base_pts = tier_configs[tier]["pts"]
+        tier_pts = {1: 100, 2: 250, 3: 500, 4: 1000, 5: 2500}
+        base_pts = tier_pts[tier]
 
+        # ======================================================================
+        # TIER 1: KIDS & BEGINNERS (SIÊU DỄ — ĐẢO NGƯỢC CHỮ HOẶC KHỚP NGUYÊN ÂM)
+        # ======================================================================
         if tier == 1:
-            shift = rng.randint(1, 25)
-            k = build_custom_key(pass_word, [], shift, "")
-            cipher = encrypt_core(secret_sentence, k, False, "NONE", 0)
-            briefing = (
-                f"**Intercepted Rookie Transmission #{q_num}:**\n"
-                f"Configure your Sidebar with Passphrase **`{pass_word}`**, Shift Offset **`{shift}`**, "
-                f"**0 Symbols** (clear all icons in Symbol Vault), no custom pairs, and Reverse **`Unchecked`**. "
-                f"Decrypt the payload in **2. Cipher Workspace** to extract the `FLAG{{...}}`!"
-            )
-            hint = f"Set Sidebar Passphrase = `{pass_word}`, Shift = `{shift}`, remove all symbols in Symbol Vault, then paste the ciphertext into Cipher Workspace -> Decrypt."
-            solution_note = f"Passphrase: `{pass_word}` | Shift: `{shift}` | Symbols: `None` | Flag: `{expected_flag}`"
-            return {"id": f"T{tier}_{q_num}", "tier": tier, "pts": base_pts, "briefing": briefing, "payload": cipher, "is_img": False, "hint": hint, "flag": expected_flag, "solution": solution_note}
+            sub_type = q_num % 2
+            if sub_type == 0:
+                # Kiểu 1A: Viết ngược từ (Mirror / Backwards Word)
+                encoded_puzzle = clean_answer[::-1]
+                rule_desc = "🔄 **Mirror Word Puzzle (Read Backwards):** The letters of the answer have simply been flipped from right to left!"
+                step_hint = (
+                    f"1. Read the clue: *{trivia_clue}*\n"
+                    f"2. Read the puzzle string **`{encoded_puzzle}`** from right to left.\n"
+                    f"3. It starts with **`{clean_answer[0]}`** and ends with **`{clean_answer[-1]}`** ({len(clean_answer)} characters total)."
+                )
+            else:
+                # Kiểu 1B: Dịch chuyển đúng 1 chữ cái (Next Letter in Alphabet: A->B, B->C)
+                encoded_puzzle = caesar_shift_ascii(clean_answer, 1)
+                rule_desc = "🔤 **Alphabet Step +1 (Kids Cipher):** Each letter was moved forward by **1 step** in the English alphabet (`A -> B`, `B -> C`, ..., `Z -> A`). Move each letter **1 step backward** to solve!"
+                step_hint = (
+                    f"1. Shift each letter 1 step back in `A B C D E F G H I J K L M N O P Q R S T U V W X Y Z`.\n"
+                    f"2. First word starts with **`{clean_answer[:2]}...`** and ends with **`...{clean_answer[-2:]}`**."
+                )
 
+            briefing = (
+                f"### 🎈 Kids & Beginners Puzzle #{q_num} — Category: **{category}**\n"
+                f"**🌍 World Knowledge Clue:** *{trivia_clue}*\n\n"
+                f"{rule_desc}\n"
+                f"*(💡 You can solve this right here in your head—no complex tools needed! Just type the answer below)*"
+            )
+            solution_box = (
+                f"✅ **Exact Answer to Type:** `{clean_answer}`\n\n"
+                f"📖 **Explanation:** Based on the clue (*{trivia_clue}*), decoding `{encoded_puzzle}` gives **`{clean_answer}`**."
+            )
+            return {
+                "id": f"T{tier}_{q_num}", "tier": tier, "pts": base_pts,
+                "briefing": briefing, "payload": encoded_puzzle, "is_img": False,
+                "hint": step_hint, "flag": clean_answer, "solution": solution_box
+            }
+
+        # ======================================================================
+        # TIER 2: YOUNG EXPLORERS (LEETSPEAK SỐ HÓA HOẶC CAESAR SHIFT +3)
+        # ======================================================================
         elif tier == 2:
-            shift = rng.randint(5, 50)
-            k = build_custom_key(pass_word, [], shift, "")
-            cipher = encrypt_core(secret_sentence, k, True, "NONE", 0)
-            briefing = (
-                f"**Operative Cryptogram #{q_num}:**\n"
-                f"- **Passphrase Riddle:** *{pass_riddle}*\n"
-                f"- **Shift Offset:** **`{shift}`**\n"
-                f"- **Symbol Vault:** `Empty (0 icons)`\n"
-                f"- **Reverse Structure:** **`Checked (Enabled)`**"
-            )
-            hint = f"The answer to the Passphrase Riddle starts with **`{pass_word[:2]}...`** and ends with **`...{pass_word[-2:]}`** ({len(pass_word)} letters). Don't forget to check 'Reverse Structure'!"
-            solution_note = f"Passphrase: `{pass_word}` | Shift: `{shift}` | Reverse: `True` | Flag: `{expected_flag}`"
-            return {"id": f"T{tier}_{q_num}", "tier": tier, "pts": base_pts, "briefing": briefing, "payload": cipher, "is_img": False, "hint": hint, "flag": expected_flag, "solution": solution_note}
+            shift_val = rng.choice([2, 3])
+            if q_num % 2 == 0:
+                encoded_puzzle = leetspeak_encode(clean_answer)[::-1]
+                rule_desc = (
+                    "🕹️ **Reversed Gamer Code (Leetspeak + Mirror):**\n"
+                    "- Numbers replaced vowels/letters: **`4 = A`**, **`3 = E`**, **`1 = I`**, **`0 = O`**, **`5 = S`**, **`7 = T`**.\n"
+                    "- Then the whole word was **written backwards**!"
+                )
+                step_hint = (
+                    f"1. Flip the string first: **`{leetspeak_encode(clean_answer)}`**\n"
+                    f"2. Replace numbers (`4->A, 3->E, 1->I, 0->O, 5->S, 7->T`).\n"
+                    f"3. The answer starts with **`{clean_answer[:3]}...`**!"
+                )
+            else:
+                encoded_puzzle = caesar_shift_ascii(clean_answer, shift_val)
+                rule_desc = (
+                    f"🏛️ **Julius Caesar Shift +{shift_val} Cipher:**\n"
+                    f"- Every English letter was shifted forward by **`+{shift_val}`** positions in the alphabet (`A B C D E F G H I J K L M N O P Q R S T U V W X Y Z`).\n"
+                    f"- Shift every letter **backward by `{shift_val}`** to reveal the {category}!"
+                )
+                step_hint = (
+                    f"1. Move each letter in `{encoded_puzzle}` back by `{shift_val}` steps in the English alphabet.\n"
+                    f"2. Clue check: *{trivia_clue}*\n"
+                    f"3. The decoded answer starts with **`{clean_answer[:3]}...`** and ends with **`...{clean_answer[-2:]}`**."
+                )
 
+            briefing = (
+                f"### 🧭 Young Explorer Mission #{q_num} — Category: **{category}**\n"
+                f"**🌍 Trivia Clue:** *{trivia_clue}*\n\n"
+                f"{rule_desc}"
+            )
+            solution_box = (
+                f"✅ **Exact Answer to Type:** `{clean_answer}`\n\n"
+                f"📖 **Walkthrough:** Decoding `{encoded_puzzle}` using the rule above reveals the {category}: **`{clean_answer}`**."
+            )
+            return {
+                "id": f"T{tier}_{q_num}", "tier": tier, "pts": base_pts,
+                "briefing": briefing, "payload": encoded_puzzle, "is_img": False,
+                "hint": step_hint, "flag": clean_answer, "solution": solution_box
+            }
+
+        # ======================================================================
+        # TIER 3: STUDENTS & FRIENDS TRIVIA (ATBASH / HEX / CAESAR + WORKSPACE)
+        # ======================================================================
         elif tier == 3:
-            shift = rng.randint(3, 12)
-            k = build_custom_key(pass_word, [], shift, "")
-            raw_c = encrypt_core(secret_sentence, k, False, "NONE", 0)
-            camo_payload = encode_english_camouflage(raw_c)
-            briefing = (
-                f"**Camouflaged Intelligence Report #{q_num}:**\n"
-                f"An enemy agent disguised a ciphertext into innocent English prose.\n"
-                f"- **Passphrase:** **`{pass_word}`**\n"
-                f"- **Shift Offset:** Hidden somewhere between **`{max(1, shift-2)}`** and **`{shift+2}`**\n"
-                f"- **Symbol Vault:** `Empty (0 icons)` | **Reverse:** `Unchecked`"
-            )
-            hint = f"The exact Shift Offset is **`{shift}`**. Go to **2. Cipher Workspace -> Tab 2 (English Camouflage Studio)** and paste the English sentences to reveal the flag."
-            solution_note = f"Passphrase: `{pass_word}` | Exact Shift: `{shift}` | Mode: `English Camouflage` | Flag: `{expected_flag}`"
-            return {"id": f"T{tier}_{q_num}", "tier": tier, "pts": base_pts, "briefing": briefing, "payload": camo_payload, "is_img": False, "hint": hint, "flag": expected_flag, "solution": solution_note}
+            mode_t3 = q_num % 3
+            if mode_t3 == 0:
+                encoded_puzzle = atbash_ascii(clean_answer)
+                rule_desc = (
+                    "🪞 **Ancient Atbash Mirror Alphabet:**\n"
+                    "The alphabet is mapped to its reverse (`A ↔ Z`, `B ↔ Y`, `C ↔ X`, ..., `M ↔ N`).\n"
+                    "- Plain:  `A B C D E F G H I J K L M N O P Q R S T U V W X Y Z`\n"
+                    "- Cipher: `Z Y X W V U T S R Q P O N M L K J I H G F E D C B A`"
+                )
+            elif mode_t3 == 1:
+                encoded_puzzle = " ".join(f"{ord(c):02X}" for c in clean_answer)
+                rule_desc = (
+                    "💻 **ASCII Hexadecimal Byte Stream:**\n"
+                    "Each character of the historical answer has been converted into its 2-digit Base-16 Hexadecimal ASCII code (`41 = A`, `42 = B`, ..., `20 = Space`)."
+                )
+            else:
+                shift_t3 = rng.randint(5, 13)
+                encoded_puzzle = caesar_shift_ascii(clean_answer, shift_t3)
+                rule_desc = f"🔐 **ROT-{shift_t3} Historical Intercept:** Each letter is rotated forward by **`+{shift_t3}`** positions in the 26-letter English alphabet."
 
+            briefing = (
+                f"### 🎓 Student & Friends Challenge #{q_num} — Category: **{category}**\n"
+                f"**🌍 Historical / Global Clue:** *{trivia_clue}*\n\n"
+                f"{rule_desc}"
+            )
+            step_hint = (
+                f"💡 **Detailed Hint:**\n"
+                f"- Category: **{category}** | Clue: *{trivia_clue}*\n"
+                f"- Word Structure: `{len(clean_answer.split())}` word(s), `{len(clean_answer)}` total characters.\n"
+                f"- First 3 characters: **`{clean_answer[:3]}...`** | Last 2 characters: **`...{clean_answer[-2:]}`**."
+            )
+            solution_box = (
+                f"✅ **Exact Answer to Type:** `{clean_answer}`\n\n"
+                f"📖 **Full Solution:** The ciphertext `{encoded_puzzle}` decodes directly to **`{clean_answer}`** ({trivia_clue})."
+            )
+            return {
+                "id": f"T{tier}_{q_num}", "tier": tier, "pts": base_pts,
+                "briefing": briefing, "payload": encoded_puzzle, "is_img": False,
+                "hint": step_hint, "flag": clean_answer, "solution": solution_box
+            }
+
+        # ======================================================================
+        # TIER 4: CYBER SPECIALISTS (LSB STEGO IMAGE & MARKOV CAMOUFLAGE)
+        # ======================================================================
         elif tier == 4:
-            shift = rng.randint(10, 40)
-            k = build_custom_key(pass_word, [], shift, "")
-            raw_c = encrypt_core(secret_sentence, k, False, "NONE", 0)
-            carrier = generate_sample_carrier_image(420, 220)
-            stego_img = encode_image_lsb(carrier, raw_c)
-            buf = io.BytesIO()
-            stego_img.save(buf, format="PNG")
-            briefing = (
-                f"**Forensic Steganography Intercept #{q_num}:**\n"
-                f"We recovered this lossless PNG image from a suspect's server. Secret bits are embedded inside the RGB pixels.\n"
-                f"- **Passphrase Riddle:** *{pass_riddle}*\n"
-                f"- **Shift Offset:** **`{shift}`** | **Symbol Vault:** `Empty (0 icons)` | **Reverse:** `Unchecked`"
-            )
-            hint = f"The Passphrase is **`{pass_word}`** and Shift is **`{shift}`**. Download the Stego PNG below and upload it in **2. Cipher Workspace -> Tab 3 (Decode)**!"
-            solution_note = f"Passphrase: `{pass_word}` | Shift: `{shift}` | Stego PNG Decoded Flag: `{expected_flag}`"
-            return {"id": f"T{tier}_{q_num}", "tier": tier, "pts": base_pts, "briefing": briefing, "payload": buf.getvalue(), "is_img": True, "hint": hint, "flag": expected_flag, "solution": solution_note}
+            pass_key = clean_answer.split()[0] # Dùng chữ đầu tiên của danh nhân/đất nước làm Passphrase
+            shift_val = rng.randint(5, 25)
+            k = build_custom_key(pass_key, [], shift_val, "")
+            secret_payload_msg = f"CLASSIFIED INTEL: {clean_answer}"
+            raw_c = encrypt_core(secret_payload_msg, k, False, "NONE", 0)
 
+            if q_num % 2 == 0:
+                carrier = generate_sample_carrier_image(420, 220)
+                stego_img = encode_image_lsb(carrier, raw_c)
+                buf = io.BytesIO()
+                stego_img.save(buf, format="PNG")
+                briefing = (
+                    f"### 🕵️‍♂️ Specialist Forensic Steganography #{q_num} ({category})\n"
+                    f"We intercepted a lossless PNG image containing a hidden historical entity.\n"
+                    f"1. **Passphrase Clue:** First word of the answer to: *{trivia_clue}* (Uppercase, `{len(pass_key)}` letters).\n"
+                    f"2. **Sidebar Rules:** Shift Offset = **`{shift_val}`** | Symbol Vault = **`Empty (Clear all icons)`** | Reverse = **`Unchecked`**.\n"
+                    f"3. Download the PNG below, configure your Sidebar, and decode it in **2. Cipher Workspace -> Tab 3 (LSB Image Lab)**!"
+                )
+                step_hint = (
+                    f"💡 **Step-by-Step Forensic Hint:**\n"
+                    f"1. In the Left Sidebar, set **Group Secret Passphrase** = **`{pass_key}`**\n"
+                    f"2. Set **Shift Offset** = **`{shift_val}`** and **remove all icons** from Symbol Vault.\n"
+                    f"3. Download the Stego PNG and extract it in **Cipher Workspace -> Tab 3**, or type the full entity starting with **`{clean_answer[:4]}...`**!"
+                )
+                solution_box = (
+                    f"✅ **Exact Answer to Type:** `{clean_answer}`\n\n"
+                    f"📖 **Forensic Breakdown:**\n"
+                    f"- **Sidebar Passphrase:** `{pass_key}` | **Shift Offset:** `{shift_val}` | **Symbols:** `None`\n"
+                    f"- **Extracted Stego Payload:** `{secret_payload_msg}` -> Answer: **`{clean_answer}`**"
+                )
+                return {
+                    "id": f"T{tier}_{q_num}", "tier": tier, "pts": base_pts,
+                    "briefing": briefing, "payload": buf.getvalue(), "is_img": True,
+                    "hint": step_hint, "flag": clean_answer, "solution": solution_box
+                }
+            else:
+                camo_text = encode_english_camouflage(raw_c)
+                briefing = (
+                    f"### 🎭 Specialist Linguistic Camouflage #{q_num} ({category})\n"
+                    f"An operative disguised a secret historical target inside innocent English IT sentences.\n"
+                    f"1. **Passphrase:** **`{pass_key}`**\n"
+                    f"2. **Shift Offset:** **`{shift_val}`** | **Symbol Vault:** **`Empty (0 icons)`** | **Reverse:** **`Unchecked`**.\n"
+                    f"3. Copy the English prose below and decode it in **2. Cipher Workspace -> Tab 2 (English Camouflage Studio)**!"
+                )
+                step_hint = (
+                    f"💡 **Step-by-Step Hint:**\n"
+                    f"Set Sidebar Passphrase = `{pass_key}`, Shift = `{shift_val}`, clear all icons in Symbol Vault, then paste the paragraph into **Cipher Workspace -> Tab 2 (Reveal Secret)**. Clue: *{trivia_clue}*."
+                )
+                solution_box = (
+                    f"✅ **Exact Answer to Type:** `{clean_answer}`\n\n"
+                    f"📖 **Full Breakdown:** Using Passphrase `{pass_key}` and Shift `{shift_val}`, the camouflaged text decodes to `{secret_payload_msg}` -> Answer: **`{clean_answer}`**."
+                )
+                return {
+                    "id": f"T{tier}_{q_num}", "tier": tier, "pts": base_pts,
+                    "briefing": briefing, "payload": camo_text, "is_img": False,
+                    "hint": step_hint, "flag": clean_answer, "solution": solution_box
+                }
+
+        # ======================================================================
+        # TIER 5: GRANDMASTER CRYPTANALYSTS (MULTI-LAYER CHAOS CHO CHUYÊN GIA)
+        # ======================================================================
         else:
-            shift = rng.randint(15, 60)
-            chosen_icons = [SYMBOLS_POOL[rng.randint(0, min(20, len(SYMBOLS_POOL)-1))] for _ in range(2)]
-            pair_rule = "a=@, e=3"
-            k = build_custom_key(pass_word, chosen_icons, shift, pair_rule)
-            raw_c = encrypt_core(secret_sentence, k, True, "NONE", 0)
+            pass_key = clean_answer.replace(" ", "")
+            shift_val = rng.randint(15, 75)
+            chosen_icons = [SYMBOLS_POOL[rng.randint(0, min(15, len(SYMBOLS_POOL)-1))] for _ in range(2)]
+            pair_rule = "A=@, E=3"
+            k = build_custom_key(pass_key, chosen_icons, shift_val, pair_rule)
+            flag_code = f"FLAG{{{clean_answer.replace(' ', '_')}_{rng.randint(100,999)}}}"
+            raw_c = encrypt_core(f"VERIFIED GRANDMASTER TARGET: {flag_code}", k, True, "NONE", 0)
             camo_payload = encode_english_camouflage(raw_c)
-            icons_disp = " , ".join(chosen_icons)
+            icons_str = " , ".join(chosen_icons)
+
             briefing = (
-                f"**Grandmaster Multi-Layer Boss Matrix #{q_num}:**\n"
-                f"- **Passphrase Riddle:** *{pass_riddle}*\n"
-                f"- **Shift Offset:** Between **`{shift-1}`** and **`{shift+1}`**\n"
-                f"- **Symbol Vault Sequence (Exact Order):** **`{icons_disp}`**\n"
-                f"- **Custom Pairs:** **`{pair_rule}`**\n"
-                f"- **Reverse Structure:** **`Checked (Enabled)`**\n"
-                f"- **Outer Wrapper:** `Linguistic English Camouflage`"
+                f"### 👑 Grandmaster Cryptanalysis Matrix #{q_num}\n"
+                f"This mission requires full mastery of the **Ultimate Secret Messenger** multi-layer architecture:\n"
+                f"- **Passphrase Clue:** Answer to (*{trivia_clue}*) in **UPPERCASE WITH NO SPACES** (`{len(pass_key)}` chars).\n"
+                f"- **Shift Offset:** Hidden between **`{shift_val - 1}`** and **`{shift_val + 1}`**\n"
+                f"- **Symbol Vault (Exact Order):** **`{icons_str}`**\n"
+                f"- **Custom Pairs:** **`{pair_rule}`** | **Reverse Structure:** **`Checked (Enabled)`**\n"
+                f"- **Outer Layer:** Linguistic Camouflage Prose. Extract the exact `FLAG{{...}}`!"
             )
-            hint = f"Passphrase = **`{pass_word}`** | Exact Shift = **`{shift}`** | Select exact icons `{icons_disp}`, type `{pair_rule}` in Custom Pairs, check Reverse Structure, then decode via English Camouflage Studio!"
-            solution_note = f"Passphrase: `{pass_word}` | Shift: `{shift}` | Icons: `{icons_disp}` | Pairs: `{pair_rule}` | Reverse: `True` | Flag: `{expected_flag}`"
-            return {"id": f"T{tier}_{q_num}", "tier": tier, "pts": base_pts, "briefing": briefing, "payload": camo_payload, "is_img": False, "hint": hint, "flag": expected_flag, "solution": solution_note}
+            step_hint = (
+                f"💡 **Grandmaster Decrypt Key:**\n"
+                f"- **Exact Passphrase:** **`{pass_key}`**\n"
+                f"- **Exact Shift Offset:** **`{shift_val}`**\n"
+                f"- **Symbol Vault:** Select `{icons_str}` in exact order.\n"
+                f"- **Custom Pairs:** `{pair_rule}` | **Reverse Structure:** `Checked`.\n"
+                f"- Paste the prose into **Cipher Workspace -> Tab 2** to get the Flag!"
+            )
+            solution_box = (
+                f"✅ **Exact Answer to Type:** `{flag_code}`\n\n"
+                f"📖 **Complete Cryptanalysis Key:**\n"
+                f"- Passphrase: `{pass_key}` | Shift: `{shift_val}` | Symbols: `{icons_str}` | Pairs: `{pair_rule}` | Reverse: `True`\n"
+                f"- Decoded Flag: **`{flag_code}`**"
+            )
+            return {
+                "id": f"T{tier}_{q_num}", "tier": tier, "pts": base_pts,
+                "briefing": briefing, "payload": camo_payload, "is_img": False,
+                "hint": step_hint, "flag": flag_code, "solution": solution_box
+            }
 
     # --- GIAO DIỆN ĐẤU TRƯỜNG CTF ---
     st.markdown("""
     <div class="hero-box" style="padding: 20px 28px; margin-bottom: 18px;">
-        <div class="hero-badge">🕹️ 5,000+ PROCEDURAL CRYPTO MATRIX • GLOBAL RANKING • AGENT SOCIAL HUB</div>
+        <div class="hero-badge">🕹️ 5,000+ WORLD ENCYCLOPEDIA & CRYPTO MATRIX • KIDS TO GRANDMASTER</div>
         <h2 style="color: #f8fafc; margin: 4px 0 6px 0; font-weight: 800;">Global Crypto Challenges & CTF Arena</h2>
-        <p class="hero-sub">Crack personalized randomized cipher matrices across 5 difficulty tiers, climb the public leaderboard, and connect with top cryptanalysts.</p>
+        <p class="hero-sub">From beginner-friendly World History, Countries & US Presidents puzzles (Tiers 1–2) to professional Steganography & Multi-Layer Cryptanalysis (Tiers 4–5).</p>
     </div>
     """, unsafe_allow_html=True)
 
@@ -1210,17 +1400,16 @@ elif "4. Crypto Challenges" in main_menu:
     if "ctf_user" not in st.session_state:
         st.session_state.ctf_user = None
 
-    # --- KHU VỰC ĐĂNG NHẬP / ĐĂNG KÝ TÀI KHOẢN ĐIỆP VIÊN ---
     if not st.session_state.ctf_user:
         st.markdown("""
         <div class="ws-banner">
             <h4>🔐 Agent Authentication Portal (Login / Register)</h4>
-            <p>Sign in or create a new Agent Callsign to generate your personalized 5,000-question matrix, track XP on the public leaderboard, and message friends.</p>
+            <p>Sign in or create a new Agent Callsign to unlock your personalized 5,000-question matrix, climb the global leaderboard, and chat with friends.</p>
         </div>
         """, unsafe_allow_html=True)
         l_col1, l_col2, l_col3 = st.columns([1.5, 1.5, 1])
         with l_col1:
-            u_in = st.text_input("🕵️ Agent Callsign (Username):", placeholder="e.g. PhuHieu_HCMUS")
+            u_in = st.text_input("🕵️ Agent Callsign (Username):", placeholder="e.g. taolagautruc")
         with l_col2:
             p_in = st.text_input("🔑 Secret Agent PIN:", type="password", placeholder="Enter 4+ digit PIN")
         with l_col3:
@@ -1262,10 +1451,9 @@ elif "4. Crypto Challenges" in main_menu:
         u_friends = u_data.get("friends", [])
         u_reqs = u_data.get("friend_requests", [])
 
-        # Thanh thông tin người chơi hiện tại
         p_c1, p_c2, p_c3, p_c4, p_c5 = st.columns([1.6, 1.2, 1.1, 1.1, 0.8])
         p_c1.metric("🕵️ Active Agent", curr_user, get_agent_rank(u_score))
-        p_c2.metric("🏆 Total Arena Score", f"{u_score:,} PTS", "Public Ranked")
+        p_c2.metric("🏆 Total Arena Score", f"{u_score:,} PTS", "Global Ranked")
         p_c3.metric("✅ Missions Cracked", f"{len(u_solved)} / 5,000", f"{len(u_surrendered)} Surrendered")
         p_c4.metric("🤝 Friends Network", f"{len(u_friends)} Agents", f"{len(u_reqs)} Pending Req")
         with p_c5:
@@ -1276,36 +1464,36 @@ elif "4. Crypto Challenges" in main_menu:
 
         st.write("")
         arena_tab1, arena_tab2, arena_tab3 = st.tabs([
-            "🎯 1. Infinite Challenge Matrix (5,000 Missions)",
-            "🏆 2. Global Public Leaderboard & Add Friends",
+            "🎯 1. Challenge Matrix (5 Tiers • 5,000 Missions)",
+            "🏆 2. Global Leaderboard & Add Friends",
             f"💬 3. Friends & Direct Messenger ({len(u_reqs)} Requests)"
         ])
 
         # ======================================================================
-        # TAB 1: MA TRẬN 5.000 CÂU HỎI ĐỘNG + HINT (-70%) + ĐẦU HÀNG (-92%)
+        # TAB 1: MA TRẬN 5 CẤP ĐỘ TỪ TRẺ EM ĐẾN CHUYÊN GIA
         # ======================================================================
         with arena_tab1:
-            sel_c1, sel_c2, sel_c3 = st.columns([1.8, 1, 1])
+            sel_c1, sel_c2, sel_c3 = st.columns([2, 1, 1])
             with sel_c1:
                 tier_choice = st.selectbox(
                     "🔥 Select Difficulty Tier:",
                     [
-                        "Tier 1 — Rookie (100 PTS | Direct Cipher Intercept)",
-                        "Tier 2 — Operative (250 PTS | Riddle Passphrase Recovery)",
-                        "Tier 3 — Specialist (500 PTS | English Camouflage Matrix)",
-                        "Tier 4 — Elite (1,000 PTS | LSB Steganography Forensics)",
-                        "Tier 5 — Grandmaster (2,500 PTS | Multi-Layer Chaos Boss)"
+                        "Tier 1 — Kids & Beginners (100 PTS | Fun Mirror & +1 Alphabet Puzzles)",
+                        "Tier 2 — Young Explorers (250 PTS | Classic Caesar & Gamer Leetspeak)",
+                        "Tier 3 — Students & Friends (500 PTS | World History, Wars & Hex/Atbash)",
+                        "Tier 4 — Cyber Specialists (1,000 PTS | LSB Image Stego & Camouflage)",
+                        "Tier 5 — Grandmaster Pros (2,500 PTS | Full Multi-Layer Cryptanalysis)"
                     ]
                 )
                 tier_num = int(tier_choice.split("Tier ")[1][0])
             with sel_c2:
                 if "curr_q_num" not in st.session_state:
                     st.session_state.curr_q_num = 1
-                q_num = st.number_input("🔢 Matrix Question # (1 - 1000):", min_value=1, max_value=1000, value=st.session_state.curr_q_num)
+                q_num = st.number_input("🔢 Mission # (1 - 1000):", min_value=1, max_value=1000, value=st.session_state.curr_q_num)
                 st.session_state.curr_q_num = q_num
             with sel_c3:
                 st.write("")
-                if st.button("🎲 Shuffle Random Mission", use_container_width=True):
+                if st.button("🎲 Random Mission", use_container_width=True):
                     st.session_state.curr_q_num = random.randint(1, 1000)
                     st.rerun()
 
@@ -1316,23 +1504,26 @@ elif "4. Crypto Challenges" in main_menu:
             is_surrendered = cid in u_surrendered
             hint_used = cid in u_hints
 
-            # Tính điểm thực nhận hoặc điểm phạt
             effective_pts = int(base_pts * 0.30) if hint_used else base_pts
             surrender_penalty = int(base_pts * 0.92)
 
             st.markdown(f"""
             <div class="ws-banner">
                 <h4>🎯 Mission ID: <code>{cid}</code> — Base Reward: <b>{base_pts:,} PTS</b></h4>
-                <p>⚠️ <b>Scoring Rules:</b> Using a Hint reduces reward by <b>70%</b> (you earn <b>{int(base_pts*0.30)} PTS</b>). Surrendering to reveal the answer deducts <b>92%</b> (<b>-{surrender_penalty} PTS</b> penalty) from your total score!</p>
+                <p>⚠️ <b>Fair Play Scoring Rules:</b> Clicking <b>Hint</b> reduces this mission's reward by <b>70%</b> (you earn <b>{int(base_pts*0.30)} PTS</b>). Clicking <b>Surrender & Show Answer</b> reveals the full solution immediately but deducts <b>92%</b> (<b>-{surrender_penalty} PTS</b> penalty) from your total score!</p>
             </div>
             """, unsafe_allow_html=True)
 
             if is_solved:
-                st.success(f"✅ **MISSION COMPLETED!** You have already cracked Mission `{cid}`.")
+                st.success(f"🎉 **MISSION COMPLETED!** You solved `{cid}`! Exact Answer: **`{chal['flag']}`**")
             elif is_surrendered:
-                st.error(f"🏳️ **MISSION SURRENDERED!** You forfeited Mission `{cid}` (-{surrender_penalty} PTS penalty applied).")
+                st.error(f"🏳️ **MISSION SURRENDERED!** (-{surrender_penalty} PTS penalty applied).")
 
             st.markdown(chal["briefing"])
+
+            # Hiển thị bảng chữ cái hỗ trợ dò nhanh cho Tier 1, 2, 3
+            if tier_num in [1, 2, 3]:
+                st.caption("🔤 **Quick Reference English Alphabet:** `A B C D E F G H I J K L M N O P Q R S T U V W X Y Z`")
 
             if chal["is_img"]:
                 st.image(chal["payload"], caption=f"Intercepted Stego PNG — Mission {cid}", width=380)
@@ -1343,14 +1534,14 @@ elif "4. Crypto Challenges" in main_menu:
                     mime="image/png"
                 )
             else:
-                st.markdown("**Intercepted Encrypted Payload:**")
+                st.markdown("**🧩 Encrypted Puzzle String to Decode:**")
                 st.code(chal["payload"], language=None)
 
-            # Hàng nút Hint (-70%) và Đầu hàng xem đáp án (-92%)
+            # Hàng nút Hint (-70%) và Đầu hàng hiện rõ đáp án (-92%)
             h_col1, h_col2 = st.columns(2)
             with h_col1:
                 if not hint_used and not is_solved and not is_surrendered:
-                    if st.button(f"💡 Unlock Mission Hint (-70% Points -> Earn {int(base_pts*0.30)} PTS)", use_container_width=True):
+                    if st.button(f"💡 Unlock Detailed Hint (-70% Points -> Earn {int(base_pts*0.30)} PTS)", use_container_width=True):
                         u_hints.append(cid)
                         ctf_db["users"][curr_user]["hints_used"] = u_hints
                         save_ctf_db(ctf_db)
@@ -1360,43 +1551,47 @@ elif "4. Crypto Challenges" in main_menu:
 
             with h_col2:
                 if not is_solved and not is_surrendered:
-                    if st.button(f"🏳️ Surrender & Reveal Answer (-{surrender_penalty} PTS Penalty)", use_container_width=True):
+                    if st.button(f"🏳️ Surrender & Reveal Full Answer (-{surrender_penalty} PTS Penalty)", use_container_width=True):
                         u_surrendered.append(cid)
                         ctf_db["users"][curr_user]["surrendered"] = u_surrendered
                         ctf_db["users"][curr_user]["score"] = u_score - surrender_penalty
                         save_ctf_db(ctf_db)
                         st.rerun()
                 elif is_surrendered:
-                    st.info(f"🔓 **REVEALED SOLUTION & ANSWER:**\n\n{chal['solution']}")
+                    st.info(f"🔓 **OFFICIAL SOLUTION & EXACT ANSWER:**\n\n{chal['solution']}")
 
             st.divider()
             if not is_solved and not is_surrendered:
                 ans_col1, ans_col2 = st.columns([3, 1])
                 with ans_col1:
-                    flag_input = st.text_input("🚩 Submit Decoded Flag:", placeholder="Format: FLAG{...}", key=f"flag_in_{cid}")
+                    placeholder_txt = "Type the decoded answer (e.g. FRANCE, ABRAHAM LINCOLN, WORLD WAR II)..." if tier_num < 5 else "Format: FLAG{...}"
+                    flag_input = st.text_input("🚩 Submit Your Decoded Answer:", placeholder=placeholder_txt, key=f"flag_in_{cid}")
                 with ans_col2:
                     st.write("")
-                    if st.button("✅ Verify Flag", type="primary", use_container_width=True):
-                        if flag_input.strip() == chal["flag"]:
+                    if st.button("✅ Submit Answer", type="primary", use_container_width=True):
+                        user_guess = flag_input.strip().upper()
+                        expected = chal["flag"].upper()
+                        # Cho phép người chơi nhập thẳng đáp án hoặc bọc trong FLAG{...} đều đúng
+                        if user_guess == expected or user_guess == f"FLAG{{{expected}}}":
                             u_solved.append(cid)
                             ctf_db["users"][curr_user]["solved"] = u_solved
                             ctf_db["users"][curr_user]["score"] = u_score + effective_pts
                             save_ctf_db(ctf_db)
                             st.balloons()
-                            st.success(f"🎉 **CORRECT FLAG!** +{effective_pts} PTS added to your global rank!")
+                            st.success(f"🎉 **AWESOME! '{chal['flag']}' IS CORRECT!** +{effective_pts} PTS added to your score!")
                             time.sleep(1.2)
                             st.rerun()
                         else:
-                            st.error("❌ Incorrect Flag! Check your Sidebar rules and try decoding again.")
+                            st.error("❌ Not quite right! Check the clue or click 'Unlock Detailed Hint' if you need a hand.")
 
         # ======================================================================
-        # TAB 2: BẢNG XẾP HẠNG PUBLIC & KẾT BẠN TRỰC TIẾP
+        # TAB 2: BẢNG XẾP HẠNG PUBLIC & QUẢN LÝ NGƯỜI CHƠI
         # ======================================================================
         with arena_tab2:
             st.markdown("""
             <div class="ws-banner">
-                <h4>🏆 Global Cryptanalyst Leaderboard</h4>
-                <p>Live public rankings sorted by total XP. Spot a high-ranking agent? Send them a Friend Request to open a private 1-on-1 chat channel!</p>
+                <h4>🏆 Global Public Leaderboard</h4>
+                <p>Live rankings across all players. Send a Friend Request to any player on the leaderboard to open a private 1-on-1 chat box!</p>
             </div>
             """, unsafe_allow_html=True)
 
@@ -1408,14 +1603,14 @@ elif "4. Crypto Challenges" in main_menu:
                 a_title = get_agent_rank(a_score)
                 medal = "🥇" if rank_idx == 1 else ("🥈" if rank_idx == 2 else ("🥉" if rank_idx == 3 else f"#{rank_idx}"))
 
-                lb_c1, lb_c2, lb_c3, lb_c4 = st.columns([2.2, 1.5, 1.2, 1.2])
+                lb_c1, lb_c2, lb_c3, lb_c4 = st.columns([2.2, 1.4, 1.2, 1.2])
                 with lb_c1:
                     me_tag = " *(You)*" if agent_id == curr_user else ""
                     st.markdown(f"**{medal} &nbsp; `{agent_id}`**{me_tag} — <span style='color:#60a5fa;'>{a_title}</span>", unsafe_allow_html=True)
                 with lb_c2:
                     st.markdown(f"🏆 **{a_score:,} PTS**")
                 with lb_c3:
-                    st.markdown(f"✅ `{a_solved}` cracked")
+                    st.markdown(f"✅ `{a_solved}` solved")
                 with lb_c4:
                     if agent_id != curr_user:
                         if agent_id in u_friends:
@@ -1423,7 +1618,7 @@ elif "4. Crypto Challenges" in main_menu:
                         elif curr_user in a_info.get("friend_requests", []):
                             st.caption("⏳ Request Sent")
                         else:
-                            if st.button(f"➕ Add Friend", key=f"add_fr_{agent_id}", use_container_width=True):
+                            if st.button("➕ Add Friend", key=f"add_fr_{agent_id}", use_container_width=True):
                                 target_reqs = ctf_db["users"][agent_id].get("friend_requests", [])
                                 if curr_user not in target_reqs:
                                     target_reqs.append(curr_user)
@@ -1432,8 +1627,29 @@ elif "4. Crypto Challenges" in main_menu:
                                     st.toast(f"🤝 Friend request sent to {agent_id}!", icon="🤝")
                                     st.rerun()
 
+            st.divider()
+            with st.expander("🛠️ Leaderboard & Account Management (Reset My Score / Remove Demo Bots)"):
+                m_col1, m_col2 = st.columns(2)
+                with m_col1:
+                    if st.button("🔄 Reset My Score & History to 0 PTS", use_container_width=True):
+                        ctf_db["users"][curr_user]["score"] = 0
+                        ctf_db["users"][curr_user]["solved"] = []
+                        ctf_db["users"][curr_user]["surrendered"] = []
+                        ctf_db["users"][curr_user]["hints_used"] = []
+                        save_ctf_db(ctf_db)
+                        st.success("Your score and mission history have been reset to 0 PTS!")
+                        st.rerun()
+                with m_col2:
+                    if st.button("🧹 Remove Pre-loaded Demo Bots from Leaderboard", use_container_width=True):
+                        for bot_name in ["ZeroCool_VN", "CipherQueen_HCMUS", "ShadowBroker_99", "AlexMercer_US", "ElenaRostova_UK", "KenjiSato_JP"]:
+                            if bot_name in ctf_db["users"] and bot_name != curr_user:
+                                del ctf_db["users"][bot_name]
+                        save_ctf_db(ctf_db)
+                        st.success("Removed all demo bots! Only real registered players are shown now.")
+                        st.rerun()
+
         # ======================================================================
-        # TAB 3: QUẢN LÝ KẾT BẠN & KHUNG CHAT RIÊNG TƯ 1-1
+        # TAB 3: KẾT BẠN & KHUNG CHAT NHỎ 1-1
         # ======================================================================
         with arena_tab3:
             f_col1, f_col2 = st.columns([1.2, 2.3])
@@ -1467,18 +1683,17 @@ elif "4. Crypto Challenges" in main_menu:
 
                 st.divider()
                 st.markdown("##### 🤝 Quick Add by Callsign")
-                manual_friend = st.text_input("Enter Agent Callsign:", placeholder="e.g. ZeroCool_VN")
+                manual_friend = st.text_input("Enter Player Username:", placeholder="e.g. AlexMercer_US")
                 if st.button("📨 Send Friend Request", use_container_width=True):
                     mf = manual_friend.strip()
                     if mf not in ctf_db["users"]:
-                        st.error("Agent not found in Arena database!")
+                        st.error("Player not found in Leaderboard database!")
                     elif mf == curr_user:
                         st.warning("You cannot add yourself!")
                     elif mf in u_friends:
                         st.info("Already in your friends list!")
                     else:
-                        # Nếu kết bạn với 3 tài khoản Bot mẫu trên bảng xếp hạng thì tự động đồng ý luôn để test chat ngay!
-                        if mf in ["ZeroCool_VN", "CipherQueen_HCMUS", "ShadowBroker_99"]:
+                        if mf in ["ZeroCool_VN", "CipherQueen_HCMUS", "ShadowBroker_99", "AlexMercer_US", "ElenaRostova_UK", "KenjiSato_JP"]:
                             u_friends.append(mf)
                             ctf_db["users"][curr_user]["friends"] = u_friends
                             ctf_db["users"][mf]["friends"].append(curr_user)
@@ -1494,19 +1709,18 @@ elif "4. Crypto Challenges" in main_menu:
                             st.success(f"Request sent to **{mf}**!")
 
             with f_col2:
-                st.markdown("##### 💬 Private 1-on-1 Agent Messenger")
+                st.markdown("##### 💬 Private 1-on-1 Player Chat")
                 if not u_friends:
-                    st.info("💡 You have no connected friends yet. Go to the **Leaderboard (Tab 2)** or use **Quick Add** on the left to add an agent (Tip: Add `ZeroCool_VN` or `CipherQueen_HCMUS` to test instant messaging!).")
+                    st.info("💡 No connected friends yet. Click **➕ Add Friend** on the Leaderboard (Tab 2) or use Quick Add on the left to start chatting!")
                 else:
                     active_friend = st.selectbox("Select Friend to Chat With:", u_friends)
                     pair_key = "__".join(sorted([curr_user, active_friend]))
                     dm_list = ctf_db.get("direct_messages", {}).get(pair_key, [])
 
-                    # Khung hộp thoại nhỏ có thanh cuộn
                     chat_box = st.container(height=280, border=True)
                     with chat_box:
                         if not dm_list:
-                            st.caption(f"🔒 Encrypted 1-on-1 channel established with **{active_friend}**. Say hello!")
+                            st.caption(f"🔒 Private 1-on-1 chat opened with **{active_friend}**. Say hi!")
                         for dm in dm_list:
                             align_color = "#60a5fa" if dm["sender"] == curr_user else "#c084fc"
                             st.markdown(
@@ -1531,11 +1745,10 @@ elif "4. Crypto Challenges" in main_menu:
                                     "text": dm_txt.strip(),
                                     "time": datetime.now(timezone.utc).strftime("%H:%M UTC")
                                 })
-                                # Nếu nhắn cho cao thủ mẫu trên bảng xếp hạng thì có phản hồi tự động vui nhộn
-                                if active_friend in ["ZeroCool_VN", "CipherQueen_HCMUS", "ShadowBroker_99"]:
+                                if active_friend in ["ZeroCool_VN", "CipherQueen_HCMUS", "ShadowBroker_99", "AlexMercer_US", "ElenaRostova_UK", "KenjiSato_JP"]:
                                     ctf_db["direct_messages"][pair_key].append({
                                         "sender": active_friend,
-                                        "text": f"Hey @{curr_user}! Keep grinding the Tier 4 & Tier 5 matrices. Let me know if you need help cracking a Stego PNG!",
+                                        "text": f"Hey @{curr_user}! Tier 1 & 2 are super fun warm-ups, and Tier 3 historical ciphers are awesome. Good luck climbing the ranks!",
                                         "time": datetime.now(timezone.utc).strftime("%H:%M UTC")
                                     })
                                 save_ctf_db(ctf_db)

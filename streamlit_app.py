@@ -1859,9 +1859,695 @@ elif "4. Crypto Challenges" in main_menu:
                                 save_ctf_db(ctf_db)
                                 st.rerun()
 
+# ==============================================================================
+# PHẦN 5: SECURITY ACADEMY & INTERACTIVE CRYPTOGRAPHY LMS (8 DEDICATED LESSONS)
+# ==============================================================================
 elif "5. Security Academy" in main_menu:
-    st.subheader("📚 Security Academy & Algorithm X-Ray")
-    st.write("Understand how substitution tables, shifting, and UTC time locks protect messages.")
+    ACAD_DB_FILE = "academy_lms_db.json"
+
+    def load_acad_db() -> dict:
+        if not os.path.exists(ACAD_DB_FILE):
+            default_db = {"students": {}}
+            with open(ACAD_DB_FILE, "w", encoding="utf-8") as f:
+                json.dump(default_db, f, ensure_ascii=False, indent=4)
+            return default_db
+        try:
+            with open(ACAD_DB_FILE, "r", encoding="utf-8") as f:
+                return json.load(f)
+        except Exception:
+            return {"students": {}}
+
+    def save_acad_db(data: dict):
+        with open(ACAD_DB_FILE, "w", encoding="utf-8") as f:
+            json.dump(data, f, ensure_ascii=False, indent=4)
+
+    def get_academic_degree(xp: int) -> str:
+        if xp >= 2200: return "🎓 Distinguished Professor of Cryptography"
+        if xp >= 1600: return "🔬 Senior Cryptographic Researcher"
+        if xp >= 1000: return "🛡️ Certified Security Architect"
+        if xp >= 400:  return "📘 Cryptography Specialist"
+        if xp > 0:     return "🌱 Academy Undergraduate"
+        return "📖 Enrolled Student"
+
+    # CSS riêng cho trang Học viện (Long-Scroll Academic Styling)
+    st.markdown("""
+    <style>
+        .lesson-card {
+            background: #111827;
+            border: 1px solid #1f2937;
+            border-top: 4px solid #3b82f6;
+            border-radius: 14px;
+            padding: 26px 30px;
+            margin-bottom: 24px;
+            line-height: 1.75;
+            color: #cbd5e1;
+        }
+        .lesson-card h3 {
+            color: #f8fafc;
+            margin-top: 0;
+            font-size: 1.45rem;
+            border-bottom: 1px solid #1e293b;
+            padding-bottom: 10px;
+        }
+        .lesson-card h4 {
+            color: #60a5fa;
+            margin-top: 18px;
+            margin-bottom: 8px;
+            font-size: 1.15rem;
+        }
+        .formula-box {
+            background: #0f172a;
+            border: 1px solid #334155;
+            border-left: 4px solid #c084fc;
+            padding: 16px 20px;
+            border-radius: 10px;
+            font-family: monospace;
+            color: #e2e8f0;
+            margin: 14px 0;
+        }
+        .example-box {
+            background: rgba(16, 185, 129, 0.08);
+            border: 1px solid rgba(16, 185, 129, 0.35);
+            border-radius: 10px;
+            padding: 16px 20px;
+            margin: 14px 0;
+            color: #d1fae5;
+        }
+        .exercise-box {
+            background: linear-gradient(135deg, #0f172a 0%, #1e1b4b 100%);
+            border: 1px solid #6366f1;
+            border-radius: 14px;
+            padding: 24px 28px;
+            margin-top: 20px;
+            margin-bottom: 28px;
+        }
+    </style>
+    """, unsafe_allow_html=True)
+
+    # --- DANH SÁCH 8 BÀI HỌC ĐỘC LẬP (MỖI MỤC 1 KỸ THUẬT RIÊNG BIỆT, DÀI & CHI TIẾT) ---
+    LESSONS_CURRICULUM = {
+        "Lesson 1: Caesar Shift & Modular Arithmetic (Classical)": {
+            "id": "L1",
+            "badge": "MODULE 01 • CLASSICAL SYMMETRIC CIPHER",
+            "title": "🏛️ Lesson 1: Caesar Shift Cipher & Modular Arithmetic",
+            "overview": (
+                "The **Caesar Cipher** (also known as a Shift Cipher or ROT-N) is one of the earliest and most foundational encryption techniques in human history, used by Roman Emperor **Julius Caesar** around 58 BC to protect military commands. "
+                "Instead of replacing letters randomly, it shifts every letter in the plaintext by a fixed number of positions down the alphabet."
+            ),
+            "enc_guide": (
+                "1. **Assign Numerical Indices:** Convert the 26 English letters into numbers from `0` to `25` (`A=0, B=1, C=2, ..., Z=25`).\n"
+                "2. **Choose a Secret Shift Key ($K$):** Pick an integer between `1` and `25` (for example, $K = 3$).\n"
+                "3. **Apply Forward Modular Addition:** For every plaintext letter index $P$, add the shift key $K$. If the sum exceeds 25 (past the letter `Z`), wrap around to the beginning of the alphabet using modulo 26:\n"
+                "   $$C = (P + K) \\pmod{26}$$\n"
+                "4. **Convert Back to Letters:** Map each resulting number $C$ back to its corresponding uppercase letter."
+            ),
+            "dec_guide": (
+                "1. **Convert Ciphertext Letters to Indices ($C$):** Map each encrypted character back to `0–25`.\n"
+                "2. **Apply Backward Modular Subtraction:** Subtract the secret shift key $K$ from each ciphertext index $C$. If the result is negative, add 26 (modulo 26 wrap-around):\n"
+                "   $$P = (C - K) \\pmod{26}$$\n"
+                "3. **Brute-Force Vulnerability:** Because there are only 25 possible non-trivial keys ($K=1..25$), an attacker can easily test all 25 shifts in seconds—which is why modern systems combine shifting with permutation tables."
+            ),
+            "examples": (
+                "🔹 **Concrete Example 1 (Shift $K = +1$):**\n"
+                "- Plaintext: `MARS`\n"
+                "- Encryption Step-by-Step: `M (12+1=13 -> N)` | `A (0+1=1 -> B)` | `R (17+1=18 -> S)` | `S (18+1=19 -> T)`\n"
+                "- Ciphertext Output: **`NBST`**\n\n"
+                "🔹 **Concrete Example 2 (Wrap-Around Shift $K = +3$):**\n"
+                "- Plaintext: `CYBER`\n"
+                "- Encryption Step-by-Step: `C (+3) -> F` | `Y (24+3=27 mod 26 = 1 -> B)` | `B (+3) -> E` | `E (+3) -> H` | `R (+3) -> U`\n"
+                "- Ciphertext Output: **`FBEHU`**"
+            ),
+            "mc_q": "In a Caesar Cipher with Shift Key K = 4, what does the letter 'Y' (index 24) encrypt to after wrapping around the 26-letter alphabet?",
+            "mc_options": ["A) Letter 'B' (index 1)", "B) Letter 'C' (index 2)", "C) Letter 'D' (index 3)", "D) Letter 'Z' (index 25)"],
+            "mc_ans": "B) Letter 'C' (index 2)",
+            "mc_explain": "Y is at index 24. Adding 4 gives 28. Using modulo 26: 28 mod 26 = 2, which corresponds to 'C' (A=0, B=1, C=2).",
+            "prac_prompt": "Practical Lab (+200 XP): Decode the Caesar ciphertext `KHOOR` which was encrypted using a forward shift of K = +3 (Hint: Shift each letter 3 steps backward).",
+            "prac_ans": "HELLO",
+            "prac_explain": "`K (-3) -> H` | `H (-3) -> E` | `O (-3) -> L` | `O (-3) -> L` | `R (-3) -> O` = **HELLO**."
+        },
+
+        "Lesson 2: Atbash Mirror & Leetspeak Substitution": {
+            "id": "L2",
+            "badge": "MODULE 02 • MONOALPHABETIC SUBSTITUTION",
+            "title": "🪞 Lesson 2: Atbash Mirror Cipher & Symbolic Leetspeak",
+            "overview": (
+                "Monoalphabetic substitution ciphers replace each character of the plaintext with a fixed partner symbol or opposite letter. "
+                "Two classic forms used across CTF puzzles are the ancient **Atbash Mirror Cipher** (originally used for the Hebrew alphabet around 500 BC) and **Symbolic Leetspeak (1337)** popularized by early internet hacker culture."
+            ),
+            "enc_guide": (
+                "**Part A — Atbash Mirror Encryption:**\n"
+                "1. Fold the 26-letter alphabet in half like a mirror so the first letter pairs with the last letter:\n"
+                "   - First Half:  `A B C D E F G H I J K L M`\n"
+                "   - Second Half: `Z Y X W V U T S R Q P O N`\n"
+                "2. Mathematical formula for index $P \\in [0, 25]$:\n"
+                "   $$C = (25 - P)$$\n\n"
+                "**Part B — Leetspeak (1337) Visual Encoding:**\n"
+                "1. Replace specific English letters with visually similar numbers or ASCII symbols:\n"
+                "   `A -> 4`, `E -> 3`, `I -> 1`, `O -> 0`, `S -> 5`, `T -> 7`."
+            ),
+            "dec_guide": (
+                "**Part A — Atbash Decryption (Reciprocal Property):**\n"
+                "- Because Atbash is a **reciprocal (involutory) cipher**, encryption and decryption use the exact same operation! Applying the mirror table a second time restores the original plaintext ($P = 25 - C$).\n\n"
+                "**Part B — Leetspeak Decryption:**\n"
+                "- Reverse the visual mapping (`4 -> A`, `3 -> E`, `1 -> I`, `0 -> O`, `5 -> S`, `7 -> T`) while keeping consonants intact."
+            ),
+            "examples": (
+                "🔹 **Concrete Example 1 (Atbash Mirror):**\n"
+                "- Plaintext: `TIGER`\n"
+                "- Mirror Lookup: `T ↔ G` | `I ↔ R` | `G ↔ T` | `E ↔ V` | `R ↔ I`\n"
+                "- Ciphertext Output: **`GRTVI`**\n\n"
+                "🔹 **Concrete Example 2 (Leetspeak Code):**\n"
+                "- Plaintext: `GALAXY STARS`\n"
+                "- Number Substitution (`A->4, S->5, T->7`): **`G4L4XY 574R5`**"
+            ),
+            "mc_q": "Why is the Atbash Cipher called a 'Reciprocal' (or Involutory) Cipher?",
+            "mc_options": [
+                "A) Because it requires two different passwords to decrypt",
+                "B) Because applying the exact same mirror rule to the ciphertext immediately decrypts it back to plaintext",
+                "C) Because it doubles the length of the message",
+                "D) Because it only works on numbers"
+            ],
+            "mc_ans": "B) Because applying the exact same mirror rule to the ciphertext immediately decrypts it back to plaintext",
+            "mc_explain": "Since A swaps with Z and Z swaps with A, encrypting and decrypting are identical operations.",
+            "prac_prompt": "Practical Lab (+200 XP): Decode the Atbash Mirror string `HVXIVG` using the mirror rule (A↔Z, B↔Y, C↔X, D↔W, E↔V, F↔U, G↔T, H↔S, I↔R, R↔I, V↔E, X↔C).",
+            "prac_ans": "SECRET",
+            "prac_explain": "`H ↔ S` | `V ↔ E` | `X ↔ C` | `I ↔ R` | `V ↔ E` | `G ↔ T` = **SECRET**."
+        },
+
+        "Lesson 3: Polyalphabetic Vigenère Cipher (Advanced Classical)": {
+            "id": "L3",
+            "badge": "MODULE 03 • POLYALPHABETIC CRYPTOGRAPHY",
+            "title": "🔐 Lesson 3: The Vigenère Cipher — Defeating Frequency Analysis",
+            "overview": (
+                "For centuries, simple substitution ciphers were broken using **Frequency Analysis** (counting how often `E`, `T`, `A` appear). "
+                "In the 16th century, **Giovan Battista Bellaso** and **Blaise de Vigenère** introduced the **Polyalphabetic Vigenère Cipher**—nicknamed *'Le Chiffre Indéchiffrable' (The Unbreakable Cipher)* for over 300 years. "
+                "Instead of a single shift number, it uses a **repeating secret keyword** so that the same plaintext letter is shifted by different amounts at different positions!"
+            ),
+            "enc_guide": (
+                "1. **Choose a Secret Keyword:** Suppose your keyword is `KEY` (Indices: `K=10, E=4, Y=24`).\n"
+                "2. **Repeat the Keyword to Match Plaintext Length:** Align each letter of your plaintext $P_i$ with the repeating keyword letter $K_i$.\n"
+                "3. **Add Indices Modulo 26:**\n"
+                "   $$C_i = (P_i + K_{i \\bmod m}) \\pmod{26}$$\n"
+                "   Notice that two identical letters in the plaintext (like `L` and `L` in `HELLO`) will align with different keyword letters and encrypt into completely different ciphertext characters!"
+            ),
+            "dec_guide": (
+                "1. **Align Ciphertext with the Repeating Keyword:** Write the keyword repeatedly under the ciphertext.\n"
+                "2. **Subtract Keyword Index Modulo 26:**\n"
+                "   $$P_i = (C_i - K_{i \\bmod m} + 26) \\pmod{26}$$\n"
+                "3. **Cryptanalysis Technique (Kasiski Examination):** To break Vigenère without the key, advanced cryptanalysts search for repeating sequences of 3+ letters in the ciphertext to guess the keyword length $m$, then solve $m$ separate Caesar ciphers."
+            ),
+            "examples": (
+                "🔹 **Concrete Step-by-Step Example:**\n"
+                "- Plaintext: `MOON` (`M=12, O=14, O=14, N=13`)\n"
+                "- Keyword: `BC` repeated as `BCBC` (`B=1, C=2, B=1, C=2`)\n"
+                "- Position 1: `M (12) + B (1) = 13 -> N`\n"
+                "- Position 2: `O (14) + C (2) = 16 -> Q`\n"
+                "- Position 3: `O (14) + B (1) = 15 -> P` *(Notice the two 'O's became 'Q' and 'P'!)*\n"
+                "- Position 4: `N (13) + C (2) = 15 -> P`\n"
+                "- Ciphertext Output: **`NQPP`**"
+            ),
+            "mc_q": "What is the primary security advantage of the Vigenère Cipher over the standard Caesar Cipher?",
+            "mc_options": [
+                "A) It requires no password at all",
+                "B) Identical letters in the plaintext can encrypt into different letters in the ciphertext, hiding letter frequencies",
+                "C) It converts text into PNG images",
+                "D) It only shifts vowels"
+            ],
+            "mc_ans": "B) Identical letters in the plaintext can encrypt into different letters in the ciphertext, hiding letter frequencies",
+            "mc_explain": "By using a repeating multi-letter keyword, different positions use different shift values, flattening the single-letter frequency distribution.",
+            "prac_prompt": "Practical Lab (+200 XP): Decrypt the Vigenère ciphertext `NQPP` using the repeating keyword `BC` (Hint: Subtract B=1 from odd positions and C=2 from even positions).",
+            "prac_ans": "MOON",
+            "prac_explain": "`N (13-1=12 -> M)` | `Q (16-2=14 -> O)` | `P (15-1=14 -> O)` | `P (15-2=13 -> N)` = **MOON**."
+        },
+
+        "Lesson 4: Bitwise XOR & The One-Time Pad (Information-Theoretic)": {
+            "id": "L4",
+            "badge": "MODULE 04 • BINARY & INFORMATION-THEORETIC SECURITY",
+            "title": "⚡ Lesson 4: Bitwise XOR Cipher & The Unbreakable One-Time Pad",
+            "overview": (
+                "In modern computer science, data is stored as binary bits (`0` and `1`). The fundamental building block of almost all modern stream ciphers and block ciphers is the **Exclusive OR (`XOR`, symbol $\\oplus$)** logical operation. "
+                "When combined with a truly random key that is as long as the message and never reused, it forms the **One-Time Pad (OTP)**—proven by mathematician **Claude Shannon** in 1949 to have **Perfect Secrecy** (mathematically impossible to crack even with infinite computing power)."
+            ),
+            "enc_guide": (
+                "1. **Understand the XOR Truth Table:** XOR compares two bits. If the bits are the **same**, the result is `0`. If the bits are **different**, the result is `1`:\n"
+                "   - `0 ⊕ 0 = 0` &nbsp;|&nbsp; `1 ⊕ 1 = 0`\n"
+                "   - `0 ⊕ 1 = 1` &nbsp;|&nbsp; `1 ⊕ 0 = 1`\n"
+                "2. **Convert Characters to 8-Bit ASCII Binary:** Convert each plaintext byte $P$ and key byte $K$ into 8 binary bits.\n"
+                "3. **Bitwise XOR Operation:**\n"
+                "   $$C = P \\oplus K$$"
+            ),
+            "dec_guide": (
+                "1. **Self-Inverse Magic of XOR:** Because $K \\oplus K = 0$ and $P \\oplus 0 = P$, XORing the ciphertext $C$ with the exact same key $K$ cancels out the key and restores $P$:\n"
+                "   $$C \\oplus K = (P \\oplus K) \\oplus K = P \\oplus (K \\oplus K) = P \\oplus 0 = P$$\n"
+                "2. **The 3 Golden Rules of One-Time Pad (OTP):**\n"
+                "   - The key must be **truly random**.\n"
+                "   - The key must be **at least as long as the plaintext**.\n"
+                "   - The key must **never be reused** (Reusing an OTP key allows attackers to XOR two ciphertexts together: $C_1 \\oplus C_2 = P_1 \\oplus P_2$!)."
+            ),
+            "examples": (
+                "🔹 **Concrete Binary XOR Example:**\n"
+                "- Plaintext Letter `'A'`: ASCII `65` = `01000001`\n"
+                "- Secret Key Byte:      ASCII `42` = `00101010`\n"
+                "- Encrypt (`P ⊕ K`):   `01000001 ⊕ 00101010` = **`01101011`** (ASCII `107`, letter `'k'`)\n"
+                "- Decrypt (`C ⊕ K`):   `01101011 ⊕ 00101010` = **`01000001`** (Restores `'A'`!)"
+            ),
+            "mc_q": "What is the binary output of the bitwise operation: 1010 ⊕ 0110 ?",
+            "mc_options": ["A) 1100", "B) 0010", "C) 1111", "D) 0101"],
+            "mc_ans": "A) 1100",
+            "mc_explain": "Bit 1: 1⊕0=1 | Bit 2: 0⊕1=1 | Bit 3: 1⊕1=0 | Bit 4: 0⊕0=0 -> Result: 1100.",
+            "prac_prompt": "Practical Lab (+200 XP): Compute the 4-bit XOR decryption of Ciphertext `1111` with Key `1010` (Type the 4-bit binary answer, e.g. 0000).",
+            "prac_ans": "0101",
+            "prac_explain": "`1⊕1=0` | `1⊕0=1` | `1⊕1=0` | `1⊕0=1` = **0101**."
+        },
+
+        "Lesson 5: Multi-Layer PRNG Key Permutation & UTC Time-Locks": {
+            "id": "L5",
+            "badge": "MODULE 05 • ULTIMATE SECRET MESSENGER CORE ARCHITECTURE",
+            "title": "🧬 Lesson 5: Multi-Layer 229-Char Permutation & UTC Temporal Locking",
+            "overview": (
+                "This lesson reveals the internal cryptographic engine of **Ultimate Secret Messenger**. "
+                "Instead of relying on a simple 26-letter shift, our platform constructs a **5-Layer Dynamic Substitution & Permutation Matrix** across **229 global characters** (English uppercase/lowercase, digits, punctuation, and full Vietnamese diacritics), combined with tamper-proof **UTC Epoch Time-Locks**."
+            ),
+            "enc_guide": (
+                "1. **Layer 1 — Composite Seed Generation:** Your text `Passphrase` and your ordered `Symbol Vault` emojis (selected from 1,488+ Unicode icons) are concatenated into a high-entropy seed string: `Seed = Passphrase + '_' + Icons`.\n"
+                "2. **Layer 2 — Deterministic Fisher-Yates PRNG Shuffle:** The seed initializes a Pseudo-Random Number Generator that shuffles all 229 characters of `BASE_CHARS` into a unique permutation key.\n"
+                "3. **Layer 3 — Modular Array Rotation (`Shift Offset`):** The 229-character key array is rotated left by `Shift % 229` positions.\n"
+                "4. **Layer 4 — Manual Trap Swaps (`Custom Pairs`):** User-defined pairs (e.g., `a=@, e=3`) swap specific indices inside the key matrix.\n"
+                "5. **Layer 5 — Temporal Header Injection & Reverse Flip:** Before substitution, the engine prepends `TMODE:<MODE>:<UTC_TIMESTAMP>|` to the plaintext. If `Reverse Structure` is checked, the final ciphertext string is inverted."
+            ),
+            "dec_guide": (
+                "1. **Un-Reverse (If Enabled):** Flip the ciphertext back to forward order.\n"
+                "2. **Inverse Key Lookup:** Map each character from the shuffled key array back to its original index in `BASE_CHARS`.\n"
+                "3. **Header Integrity Verification:** Check if the decoded string begins with `TMODE:`. If not, the key parameters are wrong and decryption aborts immediately.\n"
+                "4. **UTC Epoch Verification:** Compare `int(time.time())` against `<UTC_TIMESTAMP>`:\n"
+                "   - If `MODE == EXPIRE` and `now > target_ts`: Trigger self-destruction!\n"
+                "   - If `MODE == WAIT` and `now < target_ts`: Lock the time-capsule until the deadline arrives."
+            ),
+            "examples": (
+                "🔹 **Concrete Payload Packaging Example:**\n"
+                "- Plaintext: `Attack at dawn` | Mode: `Self-Destruct (10 mins)` | Current UTC: `1700000000`\n"
+                "- Internal Packaged String: `TMODE:EXPIRE:1700000600|Attack at dawn`\n"
+                "- Notice that the expiration timestamp `1700000600` is **encrypted together with the message**. An attacker cannot modify the timer without corrupting the ciphertext!"
+            ),
+            "mc_q": "Why does Ultimate Secret Messenger embed the UTC timestamp inside the plaintext BEFORE encrypting it?",
+            "mc_options": [
+                "A) To make the text shorter",
+                "B) So the expiration timer is cryptographically sealed inside the ciphertext and cannot be tampered with by the recipient",
+                "C) Because Python cannot read local time",
+                "D) To change the font color"
+            ],
+            "mc_ans": "B) So the expiration timer is cryptographically sealed inside the ciphertext and cannot be tampered with by the recipient",
+            "mc_explain": "By encrypting `TMODE:EXPIRE:<TS>|message` as a single string, the timestamp is hidden and protected by the group key.",
+            "prac_prompt": "Practical Lab (+200 XP): What is the exact 5-letter prefix (without the colon) that the decryption engine checks after inverse substitution to verify that the group key is correct?",
+            "prac_ans": "TMODE",
+            "prac_explain": "Every valid payload starts with the header `TMODE:<mode>:<timestamp>|`."
+        },
+
+        "Lesson 6: 4-Bit Nibble Markov Linguistic Camouflage": {
+            "id": "L6",
+            "badge": "MODULE 06 • LINGUISTIC STEGANOGRAPHY & TRAFFIC DISGUISE",
+            "title": "🎭 Lesson 6: Linguistic Camouflage — Disguising Bytes as English Prose",
+            "overview": (
+                "Encryption hides the *meaning* of a message, but a random-looking string like `+ÈX$ă4&X` immediately alerts network firewalls and human censors that encrypted communication is taking place. "
+                "**Linguistic Steganography (Camouflage)** solves this by encoding raw encrypted bytes into natural-looking English sentences."
+            ),
+            "enc_guide": (
+                "1. **UTF-8 Byte Serialization:** First, encrypt the message using the core cipher engine and convert the resulting string into UTF-8 bytes (each byte is an 8-bit integer from `0` to `255`).\n"
+                "2. **4-Bit Nibble Splitting:** Split every 8-bit byte `B` into two 4-bit halves (**High Nibble** and **Low Nibble**), each having a value between `0` and `15` (`0x0` to `0xF`):\n"
+                "   $$\\text{High Nibble} = (B \\gg 4) \\;\\&\\; \\text{0x0F}, \\qquad \\text{Low Nibble} = B \\;\\&\\; \\text{0x0F}$$\n"
+                "3. **16-Word Dictionary Mapping:** Map each number `0–15` to a curated 16-word technical English vocabulary (`0=system, 1=network, 2=protocol, 3=update, ...`).\n"
+                "4. **Sentence Formatting:** Group every 8 words into a capitalized sentence ending with a period."
+            ),
+            "dec_guide": (
+                "1. **Tokenization:** Strip punctuation (`.` and `,`), convert to lowercase, and split the paragraph into individual words.\n"
+                "2. **Pairwise Nibble Reconstruction:** Take words in pairs $(W_{\\text{high}}, W_{\\text{low}})$, look up their dictionary indices $(0..15)$, and recombine them into an 8-bit byte:\n"
+                "   $$B = (\\text{Index}(W_{\\text{high}}) \\ll 4) \\;\\mid\\; \\text{Index}(W_{\\text{low}})$$\n"
+                "3. **UTF-8 Decode & Core Decryption:** Convert the byte array back to the ciphertext string and pass it through `decrypt_core()`."
+            ),
+            "examples": (
+                "🔹 **Concrete Byte-to-Words Example:**\n"
+                "- Suppose a single byte is ASCII `'A'` = `65` = Binary `0100 0001`.\n"
+                "- High Nibble: `0100` = Index `4` (`'server'`)\n"
+                "- Low Nibble:  `0001` = Index `1` (`'network'`)\n"
+                "- The byte `'A'` is transmitted as the two English words: **`server network`**!"
+            ),
+            "mc_q": "In our 4-Bit Nibble Camouflage engine, how many English words are required to represent 1 single byte (8 bits) of data?",
+            "mc_options": ["A) 1 word", "B) 2 words (one for the 4-bit high nibble, one for the 4-bit low nibble)", "C) 8 words", "D) 16 words"],
+            "mc_ans": "B) 2 words (one for the 4-bit high nibble, one for the 4-bit low nibble)",
+            "mc_explain": "Since each word encodes 4 bits (2^4 = 16 possibilities), two words encode 4 + 4 = 8 bits (1 byte).",
+            "prac_prompt": "Practical Lab (+200 XP): If High Nibble = 4 (`0100`) and Low Nibble = 2 (`0010`), what is the combined 8-bit decimal byte value? (Formula: 4 * 16 + 2).",
+            "prac_ans": "66",
+            "prac_explain": "`(4 << 4) | 2` = `4 * 16 + 2` = **66** (which is ASCII for capital `'B'`)."
+        },
+
+        "Lesson 7: LSB Pixel Image Steganography (Digital Forensics)": {
+            "id": "L7",
+            "badge": "MODULE 07 • PIXEL-LEVEL IMAGE STEGANOGRAPHY",
+            "title": "🖼️ Lesson 7: Least Significant Bit (LSB) Image Steganography",
+            "overview": (
+                "Digital images are grids of pixels, where each pixel in an `RGB` image consists of three 8-bit color channels: **Red (0–255)**, **Green (0–255)**, and **Blue (0–255)**. "
+                "**LSB Steganography** hides secret binary data inside the rightmost bit (the Least Significant Bit, worth only $\\pm 1$ out of 255 in brightness) of each color channel. "
+                "Because changing a color value from `200` to `201` alters brightness by less than 0.4%, the human eye cannot detect any difference!"
+            ),
+            "enc_guide": (
+                "1. **Append Delimiter Marker:** Attach the end-of-message marker `<<END_STEGO>>` to the encrypted string and convert the entire sequence into a stream of binary bits (`0` and `1`).\n"
+                "2. **Clear & Replace the Rightmost Bit:** For each pixel's `(R, G, B)` values, clear the lowest bit using bitwise AND (`& ~1`) and insert the secret bit using bitwise OR (`| bit`):\n"
+                "   $$R_{\\text{new}} = (R_{\\text{old}} \\;\\&\\; \\sim 1) \\;\\mid\\; \\text{bit}$$\n"
+                "   Each pixel stores **3 bits** of secret data (1 bit in R, 1 in G, 1 in B).\n"
+                "3. **Lossless PNG Export:** Save the modified pixel matrix strictly as a **Lossless PNG**. (Never use JPEG for LSB steganography, because JPEG's lossy DCT compression destroys the least significant bits!)."
+            ),
+            "dec_guide": (
+                "1. **Bit Extraction:** Read every pixel in the PNG image and extract the rightmost bit of each channel using bitwise AND with 1:\n"
+                "   $$\\text{bit}_R = R \\;\\&\\; 1, \\quad \\text{bit}_G = G \\;\\&\\; 1, \\quad \\text{bit}_B = B \\;\\&\\; 1$$\n"
+                "2. **Byte Grouping & Delimiter Scan:** Group every 8 bits into 1 byte and check if the trailing bytes match `<<END_STEGO>>`. Once found, stop scanning and pass the extracted ciphertext to `decrypt_core()`."
+            ),
+            "examples": (
+                "🔹 **Concrete Pixel Modification Example:**\n"
+                "- Original Pixel RGB: `(R = 148, G = 201, B = 90)`\n"
+                "  In 8-bit Binary: `R = 1001010[0]`, `G = 1100100[1]`, `B = 0101101[0]`\n"
+                "- Secret Bits to Hide: `1, 0, 1`\n"
+                "- Modified Binary: `R = 1001010[1]` (`149`), `G = 1100100[0]` (`200`), `B = 0101101[1]` (`91`)\n"
+                "- New Pixel RGB: **`(149, 200, 91)`** — Completely indistinguishable from `(148, 201, 90)` to human vision!"
+            ),
+            "mc_q": "Why must LSB Steganography images be saved in PNG format rather than JPEG (.jpg) format?",
+            "mc_options": [
+                "A) Because PNG files are smaller than JPEG",
+                "B) Because JPEG uses lossy compression that alters pixel values and wipes out the hidden Least Significant Bits",
+                "C) Because JPEG only supports black-and-white images",
+                "D) Because browsers cannot display JPEG files"
+            ],
+            "mc_ans": "B) Because JPEG uses lossy compression that alters pixel values and wipes out the hidden Least Significant Bits",
+            "mc_explain": "JPEG compression rounds off high-frequency color details, corrupting the exact +1/-1 LSB values.",
+            "prac_prompt": "Practical Lab (+200 XP): Since 1 RGB pixel has 3 color channels (Red, Green, Blue) and each channel hides 1 bit, how many total bits can be hidden inside 10 RGB pixels?",
+            "prac_ans": "30",
+            "prac_explain": "`10 pixels * 3 channels/pixel * 1 bit/channel` = **30** bits."
+        },
+
+        "Lesson 8: Modern AES-256, RSA & Post-Quantum Cryptography": {
+            "id": "L8",
+            "badge": "MODULE 08 • ADVANCED INDUSTRY & POST-QUANTUM STANDARDS",
+            "title": "🚀 Lesson 8: Beyond Classical — AES-256, Asymmetric RSA & Post-Quantum Crypto",
+            "overview": (
+                "To become a well-rounded security engineer, it is essential to understand how custom symmetric engines compare to global banking, military, and internet standards (**TLS 1.3, HTTPS, Signal Protocol**), as well as the upcoming transition to **Post-Quantum Cryptography (PQC)**."
+            ),
+            "enc_guide": (
+                "**1. Symmetric Block Ciphers — AES-256 (Advanced Encryption Standard):**\n"
+                "- Operates on **128-bit blocks** (16 bytes) using a **256-bit key** across **14 rounds** of mathematical transformations inside a Galois Field $GF(2^8)$:\n"
+                "  `SubBytes` (Non-linear S-Box substitution) $\\rightarrow$ `ShiftRows` (Row transposition) $\\rightarrow$ `MixColumns` (Matrix multiplication) $\\rightarrow$ `AddRoundKey` (XOR with round key).\n\n"
+                "**2. Asymmetric Public-Key Cryptography — RSA & Diffie-Hellman / ECC:**\n"
+                "- Solves the **Key Exchange Problem**: How do two strangers agree on a secret passphrase over an untrusted internet?\n"
+                "- Each user generates a **Public Key** (shared openly with everyone to encrypt messages) and a **Private Key** (kept strictly secret to decrypt messages).\n"
+                "- RSA security relies on the difficulty of factoring the product of two massive prime numbers ($N = p \\times q$):\n"
+                "  $$C = M^e \\pmod N, \\qquad M = C^d \\pmod N$$"
+            ),
+            "dec_guide": (
+                "**3. Cryptographic Hash Functions — SHA-256 (Used in our Chat Room Admin Panel):**\n"
+                "- Unlike encryption, hashing is a **One-Way Trapdoor Function**. It maps any input into a fixed 256-bit (64-hex-character) digest. You cannot 'decrypt' a SHA-256 hash back into the password; you can only verify a password by hashing the guess and comparing the two digests.\n\n"
+                "**4. The Quantum Threat & Post-Quantum Cryptography (Lattice-Based Kyber / ML-KEM):**\n"
+                "- **Shor's Algorithm** on a future large-scale Quantum Computer can factor large primes and break RSA/ECC in hours.\n"
+                "- **Grover's Algorithm** speeds up symmetric brute-force quadratically (reducing 128-bit security to 64-bit, which is why **256-bit entropy**—like our multi-layer symbol + passphrase keys and AES-256—remains quantum-resistant!)."
+            ),
+            "examples": (
+                "🔹 **Concrete Miniature RSA Example:**\n"
+                "- Choose two primes: $p = 3, q = 11 \\implies N = 33$, Euler's totient $\\phi(N) = (3-1)(11-1) = 20$.\n"
+                "- Public Exponent: $e = 3$ | Private Key Exponent: $d = 7$ (since $3 \\times 7 = 21 \\equiv 1 \\pmod{20}$).\n"
+                "- Encrypt message $M = 4$: $C = 4^3 \\pmod{33} = 64 \\pmod{33} =$ **`31`**.\n"
+                "- Decrypt ciphertext $C = 31$: $M = 31^7 \\pmod{33} =$ **`4`** (Restores original message!)."
+            ),
+            "mc_q": "Why can't a SHA-256 hash (like the Room Admin PIN hash in our database) be decrypted back into the original password?",
+            "mc_options": [
+                "A) Because SHA-256 is a one-way mathematical hash function with no inverse decryption key",
+                "B) Because the password is stored inside an image",
+                "C) Because SHA-256 only works in UTC time",
+                "D) Because it uses Caesar Shift +3"
+            ],
+            "mc_ans": "A) Because SHA-256 is a one-way mathematical hash function with no inverse decryption key",
+            "mc_explain": "Cryptographic hash functions are irreversible one-way functions designed for verification and integrity, not decryption.",
+            "prac_prompt": "Practical Lab (+200 XP): In our Miniature RSA example above with Public Key (e = 3, N = 33), what is the encrypted ciphertext C for plaintext number M = 2? (Formula: 2^3 mod 33).",
+            "prac_ans": "8",
+            "prac_explain": "`2^3 = 8`, and `8 mod 33` = **8**."
+        }
+    }
+
+    # --- BANNER ĐẦU TRANG HỌC VIỆN ---
+    st.markdown("""
+    <div class="hero-box" style="padding: 22px 30px; margin-bottom: 20px;">
+        <div class="hero-badge">📚 INTERACTIVE CRYPTOGRAPHY CURRICULUM • LIVE X-RAY LABS • GRADED EXERCISES</div>
+        <h2 style="color: #f8fafc; margin: 4px 0 6px 0; font-weight: 800;">Security Academy & Algorithm X-Ray</h2>
+        <p class="hero-sub">
+            Master 8 dedicated cryptographic modules—from Classical Ciphers and Multi-Layer Permutations to LSB Pixel Forensics and Post-Quantum Cryptography. Complete quizzes and practical labs in each lesson to earn Academic XP!
+        </p>
+    </div>
+    """, unsafe_allow_html=True)
+
+    acad_db = load_acad_db()
+    if "acad_student" not in st.session_state:
+        st.session_state.acad_student = st.session_state.get("ctf_user") or "Student_HCMUS"
+
+    # --- THANH HỒ SƠ HỌC VIÊN & TIẾN ĐỘ HỌC TẬP (XP, RANK, PROGRESS BAR) ---
+    top_s1, top_s2 = st.columns([1.4, 2.6])
+    with top_s1:
+        student_input = st.text_input("🎓 Student ID / Callsign:", value=st.session_state.acad_student, placeholder="Enter your name to track XP...")
+        if student_input.strip():
+            st.session_state.acad_student = student_input.strip()
+
+    curr_student = st.session_state.acad_student
+    if curr_student not in acad_db["students"]:
+        acad_db["students"][curr_student] = {"xp": 0, "completed_mc": [], "completed_prac": []}
+        save_acad_db(acad_db)
+
+    s_info = acad_db["students"][curr_student]
+    s_xp = s_info.get("xp", 0)
+    s_mc = s_info.get("completed_mc", [])
+    s_prac = s_info.get("completed_prac", [])
+    max_total_xp = len(LESSONS_CURRICULUM) * 300  # 8 bài * 300 XP = 2,400 XP
+
+    with top_s2:
+        m1, m2, m3 = st.columns(3)
+        m1.metric("🎖️ Academic Standing", get_academic_degree(s_xp), f"ID: {curr_student}")
+        m2.metric("⭐ Total Academy XP", f"{s_xp:,} / {max_total_xp:,} XP", f"{int((s_xp/max_total_xp)*100)}% Mastery")
+        m3.metric("✅ Completed Tasks", f"{len(s_mc) + len(s_prac)} / 16 Tasks", f"{len(s_prac)}/8 Labs Passed")
+
+    st.progress(min(s_xp / max_total_xp, 1.0), text=f"Curriculum Completion Progress: {s_xp:,} / {max_total_xp:,} XP ({len(s_mc)} Quizzes & {len(s_prac)} Practical Labs Completed)")
+    st.divider()
+
+    # --- CHỌN BÀI HỌC RIÊNG BIỆT (KHÔNG DỒN NHIỀU PHẦN VÀO 1 TRANG GÂY NHIỄU) ---
+    st.markdown("### 🗂️ Select a Dedicated Cryptography Module to Study")
+    st.caption("Each module is isolated in its own comprehensive long-scroll workspace below with step-by-step encoding/decoding guides, concrete examples, live interactive sandboxes, and graded exercises.")
+
+    selected_lesson_key = st.selectbox(
+        "📖 Choose Lesson Module (1 to 8):",
+        list(LESSONS_CURRICULUM.keys())
+    )
+
+    les = LESSONS_CURRICULUM[selected_lesson_key]
+    lid = les["id"]
+    mc_done = lid in s_mc
+    prac_done = lid in s_prac
+
+    # ==========================================================================
+    # HIỂN THỊ BÀI HỌC THEO CHIỀU DỌC DÀI (LONG-SCROLL) RÕ RÀNG TỪNG MỤC
+    # ==========================================================================
+
+    # MỤC A: TỔNG QUAN & CƠ SỞ LÝ THUYẾT
+    st.markdown(f"""
+    <div class="lesson-card">
+        <div class="hero-badge">{les['badge']}</div>
+        <h3>{les['title']}</h3>
+        <h4>1️⃣ Conceptual Overview & Historical Context</h4>
+        <p>{les['overview']}</p>
+    </div>
+    """, unsafe_allow_html=True)
+
+    # MỤC B: HƯỚNG DẪN TẠO MÃ (ENCRYPTION) TỪNG BƯỚC
+    with st.container():
+        st.markdown("#### 2️⃣ Step-by-Step Encryption Guide (How to Create the Cipher)")
+        st.info(les["enc_guide"])
+
+    # MỤC C: HƯỚNG DẪN GIẢI MÃ (DECRYPTION) & PHÁ MÃ TỪNG BƯỚC
+    with st.container():
+        st.markdown("#### 3️⃣ Step-by-Step Decryption & Cryptanalysis Guide (How to Decode)")
+        st.success(les["dec_guide"])
+
+    # MỤC D: VÍ DỤ CỤ THỂ (CONCRETE WORKED EXAMPLES)
+    with st.container():
+        st.markdown("#### 4️⃣ Concrete Worked Examples")
+        st.markdown(f"<div class='example-box'>{les['examples'].replace(chr(10), '<br>')}</div>", unsafe_allow_html=True)
+
+    # MỤC E: PHÒNG THÍ NGHIỆM TƯƠNG TÁC TRỰC TIẾP (LIVE INTERACTIVE SANDBOX CHO TỪNG BÀI)
+    st.markdown("#### 5️⃣ Interactive Live Algorithm X-Ray Sandbox (Try It Yourself!)")
+    with st.container(border=True):
+        if lid == "L1":
+            st.caption("🔬 **Live Caesar Shift Visualizer:** Type any text and adjust the Shift key $K$ to see the letter-by-letter index math in real time.")
+            sb_c1, sb_c2 = st.columns([2, 1])
+            with sb_c1:
+                l1_txt = st.text_input("Plaintext Input:", value="GALAXY", key="sb_l1_txt")
+            with sb_c2:
+                l1_k = st.slider("Shift Key (K):", min_value=1, max_value=25, value=3, key="sb_l1_k")
+            if l1_txt:
+                out_chars, breakdown = [], []
+                for ch in l1_txt.upper():
+                    if "A" <= ch <= "Z":
+                        p_idx = ord(ch) - 65
+                        c_idx = (p_idx + l1_k) % 26
+                        c_ch = chr(c_idx + 65)
+                        out_chars.append(c_ch)
+                        breakdown.append(f"`{ch}` ({p_idx}) + {l1_k} ≡ `{c_idx}` (**`{c_ch}`**)")
+                    else:
+                        out_chars.append(ch)
+                st.markdown(f"**Encrypted Output:** `{''.join(out_chars)}`")
+                st.markdown("**Mathematical Breakdown:** " + " &nbsp;|&nbsp; ".join(breakdown))
+
+        elif lid == "L2":
+            st.caption("🔬 **Live Atbash Mirror & Leetspeak Converter:** Compare how both monoalphabetic rules transform your input.")
+            l2_txt = st.text_input("Plaintext Input:", value="SECURITY", key="sb_l2_txt")
+            if l2_txt:
+                atb = "".join(chr(90 - (ord(c) - 65)) if "A" <= c <= "Z" else c for c in l2_txt.upper())
+                leet_m = {"A": "4", "E": "3", "I": "1", "O": "0", "S": "5", "T": "7"}
+                leet = "".join(leet_m.get(c, c) for c in l2_txt.upper())
+                c1, c2 = st.columns(2)
+                c1.code(f"Atbash Mirror: {atb}")
+                c2.code(f"Leetspeak Code: {leet}")
+
+        elif lid == "L3":
+            st.caption("🔬 **Live Vigenère Polyalphabetic Matrix:** See how a repeating keyword shifts identical letters into different outputs.")
+            v_c1, v_c2 = st.columns(2)
+            with v_c1:
+                l3_txt = st.text_input("Plaintext (A-Z):", value="ATTACKATDAWN", key="sb_l3_txt")
+            with v_c2:
+                l3_key = st.text_input("Secret Keyword (A-Z):", value="LEMON", key="sb_l3_key")
+            clean_p = "".join(c for c in l3_txt.upper() if "A" <= c <= "Z")
+            clean_k = "".join(c for c in l3_key.upper() if "A" <= c <= "Z") or "A"
+            if clean_p:
+                v_out, v_steps = [], []
+                for i, ch in enumerate(clean_p):
+                    k_ch = clean_k[i % len(clean_k)]
+                    c_val = ((ord(ch) - 65) + (ord(k_ch) - 65)) % 26
+                    c_ch = chr(c_val + 65)
+                    v_out.append(c_ch)
+                    v_steps.append(f"`{ch}`+`{k_ch}`→**`{c_ch}`**")
+                st.markdown(f"**Vigenère Ciphertext:** `{''.join(v_out)}`")
+                st.markdown("**Polyalphabetic Alignment:** " + " | ".join(v_steps[:12]))
+
+        elif lid == "L4":
+            st.caption("🔬 **Live 8-Bit Binary XOR Inspector:** Inspect the exact bit-level `0` and `1` XOR operations.")
+            x_c1, x_c2 = st.columns(2)
+            with x_c1:
+                l4_p = st.text_input("Single Plaintext Character:", value="A", max_chars=1, key="sb_l4_p")
+            with x_c2:
+                l4_k = st.text_input("Single Key Character:", value="K", max_chars=1, key="sb_l4_k")
+            if l4_p and l4_k:
+                pb, kb = ord(l4_p), ord(l4_k)
+                cb = pb ^ kb
+                st.code(
+                    f"Plaintext '{l4_p}' (ASCII {pb:3d}) : {pb:08b}\n"
+                    f"Key       '{l4_k}' (ASCII {kb:3d}) : {kb:08b}\n"
+                    f"---------------------------------------- (Bitwise XOR ⊕)\n"
+                    f"Cipher    Byte (ASCII {cb:3d}) : {cb:08b}"
+                )
+
+        elif lid == "L5":
+            st.caption("🔬 **Live 5-Layer Pipeline X-Ray:** See how Ultimate Secret Messenger packages and permutes your message.")
+            l5_sample = st.text_input("Sample Plaintext:", value="Hello HCMUS", key="sb_l5_txt")
+            active_k = group_key if group_key else build_custom_key("DEMO_KEY", SYMBOLS_POOL[:2], 5, "a=@")
+            now_demo = int(time.time())
+            raw_packaged = f"TMODE:EXPIRE:{now_demo + 600}|{l5_sample}"
+            sub_result = "".join(active_k[BASE_CHARS.index(c)] if c in BASE_CHARS else c for c in raw_packaged)
+            st.markdown(f"- **Step 1 (Temporal Packaging):** `{raw_packaged}`")
+            st.markdown(f"- **Step 2 (229-Char Substitution):** `{sub_result}`")
+            st.markdown(f"- **Step 3 (Reversed Output):** `{sub_result[::-1]}`")
+
+        elif lid == "L6":
+            st.caption("🔬 **Live 4-Bit Nibble Camouflage Inspector:** Watch each character split into two 4-bit English words.")
+            l6_in = st.text_input("Sample String (1-6 chars):", value="HI!", max_chars=6, key="sb_l6_in")
+            if l6_in:
+                rows_l6 = []
+                for b in l6_in.encode("utf-8"):
+                    hi, lo = (b >> 4) & 0x0F, b & 0x0F
+                    rows_l6.append({
+                        "Byte Char": chr(b) if 32 <= b <= 126 else f"0x{b:02X}",
+                        "8-Bit Binary": f"{b:08b}",
+                        "High Nibble (Bits 7-4)": f"{hi} ({hi:04b}) → '{CAMO_WORDS[hi]}'",
+                        "Low Nibble (Bits 3-0)": f"{lo} ({lo:04b}) → '{CAMO_WORDS[lo]}'"
+                    })
+                st.table(rows_l6)
+
+        elif lid == "L7":
+            st.caption("🔬 **Live Pixel RGB Least Significant Bit (LSB) Microscope:** See how hiding 3 bits changes RGB values by at most ±1.")
+            c_r, c_g, c_b = st.columns(3)
+            orig_r = c_r.slider("Original Red (0-255):", 0, 255, 148, key="sb_l7_r")
+            orig_g = c_g.slider("Original Green (0-255):", 0, 255, 201, key="sb_l7_g")
+            orig_b = c_b.slider("Original Blue (0-255):", 0, 255, 90, key="sb_l7_b")
+            secret_bits = st.radio("3 Secret Bits to Embed into (R, G, B):", ["101", "010", "111", "000"], horizontal=True)
+            nr = (orig_r & ~1) | int(secret_bits[0])
+            ng = (orig_g & ~1) | int(secret_bits[1])
+            nb = (orig_b & ~1) | int(secret_bits[2])
+            st.code(
+                f"Original Pixel RGB : ({orig_r:3d}, {orig_g:3d}, {orig_b:3d}) | Binary: {orig_r:08b}, {orig_g:08b}, {orig_b:08b}\n"
+                f"Stego Pixel RGB    : ({nr:3d}, {ng:3d}, {nb:3d}) | Binary: {nr:08b}, {ng:08b}, {nb:08b} (Embedded '{secret_bits}')"
+            )
+
+        else:
+            st.caption("🔬 **Live SHA-256 Avalanche Effect Demo:** Change even 1 single letter below and watch the entire 256-bit hash change completely!")
+            l8_in = st.text_input("Type any input string to hash:", value="Ultimate Secret Messenger 2026", key="sb_l8_in")
+            digest = hashlib.sha256(l8_in.encode("utf-8")).hexdigest()
+            st.markdown("**SHA-256 Digest (64 Hex Characters = 256 Bits):**")
+            st.code(digest, language=None)
+
+    # ==========================================================================
+    # MỤC F: BÀI TẬP CHẤM ĐIỂM TẠI CHỖ (QUIZ + PRACTICAL LAB = 300 XP / BÀI)
+    # ==========================================================================
+    st.markdown("""
+    <div class="exercise-box">
+        <h4 style="color:#f8fafc; margin-top:0;">📝 6️⃣ Graded Lesson Assessment & Practical Exercise (Earn up to +300 XP)</h4>
+        <p style="color:#94a3b8; margin-bottom:0;">
+            Test your mastery of this specific module! Complete both the <b>Theory Quiz (+100 XP)</b> and the <b>Hands-On Practical Lab (+200 XP)</b> below.
+        </p>
+    </div>
+    """, unsafe_allow_html=True)
+
+    ex_col1, ex_col2 = st.columns(2)
+
+    # Phần 6.1: Câu hỏi Trắc nghiệm Lý thuyết (+100 XP)
+    with ex_col1:
+        st.markdown(f"##### 🧠 Part A: Concept Check Quiz (+100 XP)")
+        if mc_done:
+            st.success(f"✅ **Completed (+100 XP Earned!)**\n\n**Correct Answer:** {les['mc_ans']}\n\n*{les['mc_explain']}*")
+        else:
+            user_mc = st.radio(les["mc_q"], les["mc_options"], key=f"mc_radio_{lid}")
+            if st.button("✔️ Submit Quiz Answer (+100 XP)", key=f"mc_btn_{lid}", use_container_width=True):
+                if user_mc == les["mc_ans"]:
+                    s_mc.append(lid)
+                    acad_db["students"][curr_student]["completed_mc"] = s_mc
+                    acad_db["students"][curr_student]["xp"] = s_xp + 100
+                    save_acad_db(acad_db)
+                    st.balloons()
+                    st.success("🎉 Correct! +100 Academic XP awarded!")
+                    time.sleep(1.0)
+                    st.rerun()
+                else:
+                    st.error("❌ Incorrect! Review sections 2 & 3 above and try again.")
+
+    # Phần 6.2: Bài tập Thực hành Giải mã / Tính toán (+200 XP)
+    with ex_col2:
+        st.markdown(f"##### 🛠️ Part B: Hands-On Practical Lab (+200 XP)")
+        if prac_done:
+            st.success(f"✅ **Completed (+200 XP Earned!)**\n\n**Verified Solution:** `{les['prac_ans']}`\n\n*{les['prac_explain']}*")
+        else:
+            st.write(les["prac_prompt"])
+            user_prac = st.text_input("Your Lab Answer:", placeholder="Type your decoded/calculated answer...", key=f"prac_in_{lid}")
+            if st.button("🚀 Verify Lab Solution (+200 XP)", type="primary", key=f"prac_btn_{lid}", use_container_width=True):
+                if user_prac.strip().upper() == les["prac_ans"].upper():
+                    s_prac.append(lid)
+                    acad_db["students"][curr_student]["completed_prac"] = s_prac
+                    acad_db["students"][curr_student]["xp"] = s_xp + 200
+                    save_acad_db(acad_db)
+                    st.balloons()
+                    st.success(f"🎉 Brilliant! `{les['prac_ans']}` is correct! +200 Academic XP awarded!")
+                    time.sleep(1.0)
+                    st.rerun()
+                else:
+                    st.error("❌ Not quite right! Check the Concrete Examples & Live Sandbox in sections 4 & 5 above.")
 
 # ==============================================================================
 # PHẦN 6: UTILITIES, DEVELOPER PROFILE, VISION & COMPREHENSIVE DOCUMENTATION

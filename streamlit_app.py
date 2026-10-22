@@ -11,9 +11,13 @@ from PIL import Image, ImageDraw
 import io
 from datetime import datetime, timezone
 
-# Đảm bảo nạp chính xác file core/sudoku_game.py trên Streamlit Cloud
+# Đảm bảo nạp và luôn làm mới (reload) file core/sudoku_game.py trên Streamlit Cloud
+import importlib
 sys.path.insert(0, os.path.abspath(os.path.dirname(__file__)))
+import core.sudoku_game as sudoku_module
+importlib.reload(sudoku_module)
 from core.sudoku_game import render_sudoku_arcade
+
 st.set_page_config(
     page_title="Ultimate Secret Messenger | Global Cipher Suite",
     page_icon="🛡️",
@@ -401,7 +405,7 @@ with st.sidebar:
             "🕹️ 4. Crypto Challenges",
             "📚 5. Security Academy",
             "🛠️ 6. Utilities & About",
-            "🧩 7. Mini-Games & Sudoku Arcade"
+            "🎮 Cyber Game Arcade (Mini-Games Hub)"
         ]
     )
 
@@ -3726,8 +3730,8 @@ elif "6. Utilities & About" in main_menu:
     st.info("💡 *“Security is not a product, but a process.”* — Bruce Schneier | Architected with ❤️ by **Lê Hoàng Phú Hiếu (FIT - HCMUS)**.")
 
 # ==============================================================================
-# PHẦN 7: MINI-GAMES & 9x9 SUDOKU ARCADE (GỌI TỪ FILE RIÊNG core/sudoku_game.py)
+# KHU VỰC GAME RIÊNG BIỆT: CYBER GAME ARCADE HUB (MULTI-GAME LOBBY)
 # ==============================================================================
-elif "7. Mini-Games & Sudoku Arcade" in main_menu:
+elif "Cyber Game Arcade" in main_menu:
     active_player = st.session_state.get("ctf_user") or "taolagautruc"
     render_sudoku_arcade(active_player)

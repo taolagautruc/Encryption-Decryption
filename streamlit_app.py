@@ -79,6 +79,27 @@ st.markdown("""
         font-size: 0.9rem;
         line-height: 1.5;
     }
+    /* Workspace Header & Tool Box */
+    .ws-banner {
+        background: linear-gradient(90deg, #111827 0%, #1e293b 100%);
+        border-left: 4px solid #3b82f6;
+        border-top: 1px solid #1f2937;
+        border-right: 1px solid #1f2937;
+        border-bottom: 1px solid #1f2937;
+        padding: 16px 22px;
+        border-radius: 10px;
+        margin-bottom: 18px;
+    }
+    .ws-banner h4 {
+        margin: 0 0 4px 0;
+        color: #f8fafc;
+        font-size: 1.15rem;
+    }
+    .ws-banner p {
+        margin: 0;
+        color: #94a3b8;
+        font-size: 0.9rem;
+    }
     /* Tinh chỉnh khung Metric mặc định của Streamlit */
     div[data-testid="stMetric"] {
         background-color: #111827;
@@ -90,7 +111,7 @@ st.markdown("""
 </style>
 """, unsafe_allow_html=True)
 
-# --- 1. CORE CIPHER & STORAGE LOGIC ---
+# --- 1. CORE CIPHER, CAMOUFLAGE, STEGANOGRAPHY & STORAGE LOGIC ---
 VIETNAMESE_CHARS = (
     "àáạảãâầấậẩẫăằắặẳẵèéẹẻẽêềếệểễìíịỉĩòóọỏõôồốộổỗơờớợởỡùúụủũưừứựửữỳýỵỷỹđ"
     "ÀÁẠẢÃÂẦẤẬẨẪĂẰẮẶẲẴÈÉẸẺẼÊỀẾỆỂỄÌÍỊỈĨÒÓỌỎÕÔỒỐỘỔỖƠỜỚỢỞỠÙÚỤỦŨƯỪỨỰỬỮỲÝỴỶỸĐ"
@@ -131,9 +152,8 @@ def calculate_entropy_metrics(secret_seed: str, pattern_list: list, shift_step: 
     icon_space = max(pool_size, 1) ** len(pattern_list)
     shift_space = 200 if shift_step > 0 else 1
     total_combos = char_space * icon_space * shift_space
-    # Tính số bit entropy xấp xỉ
     bits = total_combos.bit_length()
-    seconds = total_combos / (10 ** 12) # Giả sử siêu máy tính thử 1 nghìn tỷ khóa/giây
+    seconds = total_combos / (10 ** 12)
     years = seconds / (365 * 24 * 3600)
     if years > 1e15:
         time_str = f"{years:.2e} Years (Quantum-Resistant)"
@@ -152,7 +172,7 @@ def decrypt_core(cypher_text: str, key: list, reverse_rule: bool) -> tuple[bool,
     txt = cypher_text[::-1] if reverse_rule else cypher_text
     raw = "".join(BASE_CHARS[key.index(c)] if c in key else c for c in txt)
     if not raw.startswith("TMODE:") or "|" not in raw:
-        return False, "❌ Decryption Failed: Incorrect Group Passphrase or Rules!"
+        return False, "❌ Decryption Failed: Incorrect Group Passphrase, Symbol Pattern, or Shift Rules!"
     header, actual_msg = raw.split("|", 1)
     parts = header.split(":")
     if len(parts) != 3:
@@ -160,11 +180,122 @@ def decrypt_core(cypher_text: str, key: list, reverse_rule: bool) -> tuple[bool,
     mode, target_ts = parts[1], int(parts[2])
     now_ts = int(time.time())
     if mode == "EXPIRE" and target_ts > 0 and now_ts > target_ts:
-        return False, "💥 MESSAGE EXPIRED AND SELF-DESTRUCTED!"
+        expired_ago = now_ts - target_ts
+        m, s = divmod(expired_ago, 60)
+        return False, f"💥 MESSAGE SELF-DESTRUCTED! (Expired {m}m {s}s ago in UTC)."
     if mode == "WAIT" and target_ts > 0 and now_ts < target_ts:
-        return False, "⏳ TIME-CAPSULE LOCKED! Please wait until target time."
+        wait_sec = target_ts - now_ts
+        m, s = divmod(wait_sec, 60)
+        return False, f"⏳ TIME-CAPSULE LOCKED! Please wait {m}m {s}s before decoding."
     return True, actual_msg
 
+# --- 1B. ENGLISH CAMOUFLAGE ENGINE (2-WAY MARKOV PROSE) ---
+CAMO_WORDS = [
+    "system", "network", "protocol", "update", "server", "client", "module", "process",
+    "data", "buffer", "channel", "request", "session", "router", "packet", "cluster"
+]
+
+def encode_english_camouflage(cipher_text: str) -> str:
+    raw_bytes = cipher_text.encode("utf-8")
+    words = []
+    for b in raw_bytes:
+        high = (b >> 4) & 0x0F
+        low = b & 0x0F
+        words.append(CAMO_WORDS[high])
+        words.append(CAMO_WORDS[low])
+    # Chia thành các câu văn tự nhiên
+    sentences = []
+    for i in range(0, len(words), 8):
+        chunk = words[i:i+8]
+        chunk[0] = chunk[0].capitalize()
+        sentences.append(" ".join(chunk) + ".")
+    return " ".join(sentences)
+
+def decode_english_camouflage(prose_text: str) -> tuple[bool, str]:
+    cleaned = prose_text.replace(".", " ").replace(",", " ").strip().lower().split()
+    if not cleaned or len(cleaned) % 2 != 0:
+        return False, "❌ Invalid camouflage structure (Word count must be even)."
+    byte_arr = bytearray()
+    for i in range(0, len(cleaned), 2):
+        w1, w2 = cleaned[i], cleaned[i+1]
+        if w1 not in CAMO_WORDS or w2 not in CAMO_WORDS:
+            return False, f"❌ Unrecognized camouflage word detected: '{w1}' or '{w2}'."
+        b = (CAMO_WORDS.index(w1) << 4) | CAMO_WORDS.index(w2)
+        byte_arr.append(b)
+    try:
+        return True, byte_arr.decode("utf-8")
+    except Exception:
+        return False, "❌ Corrupted byte sequence during camouflage extraction."
+
+# --- 1C. LSB IMAGE STEGANOGRAPHY ENGINE (PIXEL-LEVEL HIDING) ---
+STEGO_DELIM = "<<END_STEGO>>"
+
+def generate_sample_carrier_image(width: int = 480, height: int = 260) -> Image.Image:
+    """Tạo ảnh mẫu Cyberpunk ngay trên web nếu người dùng chưa có sẵn ảnh."""
+    img = Image.new("RGB", (width, height), color=(15, 23, 42))
+    draw = ImageDraw.Draw(img)
+    for y in range(0, height, 20):
+        draw.line([(0, y), (width, y)], fill=(30, 41, 59), width=1)
+    for x in range(0, width, 20):
+        draw.line([(x, 0), (x, height)], fill=(30, 41, 59), width=1)
+    draw.rectangle([(15, 15), (width - 15, height - 15)], outline=(59, 130, 246), width=2)
+    draw.text((35, 95), "ULTIMATE SECRET MESSENGER", fill=(96, 165, 250))
+    draw.text((35, 125), "LSB STEGO CARRIER MATRIX // UTC VERIFIED", fill=(148, 163, 184))
+    return img
+
+def encode_image_lsb(image: Image.Image, secret_payload: str) -> Image.Image:
+    img = image.convert("RGB")
+    full_bytes = (secret_payload + STEGO_DELIM).encode("utf-8")
+    bits = "".join(f"{byte:08b}" for byte in full_bytes)
+    
+    pixels = list(img.getdata())
+    if len(bits) > len(pixels) * 3:
+        raise ValueError("Payload is too large for this image! Please upload a higher resolution image.")
+    
+    new_pixels = []
+    bit_idx = 0
+    total_bits = len(bits)
+    for r, g, b in pixels:
+        if bit_idx < total_bits:
+            r = (r & ~1) | int(bits[bit_idx])
+            bit_idx += 1
+        if bit_idx < total_bits:
+            g = (g & ~1) | int(bits[bit_idx])
+            bit_idx += 1
+        if bit_idx < total_bits:
+            b = (b & ~1) | int(bits[bit_idx])
+            bit_idx += 1
+        new_pixels.append((r, g, b))
+        
+    stego_img = Image.new("RGB", img.size)
+    stego_img.putdata(new_pixels)
+    return stego_img
+
+def decode_image_lsb(image: Image.Image) -> tuple[bool, str]:
+    img = image.convert("RGB")
+    pixels = list(img.getdata())
+    bits = []
+    for r, g, b in pixels:
+        bits.append(str(r & 1))
+        bits.append(str(g & 1))
+        bits.append(str(b & 1))
+        
+    byte_arr = bytearray()
+    delim_bytes = STEGO_DELIM.encode("utf-8")
+    delim_len = len(delim_bytes)
+    
+    for i in range(0, len(bits) - 7, 8):
+        byte_val = int("".join(bits[i:i+8]), 2)
+        byte_arr.append(byte_val)
+        if len(byte_arr) >= delim_len and byte_arr[-delim_len:] == delim_bytes:
+            try:
+                extracted = byte_arr[:-delim_len].decode("utf-8")
+                return True, extracted
+            except Exception:
+                return False, "❌ Found stego marker, but payload bytes are corrupted."
+    return False, "❌ No hidden LSB steganography payload detected in this image!"
+
+# --- 1D. STORAGE ENGINE ---
 DB_FILE = "chat_rooms_db.json"
 def load_all_rooms():
     if not os.path.exists(DB_FILE):
@@ -220,7 +351,6 @@ group_key = build_custom_key(secret_seed, pattern_list, shift_step, custom_pairs
 
 # --- 3. ĐIỀU HƯỚNG HIỂN THỊ CÁC TRANG ---
 if "1. Home Dashboard" in main_menu:
-    # 1.1: Hero Banner hiển thị rõ tên trang web của bạn
     st.markdown("""
     <div class="hero-box">
         <div class="hero-badge">⚡ ZERO-TRUST MULTI-LAYER CRYPTOGRAPHY PLATFORM</div>
@@ -231,7 +361,6 @@ if "1. Home Dashboard" in main_menu:
     </div>
     """, unsafe_allow_html=True)
 
-    # 1.2: 4 Thẻ chỉ số hệ thống (System Metrics)
     rooms_data = load_all_rooms()
     c1, c2, c3, c4 = st.columns(4)
     c1.metric("🔤 Base Alphabet", f"{len(BASE_CHARS)} chars", "EN + VN + Symbols")
@@ -240,8 +369,6 @@ if "1. Home Dashboard" in main_menu:
     c4.metric("🌍 Universal Clock", datetime.now(timezone.utc).strftime("%H:%M:%S UTC"), "Synchronized")
 
     st.write("")
-
-    # 1.3: Trạng thái Khóa & Phân tích Bảo mật Trực tiếp (Live Key Status & Audit)
     col_status, col_specs = st.columns([3, 2])
 
     with col_status:
@@ -254,8 +381,6 @@ if "1. Home Dashboard" in main_menu:
         else:
             bits, crack_time = calculate_entropy_metrics(secret_seed, pattern_list, shift_step, len(SYMBOLS_POOL))
             st.success("✅ **Cryptographic Engine Active & Synchronized!** All modules are ready.")
-            
-            # Hiển thị tóm tắt cấu hình đang bật
             icons_str = " ➡️ ".join(pattern_list) if pattern_list else "None"
             st.markdown(f"""
             - **Active Symbol Chain:** {icons_str}
@@ -274,8 +399,6 @@ if "1. Home Dashboard" in main_menu:
         )
 
     st.divider()
-
-    # 1.4: Ba thẻ tính năng cốt lõi (Core Architecture Pillars)
     st.markdown("#### 🚀 Core Security Architecture")
     f1, f2, f3 = st.columns(3)
     with f1:
@@ -306,28 +429,229 @@ if "1. Home Dashboard" in main_menu:
         </div>
         """, unsafe_allow_html=True)
 
+# ==============================================================================
+# PHẦN 2: CIPHER WORKSPACE (TEXT, CAMOUFLAGE & LSB IMAGE STEGANOGRAPHY)
+# ==============================================================================
 elif "2. Cipher Workspace" in main_menu:
-    st.subheader("🔐 Multi-Layer Text Cipher & Time-Lock")
+    st.markdown("""
+    <div class="hero-box" style="padding: 20px 28px; margin-bottom: 18px;">
+        <div class="hero-badge">🔐 CRYPTOGRAPHIC ENGINE & STEGANOGRAPHY LAB</div>
+        <h2 style="color: #f8fafc; margin: 4px 0 6px 0; font-weight: 800;">Multi-Layer Cipher Workspace</h2>
+        <p class="hero-sub">Encrypt text with UTC time-locks, disguise ciphertexts into English prose, or embed secret payloads inside PNG image pixels.</p>
+    </div>
+    """, unsafe_allow_html=True)
+
     if not secret_seed:
-        st.warning("⚠️ Please enter a **Group Secret Passphrase** in the sidebar first!")
+        st.warning("⚠️ **Passphrase Required:** Please enter your **Group Secret Passphrase** in the left Sidebar to unlock the Cipher Workspace!")
     else:
-        tab1, tab2 = st.tabs(["📤 Encrypt", "📥 Decrypt"])
-        with tab1:
-            msg = st.text_area("Secret message:")
-            mode_opt = st.selectbox("Mode:", ["Normal", "Self-Destruct", "Time-Capsule"])
-            mins = st.number_input("Minutes:", 1, 1440, 10) if mode_opt != "Normal" else 0
-            if st.button("🔒 Encrypt", type="primary") and msg.strip():
-                mode = "EXPIRE" if mode_opt == "Self-Destruct" else ("WAIT" if mode_opt == "Time-Capsule" else "NONE")
-                ts = int(time.time()) + (mins * 60) if mode != "NONE" else 0
-                res = encrypt_core(msg, group_key, reverse_rule, mode, ts)
-                st.success("Ciphertext:")
-                st.code(res)
-        with tab2:
-            cyph = st.text_area("Ciphertext:")
-            if st.button("🔓 Decrypt", type="primary") and cyph.strip():
-                ok, res = decrypt_core(cyph.strip(), group_key, reverse_rule)
-                if ok: st.success(res)
-                else: st.error(res)
+        ws_tab1, ws_tab2, ws_tab3 = st.tabs([
+            "📝 1. Text Cipher & UTC Time-Lock",
+            "🎭 2. English Camouflage Studio",
+            "🖼️ 3. Image Steganography Lab (LSB)"
+        ])
+
+        # --- TAB 1: TEXT CIPHER & TIME-LOCK ---
+        with ws_tab1:
+            st.markdown("""
+            <div class="ws-banner">
+                <h4>📝 Multi-Layer Text Encryption & UTC Time-Locking</h4>
+                <p>Encrypt messages using your group's custom symbol permutation table and attach optional UTC self-destruct or time-capsule locks.</p>
+            </div>
+            """, unsafe_allow_html=True)
+
+            col_enc, col_dec = st.columns(2)
+            with col_enc:
+                st.markdown("##### 📤 Encrypt Plaintext")
+                msg_in = st.text_area("Secret Message:", placeholder="Type your confidential message here...", height=130, key="ws_txt_in")
+                c_mode, c_min = st.columns([2, 1])
+                with c_mode:
+                    t_mode = st.selectbox("UTC Time-Lock Mode:", ["Normal (No Time Limit)", "🔥 Self-Destruct After Time", "⏳ Time-Capsule (Wait Until)"])
+                with c_min:
+                    mins = st.number_input("Minutes:", min_value=1, max_value=10080, value=15, disabled=(t_mode == "Normal (No Time Limit)"))
+
+                if st.button("🔒 Generate Ciphertext", type="primary", use_container_width=True):
+                    if msg_in.strip():
+                        mode_code = "EXPIRE" if "Self-Destruct" in t_mode else ("WAIT" if "Time-Capsule" in t_mode else "NONE")
+                        target_ts = int(time.time()) + (mins * 60) if mode_code != "NONE" else 0
+                        cipher_out = encrypt_core(msg_in, group_key, reverse_rule, mode_code, target_ts)
+                        st.success("✅ Encrypted Payload Generated:")
+                        st.code(cipher_out, language=None)
+                        if mode_code == "EXPIRE":
+                            st.caption(f"🔥 Payload will permanently self-destruct in **{mins} minutes** (UTC).")
+                        elif mode_code == "WAIT":
+                            st.caption(f"⏳ Payload is locked and cannot be opened for **{mins} minutes** (UTC).")
+                    else:
+                        st.error("Please enter a message to encrypt.")
+
+            with col_dec:
+                st.markdown("##### 📥 Decrypt Ciphertext")
+                cyph_in = st.text_area("Paste Ciphertext:", placeholder="Paste the encrypted string here...", height=130, key="ws_cyph_in")
+                st.write("")
+                st.write("")
+                if st.button("🔓 Decode & Verify UTC Lock", type="primary", use_container_width=True):
+                    if cyph_in.strip():
+                        ok, res = decrypt_core(cyph_in.strip(), group_key, reverse_rule)
+                        if ok:
+                            st.success("✅ Decryption Verified! Original Plaintext:")
+                            st.info(res)
+                        else:
+                            st.error(res)
+                    else:
+                        st.warning("Please paste a ciphertext string to decode.")
+
+        # --- TAB 2: ENGLISH CAMOUFLAGE STUDIO ---
+        with ws_tab2:
+            st.markdown("""
+            <div class="ws-banner">
+                <h4>🎭 Linguistic Camouflage Studio (2-Way Markov Prose)</h4>
+                <p>Convert suspicious-looking ciphertexts into innocent technical English sentences to bypass visual inspection, and decode them back seamlessly.</p>
+            </div>
+            """, unsafe_allow_html=True)
+
+            camo_col1, camo_col2 = st.columns(2)
+            with camo_col1:
+                st.markdown("##### 📤 Disguise Secret into English")
+                camo_plain = st.text_area("Enter Secret Message:", placeholder="e.g. Operation starts at 02:00 UTC", height=110)
+                if st.button("🎭 Encrypt & Disguise as English Prose", type="primary", use_container_width=True):
+                    if camo_plain.strip():
+                        raw_c = encrypt_core(camo_plain, group_key, reverse_rule, "NONE", 0)
+                        disguised = encode_english_camouflage(raw_c)
+                        st.success("✅ Camouflaged English Text (Copy & send safely):")
+                        st.code(disguised, language=None)
+                    else:
+                        st.warning("Please enter a secret message first.")
+
+            with camo_col2:
+                st.markdown("##### 📥 Reveal Secret from English Prose")
+                camo_prose_in = st.text_area("Paste Camouflaged English Sentences:", placeholder="Paste the innocent-looking English paragraph here...", height=110)
+                if st.button("🔍 Extract & Decrypt Secret", type="primary", use_container_width=True):
+                    if camo_prose_in.strip():
+                        ok_c, extracted_c = decode_english_camouflage(camo_prose_in.strip())
+                        if not ok_c:
+                            st.error(extracted_c)
+                        else:
+                            ok_d, final_txt = decrypt_core(extracted_c, group_key, reverse_rule)
+                            if ok_d:
+                                st.success("✅ Hidden Message Revealed:")
+                                st.info(final_txt)
+                            else:
+                                st.error(final_txt)
+                    else:
+                        st.warning("Please paste the camouflaged English text.")
+
+        # --- TAB 3: IMAGE STEGANOGRAPHY LAB (KHÔI PHỤC HOÀN CHỈNH) ---
+        with ws_tab3:
+            st.markdown("""
+            <div class="ws-banner">
+                <h4>🖼️ LSB Pixel Steganography Lab (Hide Encrypted Data Inside Images)</h4>
+                <p>Embed your encrypted payload invisibly into the Least Significant Bits (RGB channels) of any image. Output is lossless PNG.</p>
+            </div>
+            """, unsafe_allow_html=True)
+
+            stego_mode = st.radio(
+                "Select Steganography Operation:",
+                ["📤 Hide Secret Message Inside Image (Encode)", "📥 Extract Secret Message From Stego PNG (Decode)"],
+                horizontal=True
+            )
+            st.divider()
+
+            if "Encode" in stego_mode:
+                s_col1, s_col2 = st.columns([1.2, 1])
+                with s_col1:
+                    img_source = st.radio(
+                        "Choose Carrier Image Source:",
+                        ["📁 Upload My Own Image (PNG/JPG)", "⚡ Auto-Generate Cyber Carrier Image"],
+                        horizontal=True
+                    )
+                    carrier_img = None
+                    if "Upload" in img_source:
+                        up_file = st.file_uploader("Upload Carrier Image:", type=["png", "jpg", "jpeg"])
+                        if up_file:
+                            carrier_img = Image.open(up_file).convert("RGB")
+                    else:
+                        carrier_img = generate_sample_carrier_image()
+                        st.caption("✨ Generated a fresh 480x260 Cyber Carrier Matrix ready for pixel embedding.")
+
+                    secret_stego_msg = st.text_area(
+                        "Secret Message to Hide Inside Pixels:",
+                        placeholder="Type secret message to embed invisibly into the image...",
+                        height=100
+                    )
+
+                    c_stego_mode, c_stego_min = st.columns([2, 1])
+                    with c_stego_mode:
+                        stego_t_mode = st.selectbox("Image Payload Time-Lock (UTC):", ["Normal (No Time Limit)", "🔥 Self-Destruct After Time", "⏳ Time-Capsule (Wait Until)"])
+                    with c_stego_min:
+                        stego_mins = st.number_input("Timer (Mins):", min_value=1, max_value=10080, value=30, disabled=(stego_t_mode == "Normal (No Time Limit)"))
+
+                with s_col2:
+                    if carrier_img is not None:
+                        w, h = carrier_img.size
+                        max_chars = (w * h * 3) // 8 - len(STEGO_DELIM)
+                        st.markdown("##### 📊 Carrier Image Specs & Capacity")
+                        st.markdown(f"- **Resolution:** `{w} x {h}` pixels (`{w*h:,}` total pixels)\n- **Max Secret Capacity:** `~{max_chars:,}` bytes")
+                        
+                        if secret_stego_msg:
+                            usage_pct = min(len(secret_stego_msg.encode('utf-8')) * 3 / max(max_chars, 1), 1.0)
+                            st.progress(usage_pct, text=f"Pixel LSB Capacity Used: {usage_pct*100:.2f}%")
+                        st.image(carrier_img, caption="Original Carrier Preview", use_container_width=True)
+
+                if st.button("🖼️ Encrypt & Embed Into Image Pixels", type="primary", use_container_width=True):
+                    if carrier_img is None:
+                        st.error("Please upload an image or select 'Auto-Generate Cyber Carrier Image' first!")
+                    elif not secret_stego_msg.strip():
+                        st.error("Please enter a secret message to hide inside the image!")
+                    else:
+                        try:
+                            s_mode = "EXPIRE" if "Self-Destruct" in stego_t_mode else ("WAIT" if "Time-Capsule" in stego_t_mode else "NONE")
+                            s_ts = int(time.time()) + (stego_mins * 60) if s_mode != "NONE" else 0
+                            encrypted_payload = encrypt_core(secret_stego_msg, group_key, reverse_rule, s_mode, s_ts)
+                            stego_result_img = encode_image_lsb(carrier_img, encrypted_payload)
+
+                            buf = io.BytesIO()
+                            stego_result_img.save(buf, format="PNG")
+                            byte_data = buf.getvalue()
+
+                            st.success("🎉 **Stego Image Created Successfully!** The encrypted message is now invisibly locked inside the pixels.")
+                            p1, p2 = st.columns(2)
+                            with p1:
+                                st.image(carrier_img, caption="Before (Original Carrier)", use_container_width=True)
+                            with p2:
+                                st.image(stego_result_img, caption="After (Stego PNG with Hidden Cipher)", use_container_width=True)
+
+                            st.download_button(
+                                label="⬇️ Download Stego Image (Lossless PNG)",
+                                data=byte_data,
+                                file_name=f"stego_secret_{int(time.time())}.png",
+                                mime="image/png",
+                                use_container_width=True
+                            )
+                        except Exception as e:
+                            st.error(f"❌ Steganography Error: {str(e)}")
+
+            else:
+                st.markdown("##### 🔍 Upload Stego PNG to Extract & Decrypt Hidden Message")
+                up_stego = st.file_uploader("Upload Stego Image (Must be lossless .PNG generated by this suite):", type=["png"])
+                if up_stego:
+                    decode_img = Image.open(up_stego).convert("RGB")
+                    col_prev, col_act = st.columns([1, 1.5])
+                    with col_prev:
+                        st.image(decode_img, caption="Uploaded Stego PNG", use_container_width=True)
+                    with col_act:
+                        st.info("💡 Make sure your **Sidebar Passphrase, Shift Offset, and Symbol Vault** match the exact rules used when this image was encoded.")
+                        if st.button("🔓 Extract Bits & Decrypt Payload", type="primary", use_container_width=True):
+                            ok_ext, hidden_cipher = decode_image_lsb(decode_img)
+                            if not ok_ext:
+                                st.error(hidden_cipher)
+                            else:
+                                st.caption("Extracted Encrypted Payload from LSB Pixels:")
+                                st.code(hidden_cipher, language=None)
+                                ok_dec, plain_msg = decrypt_core(hidden_cipher, group_key, reverse_rule)
+                                if ok_dec:
+                                    st.success("🎉 **Decrypted Secret Message:**")
+                                    st.info(plain_msg)
+                                else:
+                                    st.error(plain_msg)
 
 elif "3. Secret Chat Rooms" in main_menu:
     st.subheader("💬 Encrypted Persistent Chat Rooms")

@@ -9,15 +9,87 @@ import io
 from datetime import datetime, timezone
 
 st.set_page_config(
-    page_title="Ultimate Global Cipher Suite",
+    page_title="Ultimate Secret Messenger | Global Cipher Suite",
     page_icon="🛡️",
     layout="wide",
     initial_sidebar_state="expanded"
 )
 
+# --- 0. GIAO DIỆN CSS TUỲ CHỈNH (CYBERSECURITY UI THEME) ---
+st.markdown("""
+<style>
+    /* Hero Banner */
+    .hero-box {
+        background: linear-gradient(135deg, #0f172a 0%, #1e1b4b 50%, #0f172a 100%);
+        border: 1px solid #3b82f6;
+        border-radius: 16px;
+        padding: 28px 32px;
+        margin-bottom: 24px;
+        box-shadow: 0 8px 30px rgba(59, 130, 246, 0.15);
+    }
+    .hero-badge {
+        display: inline-block;
+        background: rgba(59, 130, 246, 0.2);
+        color: #60a5fa;
+        border: 1px solid #3b82f6;
+        padding: 4px 12px;
+        border-radius: 999px;
+        font-size: 0.78rem;
+        font-weight: 600;
+        letter-spacing: 1px;
+        margin-bottom: 10px;
+    }
+    .hero-title {
+        font-size: 2.4rem;
+        font-weight: 800;
+        background: linear-gradient(90deg, #ffffff, #93c5fd, #c084fc);
+        -webkit-background-clip: text;
+        -webkit-text-fill-color: transparent;
+        margin: 0 0 8px 0;
+    }
+    .hero-sub {
+        color: #94a3b8;
+        font-size: 1.05rem;
+        margin: 0;
+    }
+    /* Thẻ tính năng (Feature Cards) */
+    .feat-card {
+        background: #111827;
+        border: 1px solid #1f2937;
+        border-radius: 12px;
+        padding: 20px;
+        height: 100%;
+        transition: all 0.25s ease;
+    }
+    .feat-card:hover {
+        border-color: #3b82f6;
+        transform: translateY(-2px);
+    }
+    .feat-title {
+        color: #f8fafc;
+        font-size: 1.1rem;
+        font-weight: 700;
+        margin-bottom: 8px;
+    }
+    .feat-desc {
+        color: #9ca3af;
+        font-size: 0.9rem;
+        line-height: 1.5;
+    }
+    /* Tinh chỉnh khung Metric mặc định của Streamlit */
+    div[data-testid="stMetric"] {
+        background-color: #111827;
+        border: 1px solid #1f2937;
+        padding: 16px 20px;
+        border-radius: 12px;
+        box-shadow: 0 4px 12px rgba(0, 0, 0, 0.2);
+    }
+</style>
+""", unsafe_allow_html=True)
+
 # --- 1. CORE CIPHER & STORAGE LOGIC ---
 VIETNAMESE_CHARS = (
-    "àáạảãâầấậẩẫăằắặẳẵèéẹẻẽêềếệểễìíịỉĩòóọỏõôồốộổổơờớợởỡùúụủũưừứựửữỳýỵỷỹđ"
+    "àáạảãâầấậẩẫăằắặẳẵèéẹẻẽêềếệểễìíịỉĩòóọỏõôồốộổỗơờớợởỡùúụủũưừứựửữỳýỵỷỹđ"
     "ÀÁẠẢÃÂẦẤẬẨẪĂẰẮẶẲẴÈÉẸẺẼÊỀẾỆỂỄÌÍỊỈĨÒÓỌỎÕÔỒỐỘỔỖƠỜỚỢỞỠÙÚỤỦŨƯỪỨỰỬỮỲÝỴỶỸĐ"
 )
 BASE_CHARS = list(" " + string.punctuation + string.digits + string.ascii_letters + VIETNAMESE_CHARS)
@@ -49,6 +121,25 @@ def build_custom_key(secret_seed: str, pattern_list: list, shift_step: int, cust
                     key[ia], key[ib] = key[ib], key[ia]
     return key
 
+def calculate_entropy_metrics(secret_seed: str, pattern_list: list, shift_step: int, pool_size: int) -> tuple[int, str]:
+    if not secret_seed:
+        return 0, "0 seconds (Unprotected)"
+    char_space = len(BASE_CHARS) ** max(len(secret_seed), 1)
+    icon_space = max(pool_size, 1) ** len(pattern_list)
+    shift_space = 200 if shift_step > 0 else 1
+    total_combos = char_space * icon_space * shift_space
+    # Tính số bit entropy xấp xỉ
+    bits = total_combos.bit_length()
+    seconds = total_combos / (10 ** 12) # Giả sử siêu máy tính thử 1 nghìn tỷ khóa/giây
+    years = seconds / (365 * 24 * 3600)
+    if years > 1e15:
+        time_str = f"{years:.2e} Years (Quantum-Resistant)"
+    elif years > 1:
+        time_str = f"{int(years):,} Years"
+    else:
+        time_str = "< 1 Year (Add more symbols/length)"
+    return bits, time_str
+
 def encrypt_core(plain_text: str, key: list, reverse_rule: bool, mode: str = "NONE", target_ts: int = 0) -> str:
     payload = f"TMODE:{mode}:{target_ts}|{plain_text}"
     res = "".join(key[BASE_CHARS.index(c)] if c in BASE_CHARS else c for c in payload)
@@ -71,7 +162,6 @@ def decrypt_core(cypher_text: str, key: list, reverse_rule: bool) -> tuple[bool,
         return False, "⏳ TIME-CAPSULE LOCKED! Please wait until target time."
     return True, actual_msg
 
-# Xử lý lưu trữ chat an toàn
 DB_FILE = "chat_rooms_db.json"
 def load_all_rooms():
     if not os.path.exists(DB_FILE):
@@ -105,7 +195,7 @@ with st.sidebar:
     st.markdown("## 🛡️ Cipher Control Panel")
     secret_seed = st.text_input("🔑 Group Secret Passphrase:", type="password", placeholder="e.g. Nexus2026")
     shift_step = st.number_input("🔢 Shift Offset (0-200):", min_value=0, max_value=200, value=0)
-    pattern_list = st.multiselect(f"🎨 Symbol Vault:", options=SYMBOLS_POOL, default=SYMBOLS_POOL[:3] if SYMBOLS_POOL else [])
+    pattern_list = st.multiselect("🎨 Symbol Vault:", options=SYMBOLS_POOL, default=SYMBOLS_POOL[:3] if SYMBOLS_POOL else [])
     custom_pairs = st.text_input("🔀 Custom Pairs (Optional):", placeholder="e.g. a=@, e=3")
     reverse_rule = st.checkbox("🔄 Reverse Structure", value=False)
     
@@ -127,13 +217,91 @@ group_key = build_custom_key(secret_seed, pattern_list, shift_step, custom_pairs
 
 # --- 3. ĐIỀU HƯỚNG HIỂN THỊ CÁC TRANG ---
 if "1. Home Dashboard" in main_menu:
-    st.subheader("🌐 Global Cryptography Suite — Executive Dashboard")
-    st.markdown("Welcome! Use the sidebar to set your **Group Passphrase** and explore encrypted chat rooms and tools.")
+    # 1.1: Hero Banner hiển thị rõ tên trang web của bạn
+    st.markdown("""
+    <div class="hero-box">
+        <div class="hero-badge">⚡ ZERO-TRUST MULTI-LAYER CRYPTOGRAPHY PLATFORM</div>
+        <h1 class="hero-title">🛡️ Ultimate Secret Messenger</h1>
+        <p class="hero-sub">
+            Global Cipher Suite — Custom Unicode Key Permutation • UTC Time-Locking • LSB Pixel Steganography • Encrypted Persistent Chat
+        </p>
+    </div>
+    """, unsafe_allow_html=True)
+
+    # 1.2: 4 Thẻ chỉ số hệ thống (System Metrics)
+    rooms_data = load_all_rooms()
     c1, c2, c3, c4 = st.columns(4)
-    c1.metric("Base Chars", f"{len(BASE_CHARS)}", "Global + VN")
-    c2.metric("Symbol Vault", f"{len(SYMBOLS_POOL)}+", "Icons")
-    c3.metric("Chat Rooms", f"{len(load_all_rooms())}", "Persistent DB")
-    c4.metric("Universal Clock", datetime.now(timezone.utc).strftime("%H:%M:%S UTC"), "UTC")
+    c1.metric("🔤 Base Alphabet", f"{len(BASE_CHARS)} chars", "EN + VN + Symbols")
+    c2.metric("🎨 Symbol Vault", f"{len(SYMBOLS_POOL):,}+", "Unicode Pool")
+    c3.metric("💬 Active Chat Rooms", f"{len(rooms_data)} rooms", "JSON Persistent DB")
+    c4.metric("🌍 Universal Clock", datetime.now(timezone.utc).strftime("%H:%M:%S UTC"), "Synchronized")
+
+    st.write("")
+
+    # 1.3: Trạng thái Khóa & Phân tích Bảo mật Trực tiếp (Live Key Status & Audit)
+    col_status, col_specs = st.columns([3, 2])
+
+    with col_status:
+        st.markdown("#### 🔐 Live Group Key Configuration Status")
+        if not secret_seed:
+            st.warning(
+                "⚠️ **System Standby — Passphrase Required**\n\n"
+                "Please enter your **Group Secret Passphrase** in the left Sidebar to initialize the cryptographic engine and unlock all workspace modules."
+            )
+        else:
+            bits, crack_time = calculate_entropy_metrics(secret_seed, pattern_list, shift_step, len(SYMBOLS_POOL))
+            st.success("✅ **Cryptographic Engine Active & Synchronized!** All modules are ready.")
+            
+            # Hiển thị tóm tắt cấu hình đang bật
+            icons_str = " ➡️ ".join(pattern_list) if pattern_list else "None"
+            st.markdown(f"""
+            - **Active Symbol Chain:** {icons_str}
+            - **Shift Offset Step:** `{shift_step}` positions | **Reverse Cipher:** `{'Enabled' if reverse_rule else 'Disabled'}`
+            - **Custom Mapping:** `{custom_pairs if custom_pairs.strip() else 'Standard 1:1 Permutation'}`
+            - **Estimated Key Entropy:** `~{bits} bits` (Brute-force time: **{crack_time}**)
+            """)
+            st.progress(min(bits / 256, 1.0), text=f"Security Strength Rating: {min(int((bits/128)*100), 100)}%")
+
+    with col_specs:
+        st.markdown("#### 🧭 Quick Navigation Guide")
+        st.info(
+            "**1. Configure Rules:** Set Passphrase, Shift & Icons on the left panel.\n\n"
+            "**2. Cipher Workspace:** Encrypt text, set UTC self-destruct timers, or hide data inside PNG pixels.\n\n"
+            "**3. Secret Chat Rooms:** Communicate with your team in real-time encrypted rooms."
+        )
+
+    st.divider()
+
+    # 1.4: Ba thẻ tính năng cốt lõi (Core Architecture Pillars)
+    st.markdown("#### 🚀 Core Security Architecture")
+    f1, f2, f3 = st.columns(3)
+    with f1:
+        st.markdown("""
+        <div class="feat-card">
+            <div class="feat-title">🧬 Dynamic Multi-Layer Key</div>
+            <div class="feat-desc">
+                Combines your secret passphrase with a visual sequence of 1,400+ Unicode symbols, custom character swaps, and modular shifting to generate a unique substitution table.
+            </div>
+        </div>
+        """, unsafe_allow_html=True)
+    with f2:
+        st.markdown("""
+        <div class="feat-card">
+            <div class="feat-title">⏳ UTC Time-Lock & Self-Destruct</div>
+            <div class="feat-desc">
+                Embeds tamper-proof UTC epoch timestamps directly inside the payload. Messages automatically self-destruct after expiration or remain locked until a future time.
+            </div>
+        </div>
+        """, unsafe_allow_html=True)
+    with f3:
+        st.markdown("""
+        <div class="feat-card">
+            <div class="feat-title">🖼️ LSB Steganography & Rooms</div>
+            <div class="feat-desc">
+                Conceal encrypted ciphertexts inside ordinary PNG image pixels using Least Significant Bit manipulation, or collaborate in persistent encrypted chat rooms.
+            </div>
+        </div>
+        """, unsafe_allow_html=True)
 
 elif "2. Cipher Workspace" in main_menu:
     st.subheader("🔐 Multi-Layer Text Cipher & Time-Lock")

@@ -87,114 +87,169 @@ def check_board_conflicts(board: list[list[int]]) -> list[str]:
                 errors.append(f"3x3 Box ({br+1},{bc+1}) has duplicate numbers!")
     return errors
 
-def inject_arcade_and_sudoku_css():
-    """CSS đồng bộ kích thước 81 ô trên 1 bảng 9x9 duy nhất và trang trí Sảnh Game."""
+def inject_compact_responsive_sudoku_css():
+    """
+    CSS thu gọn bàn cờ 9x9 vào khung 410px chính giữa màn hình:
+    - Hiển thị trọn vẹn trên Laptop, iPad và Điện thoại (không bị rớt dòng).
+    - Độ tương phản cao (High-Contrast), không ảnh hưởng tới thanh Sidebar bên trái.
+    """
     st.markdown("""
     <style>
         /* Thẻ chọn Game trong Sảnh (Game Hub Cards) */
         .game-hub-card {
             background: linear-gradient(145deg, #111827 0%, #1e1b4b 100%);
             border: 1px solid #374151;
-            border-radius: 14px;
-            padding: 18px 20px;
-            margin-bottom: 12px;
-            transition: all 0.25s ease;
-        }
-        .game-hub-card:hover {
-            border-color: #60a5fa;
-            box-shadow: 0 6px 20px rgba(59, 130, 246, 0.2);
+            border-radius: 12px;
+            padding: 14px 16px;
+            margin-bottom: 10px;
         }
         .game-hub-title {
             color: #f8fafc;
-            font-size: 1.15rem;
+            font-size: 1.05rem;
             font-weight: 800;
-            margin-bottom: 6px;
+            margin-bottom: 4px;
         }
         .game-hub-desc {
             color: #94a3b8;
-            font-size: 0.86rem;
-            line-height: 1.45;
+            font-size: 0.82rem;
+            line-height: 1.4;
         }
-        /* Thu gọn khoảng cách dọc giữa 9 hàng của bảng Sudoku 9x9 duy nhất */
-        div[data-testid="stVerticalBlock"] > div:has(div.sdk-row-marker) {
-            margin-bottom: -10px !important;
+
+        /* KHUNG BAO BÀN CỜ 9x9 NHỎ GỌN (410px) - CHUẨN LAPTOP, IPAD & ĐIỆN THOẠI */
+        div[data-testid="stVerticalBlock"]:has(> div .sdk-board-scope) {
+            max-width: 415px !important;
+            margin: 0 auto !important;
+            background: #0f172a !important;
+            border: 2px solid #38bdf8 !important;
+            border-radius: 12px !important;
+            padding: 12px 14px 16px 14px !important;
+            box-shadow: 0 8px 28px rgba(56, 189, 248, 0.2) !important;
         }
-        /* Ô người chơi tự điền (Màu xanh ngọc sáng) */
-        div[data-testid="stTextInput"] input:not(:disabled) {
-            text-align: center !important;
-            font-size: 1.22rem !important;
-            font-weight: 800 !important;
-            color: #34d399 !important;
-            -webkit-text-fill-color: #34d399 !important;
-            background-color: #090d16 !important;
-            border: 1.5px solid #334155 !important;
-            border-radius: 6px !important;
-            height: 44px !important;
+        /* Ép 9 cột luôn nằm trên 1 hàng ngang kể cả trên iPhone/iPad & thu sát khoảng cách */
+        div[data-testid="stVerticalBlock"]:has(> div .sdk-board-scope) div[data-testid="stHorizontalBlock"] {
+            gap: 3px !important;
+            flex-wrap: nowrap !important;
+            align-items: center !important;
+            margin-bottom: -11px !important;
+        }
+        div[data-testid="stVerticalBlock"]:has(> div .sdk-board-scope) div[data-testid="stColumn"],
+        div[data-testid="stVerticalBlock"]:has(> div .sdk-board-scope) div[data-testid="column"] {
+            min-width: 0 !important;
+            width: auto !important;
+            flex: 1 1 0% !important;
             padding: 0 !important;
         }
-        div[data-testid="stTextInput"] input:not(:disabled):focus {
-            border-color: #3b82f6 !important;
-            box-shadow: 0 0 12px rgba(59, 130, 246, 0.6) !important;
+        /* Chỉ định dạng ô input bên trong bàn cờ Sudoku (Không chạm vào Sidebar) */
+        div[data-testid="stVerticalBlock"]:has(> div .sdk-board-scope) div[data-testid="stTextInput"] {
+            margin: 0 !important;
+            padding: 0 !important;
+        }
+        div[data-testid="stVerticalBlock"]:has(> div .sdk-board-scope) div[data-testid="stTextInput"] > div {
+            height: 34px !important;
+            min-height: 34px !important;
+            border-radius: 5px !important;
+        }
+        div[data-testid="stVerticalBlock"]:has(> div .sdk-board-scope) div[data-testid="stTextInput"] input {
+            height: 34px !important;
+            min-height: 34px !important;
+            padding: 0 !important;
+            text-align: center !important;
+            font-size: 1.08rem !important;
+            font-weight: 800 !important;
+            color: #fde047 !important; /* Chữ Vàng Sáng cực rõ khi người chơi gõ số */
+            -webkit-text-fill-color: #fde047 !important;
+            background-color: #1e293b !important; /* Nền xám sáng tách biệt hẳn với nền đen */
+            border: 1.5px solid #94a3b8 !important; /* Viền bạc sáng dễ nhìn */
+            border-radius: 5px !important;
+        }
+        div[data-testid="stVerticalBlock"]:has(> div .sdk-board-scope) div[data-testid="stTextInput"] input:focus {
             background-color: #0f172a !important;
+            border: 2px solid #fde047 !important;
+            box-shadow: 0 0 8px rgba(253, 224, 71, 0.6) !important;
         }
-        /* Ô đề bài cố định (Dùng chung st.text_input disabled để 81 ô đều nhau 100% trên Safari) */
-        div[data-testid="stTextInput"] input:disabled {
-            text-align: center !important;
-            font-size: 1.22rem !important;
-            font-weight: 800 !important;
-            color: #60a5fa !important;
-            -webkit-text-fill-color: #60a5fa !important;
-            background-color: #1e293b !important;
-            border: 1.5px solid #3b82f6 !important;
-            border-radius: 6px !important;
-            height: 44px !important;
-            padding: 0 !important;
-            opacity: 1 !important;
-            cursor: not-allowed !important;
+
+        /* Ô Đề Bài Cố Định (Màu Xanh Dương Sáng + Chữ Trắng Tinh, xen kẽ khối 3x3) */
+        .sdk-fixed-even {
+            height: 34px;
+            line-height: 34px;
+            text-align: center;
+            background: #2563eb;
+            color: #ffffff !important;
+            font-size: 1.08rem;
+            font-weight: 800;
+            border-radius: 5px;
+            border: 1.5px solid #93c5fd;
+            user-select: none;
+        }
+        .sdk-fixed-odd {
+            height: 34px;
+            line-height: 34px;
+            text-align: center;
+            background: #1d4ed8;
+            color: #e0f2fe !important;
+            font-size: 1.08rem;
+            font-weight: 800;
+            border-radius: 5px;
+            border: 1.5px solid #60a5fa;
+            user-select: none;
+        }
+        /* Ô Mở Bằng Hint (Màu Xanh Ngọc Lục Bảo + Chữ Trắng) */
+        .sdk-hint-box {
+            height: 34px;
+            line-height: 34px;
+            text-align: center;
+            background: #059669;
+            color: #ffffff !important;
+            font-size: 1.08rem;
+            font-weight: 800;
+            border-radius: 5px;
+            border: 1.5px solid #6ee7b7;
+            user-select: none;
         }
         .sdk-hdr {
             text-align: center;
-            color: #93c5fd;
+            color: #38bdf8;
             font-weight: 800;
-            font-size: 0.85rem;
-            padding-bottom: 4px;
+            font-size: 0.76rem;
+            padding-bottom: 2px;
         }
         .sdk-r-label {
-            height: 44px;
-            line-height: 44px;
+            height: 34px;
+            line-height: 34px;
             text-align: center;
-            color: #93c5fd;
+            color: #38bdf8;
             font-weight: 800;
-            font-size: 0.85rem;
+            font-size: 0.78rem;
         }
         .sdk-3x3-line {
             border: 0;
-            border-top: 3px solid #3b82f6;
-            margin: 4px 0 8px 0;
-            box-shadow: 0 0 8px rgba(59, 130, 246, 0.5);
+            border-top: 2.5px solid #38bdf8;
+            margin: 5px 0 7px 0;
         }
     </style>
     """, unsafe_allow_html=True)
 
 def render_single_unified_9x9_board(puzzle: list[list[int]], user_board: list[list[int]], hinted_cells: list, key_prefix: str, lock_all: bool = False):
     """
-    1 BẢNG 9x9 DUY NHẤT: Toàn bộ 81 ô đều dùng chung cấu trúc st.text_input (ô đề bài thì disabled=True)
-    giúp kích thước, chiều cao và khoảng cách của cả 81 ô đều nhau 100% trên mọi trình duyệt.
+    Hiển thị 1 BẢNG 9x9 DUY NHẤT, nhỏ gọn (410px), độ tương phản cao,
+    vừa khít trên cả màn hình Laptop, iPad và Điện thoại.
     """
     hint_set = set(tuple(x) for x in hinted_cells)
 
-    _, board_wrap, _ = st.columns([0.5, 3.4, 0.5])
-    with board_wrap:
-        st.markdown(
-            "<div style='text-align:center; margin-bottom:8px; color:#cbd5e1; font-size:0.9rem;'>"
-            "🔵 <b>Locked Blue Cell</b> = Fixed Clue / Hint &nbsp;|&nbsp; "
-            "🟢 <b>Dark Editable Cell</b> = Click & type <code>1–9</code> directly (Backspace to clear)"
-            "</div>",
-            unsafe_allow_html=True
-        )
+    st.markdown(
+        "<div style='text-align:center; margin-bottom:6px; font-size:0.85rem; color:#e2e8f0;'>"
+        "🟦 <b>Blue Box</b> = Fixed Clue &nbsp;|&nbsp; "
+        "🟩 <b>Green Box</b> = Revealed Hint &nbsp;|&nbsp; "
+        "⬜ <b>Silver-Border Box</b> = Type <code>1–9</code> (Yellow Text)"
+        "</div>",
+        unsafe_allow_html=True
+    )
 
-        # Cột: [Nhãn Hàng] + [C1, C2, C3] + [Vách ngăn 3x3] + [C4, C5, C6] + [Vách ngăn 3x3] + [C7, C8, C9]
-        col_ratios = [0.6, 1, 1, 1, 0.15, 1, 1, 1, 0.15, 1, 1, 1]
+    with st.container():
+        # Marker kích hoạt CSS thu gọn 410px riêng cho khung bàn cờ này
+        st.markdown("<div class='sdk-board-scope'></div>", unsafe_allow_html=True)
+
+        col_ratios = [0.65, 1, 1, 1, 0.14, 1, 1, 1, 0.14, 1, 1, 1]
         h_cols = st.columns(col_ratios)
         h_cols[0].markdown("<div class='sdk-hdr'>R\\C</div>", unsafe_allow_html=True)
         for c in range(9):
@@ -205,33 +260,22 @@ def render_single_unified_9x9_board(puzzle: list[list[int]], user_board: list[li
             if r in [3, 6]:
                 st.markdown("<hr class='sdk-3x3-line'>", unsafe_allow_html=True)
 
-            st.markdown("<div class='sdk-row-marker'></div>", unsafe_allow_html=True)
             r_cols = st.columns(col_ratios)
             r_cols[0].markdown(f"<div class='sdk-r-label'>R{r+1}</div>", unsafe_allow_html=True)
 
             for c in range(9):
                 c_idx = c + 1 + (1 if c >= 3 else 0) + (1 if c >= 6 else 0)
+                box_parity = ((r // 3) + (c // 3)) % 2
                 with r_cols[c_idx]:
                     is_fixed = (puzzle[r][c] != 0)
                     is_hinted = ((r, c) in hint_set)
                     cell_key = f"{key_prefix}_r{r}_c{c}"
 
                     if is_fixed:
-                        st.text_input(
-                            f"R{r+1}C{c+1}",
-                            value=str(puzzle[r][c]),
-                            key=f"fix_{cell_key}",
-                            label_visibility="collapsed",
-                            disabled=True
-                        )
+                        cls_name = "sdk-fixed-even" if box_parity == 0 else "sdk-fixed-odd"
+                        st.markdown(f"<div class='{cls_name}'>{puzzle[r][c]}</div>", unsafe_allow_html=True)
                     elif is_hinted:
-                        st.text_input(
-                            f"R{r+1}C{c+1}",
-                            value=f"{user_board[r][c]}",
-                            key=f"hnt_{cell_key}",
-                            label_visibility="collapsed",
-                            disabled=True
-                        )
+                        st.markdown(f"<div class='sdk-hint-box'>{user_board[r][c]}</div>", unsafe_allow_html=True)
                     else:
                         curr_v = user_board[r][c]
                         default_txt = str(curr_v) if curr_v in range(1, 10) else ""
@@ -242,7 +286,7 @@ def render_single_unified_9x9_board(puzzle: list[list[int]], user_board: list[li
                             key=cell_key,
                             label_visibility="collapsed",
                             disabled=lock_all,
-                            placeholder="·"
+                            placeholder=""
                         ).strip()
                         if val_in in ["1", "2", "3", "4", "5", "6", "7", "8", "9"]:
                             user_board[r][c] = int(val_in)
@@ -250,13 +294,10 @@ def render_single_unified_9x9_board(puzzle: list[list[int]], user_board: list[li
                             user_board[r][c] = 0
 
 def render_sudoku_arcade(default_username: str = "taolagautruc"):
-    inject_arcade_and_sudoku_css()
+    inject_compact_responsive_sudoku_css()
 
-    # ==========================================================================
-    # SẢNH GAME TRUNG TÂM (CYBER GAME ARCADE HUB — CHỨA NHIỀU CON GAME NHỎ)
-    # ==========================================================================
     st.markdown("""
-    <div class="hero-box" style="padding: 24px 32px; margin-bottom: 18px; background: linear-gradient(135deg, #090d16 0%, #1e1b4b 50%, #312e81 100%); border: 1px solid #6366f1;">
+    <div class="hero-box" style="padding: 20px 28px; margin-bottom: 16px; background: linear-gradient(135deg, #090d16 0%, #1e1b4b 50%, #312e81 100%); border: 1px solid #6366f1;">
         <div class="hero-badge" style="background: rgba(99, 102, 241, 0.2); color: #818cf8; border-color: #6366f1;">🎮 CYBER GAME ARCADE • LOGIC, DEDUCTION & CRYPTOGRAPHY MINI-GAMES</div>
         <h2 style="color: #f8fafc; margin: 4px 0 6px 0; font-weight: 800;">Ultimate Mind & Cryptic Game Center</h2>
         <p class="hero-sub">
@@ -265,13 +306,12 @@ def render_sudoku_arcade(default_username: str = "taolagautruc"):
     </div>
     """, unsafe_allow_html=True)
 
-    # Hiển thị các thẻ Mini-Games trong Sảnh
     g_col1, g_col2, g_col3, g_col4 = st.columns(4)
     with g_col1:
         st.markdown("""
-        <div class="game-hub-card" style="border-color:#3b82f6;">
+        <div class="game-hub-card" style="border-color:#38bdf8;">
             <div class="game-hub-title">🧩 1. 9x9 Sudoku Arena</div>
-            <div class="game-hub-desc">Infinite 5-Tier 9x9 matrices, targeted hints (-15%), and 1v1 Timed Countdown Rooms.</div>
+            <div class="game-hub-desc">Compact 5-Tier 9x9 grids, targeted hints (-15%), and 1v1 Timed Countdown Rooms.</div>
         </div>
         """, unsafe_allow_html=True)
     with g_col2:
@@ -317,7 +357,6 @@ def render_sudoku_arcade(default_username: str = "taolagautruc"):
 
     st.divider()
 
-    # Nếu người dùng chọn các mini-game số 2, 3, 4 thì hiển thị bản chơi nhanh hoặc预告
     if "Unlock! Escape Room" in selected_game:
         st.subheader("🗝️ Unlock! Cyber Escape Room — Episode 1: The Server Vault")
         st.info("🔍 **Escape Scenario:** You are locked inside a high-security server room. A **Red Card #14** (shows a 3-triangle symbol) and a **Blue Card #27** (shows a 5-star symbol) lie on the desk. The door keypad asks for `CardSum + (Triangles * Stars)`.")
@@ -325,7 +364,7 @@ def render_sudoku_arcade(default_username: str = "taolagautruc"):
         if st.button("🔓 Unlock Door", type="primary"):
             if code_try.strip() == "56":
                 st.balloons()
-                st.success("🎉 **DOOR UNLOCKED!** `(14 + 27) + (3 * 5) = 41 + 15 = 56`! More Escape Room episodes coming soon!")
+                st.success("🎉 **DOOR UNLOCKED!** `(14 + 27) + (3 * 5) = 41 + 15 = 56`!")
             else:
                 st.error("❌ Locked! Hint: Add the two card numbers `(14 + 27)`, then add `(3 * 5)`.")
         return
@@ -366,7 +405,7 @@ def render_sudoku_arcade(default_username: str = "taolagautruc"):
         return
 
     # ==========================================================================
-    # CON GAME CHỦ LỰC: 🧩 9x9 SUDOKU MASTER ARENA (1 BẢNG DUY NHẤT & PHÒNG ĐẤU CÔNG BẰNG)
+    # CON GAME CHỦ LỰC: 🧩 9x9 SUDOKU MASTER ARENA (1 BẢNG GỌN 410PX & PHÒNG ĐẤU)
     # ==========================================================================
     db = load_sudoku_db()
     p_stats = db["leaderboard"].get(player_name, {"sudoku_score": 0, "puzzles_solved": 0, "best_tier": 0})
@@ -394,14 +433,11 @@ def render_sudoku_arcade(default_username: str = "taolagautruc"):
     gs = st.session_state.sudoku_state
 
     tab_solo, tab_duel, tab_lb = st.tabs([
-        "🎮 1. Singleplayer 9x9 Sudoku (Unified Board)",
+        "🎮 1. Singleplayer 9x9 Sudoku (Compact Board)",
         "⚔️ 2. Multiplayer 1v1 & Co-op Rooms (Timed & Fair Countdown)",
         "🏆 3. Global Sudoku Leaderboard"
     ])
 
-    # ==========================================================================
-    # TAB 1: SINGLEPLAYER (1 BẢNG 9x9 DUY NHẤT VỪA NHÌN VỪA ĐIỀN ĐÁP ÁN)
-    # ==========================================================================
     with tab_solo:
         tier_rewards = {1: 1000, 2: 2500, 3: 5000, 4: 10000, 5: 25000}
 
@@ -450,7 +486,7 @@ def render_sudoku_arcade(default_username: str = "taolagautruc"):
         surrender_penalty = int(base_pts * 0.92)
 
         st.markdown(f"""
-        <div class="ws-banner">
+        <div class="ws-banner" style="padding: 12px 18px; margin-bottom: 12px;">
             <h4>🧩 Active 9x9 Matrix: <code>Tier {curr_tier} • Board #{gs['board_num']}</code> — Potential Reward: <b style="color:#34d399;">+{potential_pts:,} PTS</b></h4>
             <p>
                 💡 <b>Hint Rule:</b> Max <b>5 hints/board</b> (1 hint per cell, <b>-15% score</b> each • Used: <b>{hints_used_count}/5</b>). &nbsp;|&nbsp;
@@ -459,20 +495,19 @@ def render_sudoku_arcade(default_username: str = "taolagautruc"):
         </div>
         """, unsafe_allow_html=True)
 
-        # Thanh chọn tọa độ Hint gọn gàng ngay phía trên bảng 9x9 duy nhất
         with st.container(border=True):
-            hc1, hc2, hc3 = st.columns([1.2, 1.2, 2.2])
+            hc1, hc2, hc3 = st.columns([1.1, 1.1, 2.3])
             with hc1:
-                h_row = st.selectbox("🎯 Target Hint Row (R1–R9):", list(range(1, 10)), key="solo_hr")
+                h_row = st.selectbox("🎯 Hint Row (R1–R9):", list(range(1, 10)), key="solo_hr")
             with hc2:
-                h_col = st.selectbox("🎯 Target Hint Col (C1–C9):", list(range(1, 10)), key="solo_hc")
+                h_col = st.selectbox("🎯 Hint Col (C1–C9):", list(range(1, 10)), key="solo_hc")
             with hc3:
                 st.write("")
                 can_hint = (not gs["completed"]) and (hints_remaining > 0)
-                if st.button(f"💡 Reveal Cell (R{h_row}, C{h_col}) [-15% Score • {hints_remaining} Hints Left]", use_container_width=True, disabled=not can_hint):
+                if st.button(f"💡 Reveal Cell (R{h_row}, C{h_col}) [-15% Score • {hints_remaining} Left]", use_container_width=True, disabled=not can_hint):
                     r_idx, c_idx = h_row - 1, h_col - 1
                     if gs["puzzle"][r_idx][c_idx] != 0:
-                        st.warning(f"⚠️ Cell (R{h_row}, C{h_col}) is already a fixed starting clue!")
+                        st.warning(f"⚠️ Cell (R{h_row}, C{h_col}) is already a fixed clue!")
                     elif (r_idx, c_idx) in [tuple(x) for x in gs["hinted_cells"]]:
                         st.warning(f"⚠️ You already used a hint on Cell (R{h_row}, C{h_col})!")
                     else:
@@ -485,7 +520,7 @@ def render_sudoku_arcade(default_username: str = "taolagautruc"):
         elif gs["surrendered"]:
             st.error(f"🏳️ **BOARD SURRENDERED!** Full 9x9 solution is displayed below (-{surrender_penalty:,} PTS penalty applied).")
 
-        # CHỈ HIỂN THỊ 1 BẢNG 9x9 DUY NHẤT VỪA NHÌN VỪA ĐIỀN ĐÁP ÁN
+        # HIỂN THỊ BÀN CỜ 9x9 NHỎ GỌN (410PX) NẰM CHÍNH GIỮA MÀN HÌNH
         render_single_unified_9x9_board(
             gs["puzzle"],
             gs["user_board"],
@@ -494,7 +529,7 @@ def render_sudoku_arcade(default_username: str = "taolagautruc"):
             lock_all=gs["completed"]
         )
 
-        st.divider()
+        st.write("")
         b_col1, b_col2, b_col3 = st.columns(3)
         with b_col1:
             if st.button("✅ Verify & Submit 9x9 Solution", type="primary", use_container_width=True, disabled=gs["completed"]):
@@ -546,12 +581,12 @@ def render_sudoku_arcade(default_username: str = "taolagautruc"):
     # ==========================================================================
     with tab_duel:
         st.markdown("""
-        <div class="ws-banner">
+        <div class="ws-banner" style="padding: 12px 18px;">
             <h4>⚔️ Fair-Start 1v1 & Multiplayer Sudoku Tournament Rooms</h4>
             <p>
-                • <b>Custom Solve Time:</b> Choose 10m, 15m, 20m, 30m, etc.<br>
-                • <b>Hint Limit & Penalty:</b> Up to 5 hints max. Each hint used <b>reduces your remaining solve time by 45 seconds (-45s)</b> and deducts <b>15% score</b>.<br>
-                • <b>Fair-Play Countdown (Max 10 mins = 600s):</b> Set how many seconds before the puzzle appears so the host can share the Room ID with everyone. The board only unlocks when the countdown hits 0!
+                • <b>Custom Solve Time:</b> 10m, 15m, 20m, 30m, etc. &nbsp;|&nbsp;
+                • <b>Hint Penalty:</b> Max 5 hints (each hint deducts <b>-45s solve time</b> & <b>-15% score</b>).<br>
+                • <b>Fair-Play Countdown (Max 10 mins = 600s):</b> Fill in how many seconds before the puzzle appears so you can send the Room ID to friends!
             </p>
         </div>
         """, unsafe_allow_html=True)
@@ -608,7 +643,7 @@ def render_sudoku_arcade(default_username: str = "taolagautruc"):
                         }
                         db["rooms"] = rooms
                         save_sudoku_db(db)
-                        st.success(f"✅ Room **`{code_clean}`** created! Select **`{code_clean}`** in the dropdown above to enter the room!")
+                        st.success(f"✅ Room **`{code_clean}`** created! Select **`{code_clean}`** in the dropdown above to enter!")
                         st.rerun()
 
         else:
@@ -627,15 +662,14 @@ def render_sudoku_arcade(default_username: str = "taolagautruc"):
 
             now_ts = int(time.time())
 
-            # BẢNG ĐIỀU KHIỂN TRỰC TIẾP CHO NGƯỜI TẠO PHÒNG (HIỆN RÕ Ô NHẬP SỐ GIÂY ĐẾM NGƯỢC TỐI ĐA 10 PHÚT & THỜI GIAN GIẢI)
             if player_name == r_creator:
                 with st.container(border=True):
                     st.markdown(f"##### 👑 Room Host Settings (`{room_sel}`) — Set Countdown & Match Rules")
-                    st.caption("📝 Fill in how many seconds before the puzzle is displayed (up to 600s / 10 mins) so you can send the Room ID to everyone. The board will stay hidden until the countdown finishes!")
+                    st.caption("📝 Fill in how many seconds before the puzzle is displayed (up to 600s / 10 mins) so you can send the Room ID to everyone.")
                     hc1, hc2, hc3, hc4 = st.columns([1.4, 1.2, 1.2, 1.2])
                     with hc1:
                         host_delay_in = st.number_input(
-                            "⏳ Show puzzle after (seconds, max 600s = 10m):",
+                            "⏳ Show puzzle after (seconds, max 600s):",
                             min_value=0, max_value=600, value=int(r_data.get("reveal_delay_sec", 60)), step=10,
                             key=f"h_delay_{room_sel}"
                         )
@@ -662,10 +696,8 @@ def render_sudoku_arcade(default_username: str = "taolagautruc"):
                             r_data["max_hints"] = int(host_max_h)
                             db["rooms"][room_sel] = r_data
                             save_sudoku_db(db)
-                            st.toast(f"⏳ Countdown started! Puzzle will appear in {host_delay_in} seconds!", icon="⏳")
                             st.rerun()
 
-            # KIỂM TRA ĐẾM NGƯỢC TRƯỚC KHI HIỂN THỊ ĐỀ (ĐẢM BẢO CÔNG BẰNG 100%)
             if now_ts < r_reveal_ts:
                 wait_rem = r_reveal_ts - now_ts
                 wm, ws = divmod(wait_rem, 60)
@@ -674,12 +706,11 @@ def render_sudoku_arcade(default_username: str = "taolagautruc"):
                     f"- 🔑 **Room ID to share with friends:** **`{room_sel}`**\n"
                     f"- ⚙️ **Match Settings:** Tier `{r_tier}` &nbsp;|&nbsp; Solve Time Limit: **`{r_solve_sec // 60} minutes`** &nbsp;|&nbsp; "
                     f"Max Hints: **`{r_max_hints}`** *(Each hint deducts **-45s** solve time & **-15%** score)*.\n"
-                    f"- 🔒 The 9x9 Sudoku puzzle is currently locked and hidden for all players until the countdown reaches `00:00`!"
+                    f"- 🔒 The 9x9 Sudoku puzzle is hidden for all players until the countdown reaches `00:00`!"
                 )
                 if st.button("🔄 Refresh Countdown Timer", type="primary"):
                     st.rerun()
             else:
-                # KHI HẾT ĐẾM NGƯỢC -> HIỂN THỊ ĐỀ CHO TẤT CẢ MỌI NGƯỜI CÙNG LÚC
                 r_session_key = f"room_play_{room_sel}_{player_name}"
                 if r_session_key not in st.session_state:
                     st.session_state[r_session_key] = {
@@ -712,7 +743,7 @@ def render_sudoku_arcade(default_username: str = "taolagautruc"):
                     save_sudoku_db(db)
 
                 with st.container(border=True):
-                    rh1, rh2, rh3 = st.columns([1.2, 1.2, 2.2])
+                    rh1, rh2, rh3 = st.columns([1.1, 1.1, 2.3])
                     with rh1:
                         rh_r = st.selectbox("Row (R1–R9):", list(range(1, 10)), key=f"rm_hr_{room_sel}")
                     with rh2:
@@ -720,7 +751,7 @@ def render_sudoku_arcade(default_username: str = "taolagautruc"):
                     with rh3:
                         st.write("")
                         can_rm_hint = (not rp_state["completed"]) and (not time_expired) and (rem_h > 0)
-                        if st.button(f"💡 Use Room Hint (R{rh_r}, C{rh_c}) [-45s Solve Time & -15% Score]", use_container_width=True, disabled=not can_rm_hint):
+                        if st.button(f"💡 Use Room Hint (R{rh_r}, C{rh_c}) [-45s Time & -15% Score]", use_container_width=True, disabled=not can_rm_hint):
                             ri, ci = rh_r - 1, rh_c - 1
                             if r_data["puzzle"][ri][ci] != 0:
                                 st.warning("That cell is already a fixed clue!")
@@ -734,7 +765,6 @@ def render_sudoku_arcade(default_username: str = "taolagautruc"):
                                 save_sudoku_db(db)
                                 st.rerun()
 
-                # HIỂN THỊ 1 BẢNG 9x9 DUY NHẤT TRỰC TIẾP TRONG PHÒNG ĐẤU
                 render_single_unified_9x9_board(
                     r_data["puzzle"],
                     rp_state["user_board"],
@@ -743,6 +773,7 @@ def render_sudoku_arcade(default_username: str = "taolagautruc"):
                     lock_all=(rp_state["completed"] or time_expired)
                 )
 
+                st.write("")
                 if st.button("🏆 Submit My Room 9x9 Solution", type="primary", use_container_width=True, disabled=(rp_state["completed"] or time_expired)):
                     if rp_state["user_board"] == r_data["solution"]:
                         rp_state["completed"] = True
@@ -778,9 +809,6 @@ def render_sudoku_arcade(default_username: str = "taolagautruc"):
                     f"Effective Time: `{p_info.get('time_sec', 0)}s`"
                 )
 
-    # ==========================================================================
-    # TAB 3: BẢNG XẾP HẠNG SUDOKU TOÀN CẦU
-    # ==========================================================================
     with tab_lb:
         st.markdown("""
         <div class="ws-banner">

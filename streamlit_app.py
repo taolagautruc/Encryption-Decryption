@@ -396,6 +396,18 @@ with st.sidebar:
     reverse_rule = st.checkbox("🔄 Reverse Structure", value=False)
     
     st.divider()
+
+    # Tự động tắt chế độ Game khi người dùng bấm chọn lại các mục 1 -> 6
+    def _exit_game_arcade():
+        st.session_state.in_game_arcade = False
+
+    def _enter_game_arcade():
+        st.session_state.in_game_arcade = True
+        try:
+            st.session_state.nav_radio_menu = None
+        except Exception:
+            pass
+
     main_menu = st.radio(
         "🧭 Navigation Menu:",
         [
@@ -404,10 +416,45 @@ with st.sidebar:
             "💬 3. Secret Chat Rooms",
             "🕹️ 4. Crypto Challenges",
             "📚 5. Security Academy",
-            "🛠️ 6. Utilities & About",
-            "🎮 Cyber Game Arcade (Mini-Games Hub)"
-        ]
+            "🛠️ 6. Utilities & About"
+        ],
+        key="nav_radio_menu",
+        on_change=_exit_game_arcade
     )
+
+    st.markdown("""
+    <style>
+        /* Biến nút Game ở Sidebar thành nút hình chữ nhật màu đỏ to, nổi bật */
+        section[data-testid="stSidebar"] div.stButton > button[kind="primary"] {
+            background: linear-gradient(135deg, #dc2626 0%, #ef4444 50%, #b91c1c 100%) !important;
+            color: #ffffff !important;
+            border: 2px solid #fca5a5 !important;
+            border-radius: 12px !important;
+            height: 54px !important;
+            font-size: 1.05rem !important;
+            font-weight: 800 !important;
+            letter-spacing: 0.5px !important;
+            box-shadow: 0 6px 20px rgba(239, 68, 68, 0.45) !important;
+            margin-top: 8px !important;
+            transition: all 0.2s ease !important;
+        }
+        section[data-testid="stSidebar"] div.stButton > button[kind="primary"]:hover {
+            transform: translateY(-2px) !important;
+            box-shadow: 0 8px 25px rgba(239, 68, 68, 0.75) !important;
+            border-color: #ffffff !important;
+        }
+    </style>
+    """, unsafe_allow_html=True)
+
+    st.button(
+        "🎮 CYBER GAME ARCADE",
+        type="primary",
+        use_container_width=True,
+        on_click=_enter_game_arcade
+    )
+
+    if st.session_state.get("in_game_arcade", False):
+        main_menu = "Cyber Game Arcade (Mini-Games Hub)"
 
 group_key = build_custom_key(secret_seed, pattern_list, shift_step, custom_pairs) if secret_seed else []
 

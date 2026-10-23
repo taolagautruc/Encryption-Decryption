@@ -94,24 +94,49 @@ def inject_compact_responsive_sudoku_css():
     """
     st.markdown("""
     <style>
-        /* BIẾN 4 THẺ TIÊU ĐỀ GAME Ở TRÊN THÀNH 4 NÚT BẤM LỚN TƯƠNG TÁC TRỰC TIẾP */
+        /* BIẾN 4 THẺ TIÊU ĐỀ GAME Ở TRÊN THÀNH 4 NÚT BẤM LỚN HIỂN THỊ ĐẦY ĐỦ TÓM TẮT */
         div[data-testid="stVerticalBlock"]:has(.game-cards-scope):not(:has(div[data-testid="stVerticalBlock"] .game-cards-scope)) div.stButton > button {
-            height: 128px !important;
+            min-height: 135px !important;
+            height: auto !important;
             width: 100% !important;
             border-radius: 14px !important;
-            padding: 14px 18px !important;
+            padding: 14px 16px !important;
+            display: block !important;
             text-align: left !important;
-            justify-content: flex-start !important;
-            align-items: flex-start !important;
-            white-space: pre-wrap !important;
-            line-height: 1.45 !important;
             transition: all 0.22s ease !important;
+        }
+        /* Gỡ bỏ thuộc tính cắt chữ '...' (nowrap / ellipsis) mặc định của Streamlit */
+        div[data-testid="stVerticalBlock"]:has(.game-cards-scope):not(:has(div[data-testid="stVerticalBlock"] .game-cards-scope)) div.stButton > button div,
+        div[data-testid="stVerticalBlock"]:has(.game-cards-scope):not(:has(div[data-testid="stVerticalBlock"] .game-cards-scope)) div.stButton > button p,
+        div[data-testid="stVerticalBlock"]:has(.game-cards-scope):not(:has(div[data-testid="stVerticalBlock"] .game-cards-scope)) div.stButton > button span {
+            white-space: normal !important;
+            overflow: visible !important;
+            text-overflow: unset !important;
+            word-break: break-word !important;
+            display: block !important;
+            text-align: left !important;
+        }
+        /* Định dạng phần chữ tóm tắt bên dưới */
+        div[data-testid="stVerticalBlock"]:has(.game-cards-scope):not(:has(div[data-testid="stVerticalBlock"] .game-cards-scope)) div.stButton > button p {
+            font-size: 0.83rem !important;
+            font-weight: 400 !important;
+            color: #cbd5e1 !important;
+            line-height: 1.45 !important;
+            margin: 0 !important;
+        }
+        /* Định dạng dòng Tiêu đề in đậm nằm tách biệt ở trên cùng */
+        div[data-testid="stVerticalBlock"]:has(.game-cards-scope):not(:has(div[data-testid="stVerticalBlock"] .game-cards-scope)) div.stButton > button p strong {
+            display: block !important;
+            font-size: 1.05rem !important;
+            font-weight: 800 !important;
+            color: #ffffff !important;
+            margin-bottom: 6px !important;
+            line-height: 1.3 !important;
         }
         /* Thẻ Game ở trạng thái bình thường (chưa chọn) */
         div[data-testid="stVerticalBlock"]:has(.game-cards-scope):not(:has(div[data-testid="stVerticalBlock"] .game-cards-scope)) div.stButton > button[kind="secondary"] {
             background: linear-gradient(145deg, #111827 0%, #1e1b4b 100%) !important;
             border: 1.5px solid #374151 !important;
-            color: #cbd5e1 !important;
         }
         div[data-testid="stVerticalBlock"]:has(.game-cards-scope):not(:has(div[data-testid="stVerticalBlock"] .game-cards-scope)) div.stButton > button[kind="secondary"]:hover {
             border-color: #60a5fa !important;
@@ -122,7 +147,6 @@ def inject_compact_responsive_sudoku_css():
         div[data-testid="stVerticalBlock"]:has(.game-cards-scope):not(:has(div[data-testid="stVerticalBlock"] .game-cards-scope)) div.stButton > button[kind="primary"] {
             background: linear-gradient(145deg, #1e1b4b 0%, #1d4ed8 100%) !important;
             border: 2.5px solid #38bdf8 !important;
-            color: #ffffff !important;
             box-shadow: 0 8px 28px rgba(56, 189, 248, 0.4) !important;
             transform: translateY(-2px) !important;
         }
@@ -329,11 +353,14 @@ def render_sudoku_arcade(default_username: str = "taolagautruc"):
     st.caption("👆 **Click directly on any Game Card below to switch games:**")
     with st.container():
         st.markdown("<div class='game-cards-scope'></div>", unsafe_allow_html=True)
+        st.caption("👆 **Click directly on any Game Card below to switch games:**")
+    with st.container():
+        st.markdown("<div class='game-cards-scope'></div>", unsafe_allow_html=True)
         g_col1, g_col2, g_col3, g_col4 = st.columns(4)
 
         with g_col1:
             if st.button(
-                "🧩 **1. 9x9 Sudoku Arena**\n\nCompact 5-Tier 9x9 grids, targeted hints (-15%), and 1v1 Timed Countdown Rooms.",
+                "**🧩 1. 9x9 Sudoku Arena** Compact 5-Tier 9x9 grids, targeted hints (-15%), and 1v1 Timed Countdown Rooms.",
                 type="primary" if curr_game == "SUDOKU" else "secondary",
                 use_container_width=True,
                 key="card_btn_sudoku"
@@ -343,7 +370,7 @@ def render_sudoku_arcade(default_username: str = "taolagautruc"):
 
         with g_col2:
             if st.button(
-                "🗝️ **2. Unlock! Escape Room**\n\nCombine item cards, symbol codes & 4-digit locks to escape before time runs out.",
+                "**🗝️ 2. Unlock! Escape Room** Combine item cards, symbol codes & 4-digit locks to escape before time runs out.",
                 type="primary" if curr_game == "UNLOCK" else "secondary",
                 use_container_width=True,
                 key="card_btn_unlock"
@@ -353,7 +380,7 @@ def render_sudoku_arcade(default_username: str = "taolagautruc"):
 
         with g_col3:
             if st.button(
-                "🕵️ **3. Sherlock Detective**\n\nForensic cryptogram & alibi deduction mysteries inspired by Consulting Detective.",
+                "**🕵️ 3. Sherlock Detective** Forensic cryptogram & alibi deduction mysteries inspired by Consulting Detective.",
                 type="primary" if curr_game == "SHERLOCK" else "secondary",
                 use_container_width=True,
                 key="card_btn_sherlock"
@@ -363,14 +390,13 @@ def render_sudoku_arcade(default_username: str = "taolagautruc"):
 
         with g_col4:
             if st.button(
-                "🔐 **4. Mastermind Vault**\n\nCrack the secret 4-digit vault combination using Exact & Partial logic feedback.",
+                "**🔐 4. Mastermind Vault** Crack the secret 4-digit vault combination using Exact & Partial logic feedback.",
                 type="primary" if curr_game == "MASTERMIND" else "secondary",
                 use_container_width=True,
                 key="card_btn_mastermind"
             ):
                 st.session_state.active_mini_game = "MASTERMIND"
                 st.rerun()
-
     st.divider()
 
     # ==========================================================================

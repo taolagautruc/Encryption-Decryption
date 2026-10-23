@@ -89,29 +89,42 @@ def check_board_conflicts(board: list[list[int]]) -> list[str]:
 
 def inject_compact_responsive_sudoku_css():
     """
-    CSS cô lập 100%: Chỉ thu gọn đúng khung bàn cờ 9x9 (460px) ở giữa màn hình,
-    giữ nguyên độ rộng toàn trang (Full-Width) cho toàn bộ mục Game.
+    CSS định dạng 4 Thẻ Game Bấm Trực Tiếp (Clickable Game Cards)
+    và thu gọn riêng bàn cờ 9x9 (460px) ở giữa màn hình.
     """
     st.markdown("""
     <style>
-        /* Thẻ chọn Game trong Sảnh (Game Hub Cards) */
-        .game-hub-card {
-            background: linear-gradient(145deg, #111827 0%, #1e1b4b 100%);
-            border: 1px solid #374151;
-            border-radius: 12px;
-            padding: 14px 16px;
-            margin-bottom: 10px;
+        /* BIẾN 4 THẺ TIÊU ĐỀ GAME Ở TRÊN THÀNH 4 NÚT BẤM LỚN TƯƠNG TÁC TRỰC TIẾP */
+        div[data-testid="stVerticalBlock"]:has(.game-cards-scope):not(:has(div[data-testid="stVerticalBlock"] .game-cards-scope)) div.stButton > button {
+            height: 128px !important;
+            width: 100% !important;
+            border-radius: 14px !important;
+            padding: 14px 18px !important;
+            text-align: left !important;
+            justify-content: flex-start !important;
+            align-items: flex-start !important;
+            white-space: pre-wrap !important;
+            line-height: 1.45 !important;
+            transition: all 0.22s ease !important;
         }
-        .game-hub-title {
-            color: #f8fafc;
-            font-size: 1.05rem;
-            font-weight: 800;
-            margin-bottom: 4px;
+        /* Thẻ Game ở trạng thái bình thường (chưa chọn) */
+        div[data-testid="stVerticalBlock"]:has(.game-cards-scope):not(:has(div[data-testid="stVerticalBlock"] .game-cards-scope)) div.stButton > button[kind="secondary"] {
+            background: linear-gradient(145deg, #111827 0%, #1e1b4b 100%) !important;
+            border: 1.5px solid #374151 !important;
+            color: #cbd5e1 !important;
         }
-        .game-hub-desc {
-            color: #94a3b8;
-            font-size: 0.82rem;
-            line-height: 1.4;
+        div[data-testid="stVerticalBlock"]:has(.game-cards-scope):not(:has(div[data-testid="stVerticalBlock"] .game-cards-scope)) div.stButton > button[kind="secondary"]:hover {
+            border-color: #60a5fa !important;
+            transform: translateY(-3px) !important;
+            box-shadow: 0 8px 24px rgba(59, 130, 246, 0.25) !important;
+        }
+        /* Thẻ Game đang được chọn (Active Game Card) */
+        div[data-testid="stVerticalBlock"]:has(.game-cards-scope):not(:has(div[data-testid="stVerticalBlock"] .game-cards-scope)) div.stButton > button[kind="primary"] {
+            background: linear-gradient(145deg, #1e1b4b 0%, #1d4ed8 100%) !important;
+            border: 2.5px solid #38bdf8 !important;
+            color: #ffffff !important;
+            box-shadow: 0 8px 28px rgba(56, 189, 248, 0.4) !important;
+            transform: translateY(-2px) !important;
         }
 
         /* CHỈ THU GỌN ĐÚNG CONTAINER TRONG CÙNG CỦA BÀN CỜ 9x9 (KHÔNG BÓP TOÀN TRANG GAME) */
@@ -124,7 +137,6 @@ def inject_compact_responsive_sudoku_css():
             padding: 14px 16px 18px 16px !important;
             box-shadow: 0 8px 28px rgba(56, 189, 248, 0.2) !important;
         }
-        /* Ép 9 cột bên trong bàn cờ luôn nằm trên 1 hàng ngang & thu sát khoảng cách */
         div[data-testid="stVerticalBlock"]:has(.sdk-board-scope):not(:has(div[data-testid="stVerticalBlock"] .sdk-board-scope)) div[data-testid="stHorizontalBlock"] {
             gap: 4px !important;
             flex-wrap: nowrap !important;
@@ -138,7 +150,6 @@ def inject_compact_responsive_sudoku_css():
             flex: 1 1 0% !important;
             padding: 0 !important;
         }
-        /* Ép chiều cao ô nhập số bằng đúng 38px y hệt ô màu xanh đề bài */
         div[data-testid="stVerticalBlock"]:has(.sdk-board-scope):not(:has(div[data-testid="stVerticalBlock"] .sdk-board-scope)) div[data-testid="stTextInput"],
         div[data-testid="stVerticalBlock"]:has(.sdk-board-scope):not(:has(div[data-testid="stVerticalBlock"] .sdk-board-scope)) div[data-baseweb="input"],
         div[data-testid="stVerticalBlock"]:has(.sdk-board-scope):not(:has(div[data-testid="stVerticalBlock"] .sdk-board-scope)) div[data-baseweb="base-input"] {
@@ -172,7 +183,6 @@ def inject_compact_responsive_sudoku_css():
             box-shadow: 0 0 8px rgba(253, 224, 71, 0.6) !important;
         }
 
-        /* Ô Đề Bài Cố Định (Cao đúng 38px bằng khít với ô nhập số) */
         .sdk-fixed-even {
             height: 38px;
             line-height: 35px;
@@ -199,7 +209,6 @@ def inject_compact_responsive_sudoku_css():
             box-sizing: border-box;
             user-select: none;
         }
-        /* Ô Mở Bằng Hint (Màu Xanh Ngọc Lục Bảo + Chữ Trắng, cao 38px) */
         .sdk-hint-box {
             height: 38px;
             line-height: 35px;
@@ -237,10 +246,7 @@ def inject_compact_responsive_sudoku_css():
     """, unsafe_allow_html=True)
 
 def render_single_unified_9x9_board(puzzle: list[list[int]], user_board: list[list[int]], hinted_cells: list, key_prefix: str, lock_all: bool = False):
-    """
-    Hiển thị 1 BẢNG 9x9 DUY NHẤT, nhỏ gọn (410px), độ tương phản cao,
-    vừa khít trên cả màn hình Laptop, iPad và Điện thoại.
-    """
+    """Hiển thị 1 BẢNG 9x9 DUY NHẤT, nhỏ gọn (460px), độ tương phản cao."""
     hint_set = set(tuple(x) for x in hinted_cells)
 
     st.markdown(
@@ -253,7 +259,6 @@ def render_single_unified_9x9_board(puzzle: list[list[int]], user_board: list[li
     )
 
     with st.container():
-        # Marker kích hoạt CSS thu gọn 410px riêng cho khung bàn cờ này
         st.markdown("<div class='sdk-board-scope'></div>", unsafe_allow_html=True)
 
         col_ratios = [0.65, 1, 1, 1, 0.14, 1, 1, 1, 0.14, 1, 1, 1]
@@ -308,63 +313,70 @@ def render_sudoku_arcade(default_username: str = "taolagautruc"):
         <div class="hero-badge" style="background: rgba(99, 102, 241, 0.2); color: #818cf8; border-color: #6366f1;">🎮 CYBER GAME ARCADE • LOGIC, DEDUCTION & CRYPTOGRAPHY MINI-GAMES</div>
         <h2 style="color: #f8fafc; margin: 4px 0 6px 0; font-weight: 800;">Ultimate Mind & Cryptic Game Center</h2>
         <p class="hero-sub">
-            Select a mini-game from the Arcade Lobby below! Compete on game-specific leaderboards, use strategic hints, or host multiplayer duel rooms with friends.
+            Click directly on any of the 4 Game Cards below to launch that game! Compete on leaderboards, use strategic hints, or host multiplayer duel rooms with friends.
         </p>
     </div>
     """, unsafe_allow_html=True)
 
-    g_col1, g_col2, g_col3, g_col4 = st.columns(4)
-    with g_col1:
-        st.markdown("""
-        <div class="game-hub-card" style="border-color:#38bdf8;">
-            <div class="game-hub-title">🧩 1. 9x9 Sudoku Arena</div>
-            <div class="game-hub-desc">Compact 5-Tier 9x9 grids, targeted hints (-15%), and 1v1 Timed Countdown Rooms.</div>
-        </div>
-        """, unsafe_allow_html=True)
-    with g_col2:
-        st.markdown("""
-        <div class="game-hub-card">
-            <div class="game-hub-title">🗝️ 2. Unlock! Escape Room</div>
-            <div class="game-hub-desc">Combine item cards, symbol codes & 4-digit locks to escape before time runs out.</div>
-        </div>
-        """, unsafe_allow_html=True)
-    with g_col3:
-        st.markdown("""
-        <div class="game-hub-card">
-            <div class="game-hub-title">🕵️ 3. Sherlock Detective</div>
-            <div class="game-hub-desc">Forensic cryptogram & alibi deduction mysteries inspired by Consulting Detective.</div>
-        </div>
-        """, unsafe_allow_html=True)
-    with g_col4:
-        st.markdown("""
-        <div class="game-hub-card">
-            <div class="game-hub-title">🔐 4. Mastermind Vault</div>
-            <div class="game-hub-desc">Crack the secret 4-digit vault combination using Exact & Partial logic feedback.</div>
-        </div>
-        """, unsafe_allow_html=True)
+    if "active_mini_game" not in st.session_state:
+        st.session_state.active_mini_game = "SUDOKU"
 
-    top_bar1, top_bar2 = st.columns([2.2, 1.3])
-    with top_bar1:
-        selected_game = st.radio(
-            "🕹️ Choose Active Mini-Game to Play:",
-            [
-                "🧩 9x9 Sudoku Master Arena",
-                "🗝️ Unlock! Escape Room",
-                "🕵️ Sherlock Consulting Detective",
-                "🔐 Mastermind Vault Breaker"
-            ],
-            horizontal=True
-        )
-    with top_bar2:
-        player_name = st.text_input(
-            "🕵️ Your Arcade Player Callsign:",
-            value=st.session_state.get("ctf_user") or default_username,
-            key="sdk_player_in"
-        ).strip() or "Agent_Player"
+    curr_game = st.session_state.active_mini_game
+
+    # ==========================================================================
+    # 4 THẺ TIÊU ĐỀ GAME CÓ THỂ ẤN VÀO TRỰC TIẾP (ĐÃ XÓA BỎ HÀNG CHẤM TRÒN RỐI MẮT)
+    # ==========================================================================
+    st.caption("👆 **Click directly on any Game Card below to switch games:**")
+    with st.container():
+        st.markdown("<div class='game-cards-scope'></div>", unsafe_allow_html=True)
+        g_col1, g_col2, g_col3, g_col4 = st.columns(4)
+
+        with g_col1:
+            if st.button(
+                "🧩 **1. 9x9 Sudoku Arena**\n\nCompact 5-Tier 9x9 grids, targeted hints (-15%), and 1v1 Timed Countdown Rooms.",
+                type="primary" if curr_game == "SUDOKU" else "secondary",
+                use_container_width=True,
+                key="card_btn_sudoku"
+            ):
+                st.session_state.active_mini_game = "SUDOKU"
+                st.rerun()
+
+        with g_col2:
+            if st.button(
+                "🗝️ **2. Unlock! Escape Room**\n\nCombine item cards, symbol codes & 4-digit locks to escape before time runs out.",
+                type="primary" if curr_game == "UNLOCK" else "secondary",
+                use_container_width=True,
+                key="card_btn_unlock"
+            ):
+                st.session_state.active_mini_game = "UNLOCK"
+                st.rerun()
+
+        with g_col3:
+            if st.button(
+                "🕵️ **3. Sherlock Detective**\n\nForensic cryptogram & alibi deduction mysteries inspired by Consulting Detective.",
+                type="primary" if curr_game == "SHERLOCK" else "secondary",
+                use_container_width=True,
+                key="card_btn_sherlock"
+            ):
+                st.session_state.active_mini_game = "SHERLOCK"
+                st.rerun()
+
+        with g_col4:
+            if st.button(
+                "🔐 **4. Mastermind Vault**\n\nCrack the secret 4-digit vault combination using Exact & Partial logic feedback.",
+                type="primary" if curr_game == "MASTERMIND" else "secondary",
+                use_container_width=True,
+                key="card_btn_mastermind"
+            ):
+                st.session_state.active_mini_game = "MASTERMIND"
+                st.rerun()
 
     st.divider()
 
-    if "Unlock! Escape Room" in selected_game:
+    # ==========================================================================
+    # HIỂN THỊ GAME TƯƠNG ỨNG KHI NGƯỜI CHƠI ẤN VÀO THẺ ĐÓ
+    # ==========================================================================
+    if curr_game == "UNLOCK":
         st.subheader("🗝️ Unlock! Cyber Escape Room — Episode 1: The Server Vault")
         st.info("🔍 **Escape Scenario:** You are locked inside a high-security server room. A **Red Card #14** (shows a 3-triangle symbol) and a **Blue Card #27** (shows a 5-star symbol) lie on the desk. The door keypad asks for `CardSum + (Triangles * Stars)`.")
         code_try = st.text_input("🔢 Enter 2-Digit Escape Keypad Code:")
@@ -376,7 +388,7 @@ def render_sudoku_arcade(default_username: str = "taolagautruc"):
                 st.error("❌ Locked! Hint: Add the two card numbers `(14 + 27)`, then add `(3 * 5)`.")
         return
 
-    elif "Sherlock Consulting Detective" in selected_game:
+    elif curr_game == "SHERLOCK":
         st.subheader("🕵️ Sherlock Holmes Consulting Detective — Case #01: The Midnight Cipher")
         st.info("📜 **Case Dossier:** Lord Blackwood's safe was opened at `23:45 UTC`. Three suspects were in the mansion: **Butler James** (alibi: kitchen, no mud on shoes), **Lady Evelyn** (alibi: garden, mud on boots, knew the shift key), and **Dr. Mortimer** (arrived at `00:15 UTC`). The note left behind reads `VRIH` (Caesar Shift +3).")
         suspect = st.selectbox("Who opened the safe, and what does 'VRIH' decode to?", ["-- Select Deduction --", "Butler James (SAFE)", "Lady Evelyn (SAFE)", "Dr. Mortimer (GOLD)"])
@@ -388,7 +400,7 @@ def render_sudoku_arcade(default_username: str = "taolagautruc"):
                 st.error("❌ Elementary mistake, Watson! Check the arrival time, the garden mud, and shift `VRIH` back by 3 letters.")
         return
 
-    elif "Mastermind Vault Breaker" in selected_game:
+    elif curr_game == "MASTERMIND":
         st.subheader("🔐 Mastermind Vault Breaker — Crack the 4-Digit Secret Code")
         if "mm_secret" not in st.session_state:
             st.session_state.mm_secret = "".join(random.sample("123456789", 4))
@@ -412,15 +424,23 @@ def render_sudoku_arcade(default_username: str = "taolagautruc"):
         return
 
     # ==========================================================================
-    # CON GAME CHỦ LỰC: 🧩 9x9 SUDOKU MASTER ARENA (1 BẢNG GỌN 410PX & PHÒNG ĐẤU)
+    # MẶC ĐỊNH KHI ẤN VÀO THẺ 1: 🧩 9x9 SUDOKU MASTER ARENA
     # ==========================================================================
     db = load_sudoku_db()
-    p_stats = db["leaderboard"].get(player_name, {"sudoku_score": 0, "puzzles_solved": 0, "best_tier": 0})
 
-    m_col1, m_col2, m_col3 = st.columns(3)
-    m_col1.metric("🕵️ Active Sudoku Player", player_name, "Sudoku Master Arena")
-    m_col2.metric("🏆 Your Total Sudoku Score", f"{p_stats.get('sudoku_score', 0):,} PTS", f"Best Tier: Tier {p_stats.get('best_tier', 0)}")
-    m_col3.metric("✅ 9x9 Boards Solved", f"{p_stats.get('puzzles_solved', 0)} Boards", "Global Ranked")
+    m_col1, m_col2, m_col3 = st.columns([1.4, 1.3, 1.3])
+    with m_col1:
+        player_name = st.text_input(
+            "🕵️ Your Arcade Player Callsign:",
+            value=st.session_state.get("ctf_user") or default_username,
+            key="sdk_player_in"
+        ).strip() or "Agent_Player"
+
+    p_stats = db["leaderboard"].get(player_name, {"sudoku_score": 0, "puzzles_solved": 0, "best_tier": 0})
+    with m_col2:
+        st.metric("🏆 Your Total Sudoku Score", f"{p_stats.get('sudoku_score', 0):,} PTS", f"Best Tier: Tier {p_stats.get('best_tier', 0)}")
+    with m_col3:
+        st.metric("✅ 9x9 Boards Solved", f"{p_stats.get('puzzles_solved', 0)} Boards", "Global Ranked")
 
     if "sudoku_state" not in st.session_state:
         sol0, puz0 = generate_sudoku_9x9(1, f"INIT_{player_name}_1_1")
@@ -527,7 +547,6 @@ def render_sudoku_arcade(default_username: str = "taolagautruc"):
         elif gs["surrendered"]:
             st.error(f"🏳️ **BOARD SURRENDERED!** Full 9x9 solution is displayed below (-{surrender_penalty:,} PTS penalty applied).")
 
-        # HIỂN THỊ BÀN CỜ 9x9 NHỎ GỌN (410PX) NẰM CHÍNH GIỮA MÀN HÌNH
         render_single_unified_9x9_board(
             gs["puzzle"],
             gs["user_board"],
@@ -583,9 +602,6 @@ def render_sudoku_arcade(default_username: str = "taolagautruc"):
                 save_sudoku_db(db)
                 st.rerun()
 
-    # ==========================================================================
-    # TAB 2: PHÒNG CHƠI CHUNG / THI ĐẤU 1v1 (THỜI GIAN GIẢI, HINT -45s, ĐẾM NGƯỢC TỐI ĐA 10P)
-    # ==========================================================================
     with tab_duel:
         st.markdown("""
         <div class="ws-banner" style="padding: 12px 18px;">

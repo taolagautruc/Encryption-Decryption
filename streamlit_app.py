@@ -23,6 +23,10 @@ import core.multimedia_crypto as multimedia_module
 importlib.reload(multimedia_module)
 from core.multimedia_crypto import render_pillar2_multimedia_labs
 
+import core.community_hub as community_module
+importlib.reload(community_module)
+from core.community_hub import render_community_hub
+
 # Đảm bảo nạp và luôn làm mới (reload) file core/sudoku_game.py trên Streamlit Cloud
 import importlib
 sys.path.insert(0, os.path.abspath(os.path.dirname(__file__)))
@@ -428,7 +432,8 @@ with st.sidebar:
             "💬 3. Secret Chat Rooms",
             "🕹️ 4. Crypto Challenges",
             "📚 5. Security Academy",
-            "🛠️ 6. Utilities & About"
+            "🛠️ 6. Utilities & About",
+            "🌍 7. Community & Agency Hub"
         ],
         key="nav_radio_menu",
         on_change=_exit_game_arcade
@@ -3797,3 +3802,7 @@ elif "6. Utilities & About" in main_menu:
 elif "Cyber Game Arcade" in main_menu:
     active_player = st.session_state.get("ctf_user") or "taolagautruc"
     render_sudoku_arcade(active_player)
+
+elif "7. Community & Agency Hub" in main_menu:
+    active_player = st.session_state.get("ctf_user") or "taolagautruc"
+    render_community_hub(active_player)

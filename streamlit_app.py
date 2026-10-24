@@ -761,6 +761,9 @@ elif "2. Cipher Workspace" in main_menu:
                                 else:
                                     st.error(plain_msg)
 
+        st.divider()
+        render_pillar2_multimedia_labs(encrypt_core, decrypt_core, group_key, reverse_rule)
+
 # ==============================================================================
 # PHẦN 3: SECRET CHAT ROOMS (STEGO IMAGE CHAT + MESSAGE/ROOM DELETION CONTROLS)
 # ==============================================================================

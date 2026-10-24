@@ -27,6 +27,10 @@ import core.community_hub as community_module
 importlib.reload(community_module)
 from core.community_hub import render_community_hub
 
+import core.cloud_mobile_studio as cloud_mobile_module
+importlib.reload(cloud_mobile_module)
+from core.cloud_mobile_studio import render_cloud_and_mobile_studio, auto_boot_cloud_sync
+
 # Đảm bảo nạp và luôn làm mới (reload) file core/sudoku_game.py trên Streamlit Cloud
 import importlib
 sys.path.insert(0, os.path.abspath(os.path.dirname(__file__)))
@@ -40,6 +44,7 @@ st.set_page_config(
     layout="wide",
     initial_sidebar_state="expanded"
 )
+auto_boot_cloud_sync()
 
 # --- 0. GIAO DIỆN CSS TUỲ CHỈNH (CYBERSECURITY UI THEME) ---
 st.markdown("""
@@ -433,7 +438,8 @@ with st.sidebar:
             "🕹️ 4. Crypto Challenges",
             "📚 5. Security Academy",
             "🛠️ 6. Utilities & About",
-            "🌍 7. Community & Agency Hub"
+            "🌍 7. Community & Agency Hub",
+            "☁️ 8. Cloud DB & Mobile App Studio"
         ],
         key="nav_radio_menu",
         on_change=_exit_game_arcade
@@ -3806,3 +3812,6 @@ elif "Cyber Game Arcade" in main_menu:
 elif "7. Community & Agency Hub" in main_menu:
     active_player = st.session_state.get("ctf_user") or "taolagautruc"
     render_community_hub(active_player)
+
+elif "8. Cloud DB & Mobile App Studio" in main_menu:
+    render_cloud_and_mobile_studio()

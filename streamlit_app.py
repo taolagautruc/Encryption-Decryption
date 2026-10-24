@@ -5,11 +5,19 @@ import time
 import json
 import os
 import sys
+import importlib
 import base64
 import hashlib
 from PIL import Image, ImageDraw
 import io
 from datetime import datetime, timezone
+
+sys.path.insert(0, os.path.abspath(os.path.dirname(__file__)))
+
+import core.sudoku_game as sudoku_module
+importlib.reload(sudoku_module)
+from core.sudoku_game import render_sudoku_arcade
+
 import core.multimedia_crypto as multimedia_module
 importlib.reload(multimedia_module)
 from core.multimedia_crypto import render_pillar2_multimedia_labs

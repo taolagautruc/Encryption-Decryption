@@ -10,6 +10,9 @@ import hashlib
 from PIL import Image, ImageDraw
 import io
 from datetime import datetime, timezone
+import core.multimedia_crypto as multimedia_module
+importlib.reload(multimedia_module)
+from core.multimedia_crypto import render_pillar2_multimedia_labs
 
 # Đảm bảo nạp và luôn làm mới (reload) file core/sudoku_game.py trên Streamlit Cloud
 import importlib

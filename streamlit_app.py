@@ -12,6 +12,7 @@ from PIL import Image, ImageDraw
 import io
 from datetime import datetime, timezone
 
+# Đảm bảo nạp và luôn làm mới (reload) các file module trong core/
 sys.path.insert(0, os.path.abspath(os.path.dirname(__file__)))
 
 import core.sudoku_game as sudoku_module

@@ -47,6 +47,10 @@ import core.auth_manager as auth_module
 importlib.reload(auth_module)
 render_sidebar_gmail_auth = auth_module.render_sidebar_gmail_auth
 
+import core.command_center as cmd_center_module
+importlib.reload(cmd_center_module)
+render_home_command_center = cmd_center_module.render_home_command_center
+
 # Đảm bảo nạp và luôn làm mới (reload) file core/sudoku_game.py trên Streamlit Cloud
 import importlib
 sys.path.insert(0, os.path.abspath(os.path.dirname(__file__)))
@@ -822,6 +826,8 @@ if "1. Home Dashboard" in main_menu:
             </div>
         </div>
         """, unsafe_allow_html=True)
+        
+    render_home_command_center(st.session_state.get("ctf_user") or "taolagautruc")
 
 # ==============================================================================
 # PHẦN 2: CIPHER WORKSPACE (TEXT, CAMOUFLAGE & LSB IMAGE STEGANOGRAPHY)

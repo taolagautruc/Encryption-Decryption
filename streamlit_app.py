@@ -43,6 +43,10 @@ import core.ai_cyber_mentor as ai_mentor_module
 importlib.reload(ai_mentor_module)
 from core.ai_cyber_mentor import render_ai_cyber_mentor_widget
 
+import core.auth_manager as auth_module
+importlib.reload(auth_module)
+from core.auth_manager import render_sidebar_gmail_auth
+
 # Đảm bảo nạp và luôn làm mới (reload) file core/sudoku_game.py trên Streamlit Cloud
 import importlib
 sys.path.insert(0, os.path.abspath(os.path.dirname(__file__)))
@@ -664,6 +668,7 @@ with st.sidebar:
     pattern_list = st.multiselect("🎨 Symbol Vault:", options=SYMBOLS_POOL, default=SYMBOLS_POOL[:3] if SYMBOLS_POOL else [])
     custom_pairs = st.text_input("🔀 Custom Pairs (Optional):", placeholder="e.g. a=@, e=3")
     reverse_rule = st.checkbox("🔄 Reverse Structure", value=False)
+    is_gmail_logged_in, current_agent_id, current_gmail = render_sidebar_gmail_auth()
     
     st.divider()
 

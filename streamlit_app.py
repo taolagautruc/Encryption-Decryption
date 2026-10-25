@@ -255,11 +255,177 @@ def decrypt_core(cypher_text: str, key: list, reverse_rule: bool) -> tuple[bool,
         return False, f"⏳ TIME-CAPSULE LOCKED! Please wait {m}m {s}s before decoding."
     return True, actual_msg
 
-# --- 1B. NATURAL ENGLISH CAMOUFLAGE ENGINE (CONCISE & MEANINGFUL SENTENCES) ---
+# --- 1B. MULTI-THEME DYNAMIC ENGLISH CAMOUFLAGE ENGINE (480 PHRASES • 5 THEMES • RANDOM SALT) ---
 CAMO_WORDS = [
     "system", "network", "protocol", "update", "server", "client", "module", "process",
     "data", "buffer", "channel", "request", "session", "router", "packet", "cluster"
 ]
+
+# 5 Chủ đề giao tiếp tiếng Anh đa dạng (5 Themes x 6 Slots x 16 Phrases = 480 cụm từ)
+CAMO_THEMES = [
+    # THEME 0: Đời sống, Công sở & Học tập
+    [
+        ["Alex", "Sarah", "David", "Emma", "Ryan", "Olivia", "Daniel", "Sophia", "Lucas", "Mia", "Ethan", "Chloe", "Noah", "Grace", "Leo", "Lily"],
+        ["checked", "reviewed", "shared", "prepared", "updated", "finished", "organized", "confirmed", "brought", "scheduled", "sent", "wrote", "printed", "saved", "packed", "booked"],
+        ["the new", "our weekly", "the final", "today's", "that", "a quick", "the main", "yesterday's", "the revised", "a special", "the monthly", "our group", "the backup", "a detailed", "the priority", "next"],
+        ["report", "schedule", "coffee", "itinerary", "notebook", "draft", "budget", "catalogue", "guidebook", "menu", "dossier", "album", "journal", "playlist", "ticket", "summary"],
+        ["at the bistro", "in the library", "near the office", "on the desk", "in the lounge", "at the station", "by the lobby", "in the studio", "at the campus", "in the classroom", "near the park", "at the hotel", "on the train", "in the folder", "at home", "online"],
+        ["this morning", "before noon", "around five", "just now", "last night", "after lunch", "on time", "for tomorrow", "very early", "this evening", "a moment ago", "before class", "on Friday", "with friends", "without delay", "as planned"]
+    ],
+    # THEME 1: Du lịch, Phong cảnh & Khám phá
+    [
+        ["Marcus", "Elena", "Victor", "Clara", "Julian", "Nora", "Adrian", "Maya", "Sebastian", "Eva", "Gabriel", "Ruby", "Felix", "Alice", "Oscar", "Hazel"],
+        ["explored", "photographed", "visited", "admired", "discovered", "sketched", "filmed", "reached", "crossed", "mapped", "entered", "toured", "observed", "climbed", "sailed", "followed"],
+        ["the ancient", "a sunlit", "the coastal", "a peaceful", "the famous", "a hidden", "the grand", "a misty", "the royal", "a vibrant", "the northern", "a quiet", "the golden", "a historic", "the mountain", "a tropical"],
+        ["lighthouse", "cathedral", "harbor", "courtyard", "waterfall", "castle", "bridge", "garden", "museum", "palace", "island", "valley", "temple", "plaza", "glacier", "pavilion"],
+        ["near the coast", "by the river", "in the capital", "at the border", "near the bay", "in the village", "by the cliff", "at the summit", "in the canyon", "near the port", "by the lake", "in the province", "at the frontier", "near the shore", "by the fountain", "in the district"],
+        ["at sunrise", "before dusk", "in autumn", "with joy", "in summer", "after dawn", "at twilight", "in spring", "with wonder", "before sunset", "in winter", "at midday", "with ease", "after rain", "in silence", "at daybreak"]
+    ],
+    # THEME 2: Ẩm thực, Quán Café & Tiệc tối
+    [
+        ["Arthur", "Camille", "Louis", "Stella", "Marco", "Hannah", "Leon", "Violet", "Simon", "Claire", "Matteo", "Zoe", "Hugo", "Audrey", "Lucia", "Nathan"],
+        ["ordered", "tasted", "baked", "brewed", "served", "recommended", "savored", "selected", "cooked", "decorated", "sliced", "poured", "roasted", "blended", "seasoned", "plated"],
+        ["a warm", "the signature", "a fresh", "the classic", "a sweet", "the crispy", "a rich", "the homemade", "a fragrant", "the organic", "a creamy", "the toasted", "a savory", "the chilled", "a spiced", "the delicate"],
+        ["espresso", "croissant", "risotto", "cheesecake", "cappuccino", "lasagna", "tartlet", "smoothie", "baguette", "macaron", "paella", "pancake", "truffle", "lemonade", "waffle", "tiramisu"],
+        ["at the bakery", "in the kitchen", "by the terrace", "at the cafe", "in the tavern", "near the market", "at the diner", "in the patisserie", "by the counter", "at the banquet", "in the brasserie", "at the buffet", "by the fireplace", "in the diningroom", "at the canteen", "in the tearoom"],
+        ["for breakfast", "with dessert", "after dinner", "for the guests", "with honey", "before tea", "for the chef", "with cinnamon", "after work", "for the party", "with berries", "before supper", "for the family", "with cream", "after shopping", "for the celebration"]
+    ],
+    # THEME 3: Điện ảnh, Âm nhạc, Hội họa & Văn học
+    [
+        ["Oliver", "Charlotte", "Henry", "Amelia", "Samuel", "Evelyn", "Benjamin", "Abigail", "Jack", "Harper", "Dylan", "Scarlett", "Isaac", "Victoria", "Caleb", "Madison"],
+        ["composed", "directed", "rehearsed", "exhibited", "published", "performed", "translated", "illustrated", "conducted", "curated", "recorded", "choreographed", "premiered", "restored", "mastered", "adapted"],
+        ["a brilliant", "the dramatic", "a poetic", "the acoustic", "a timeless", "the modern", "a lyrical", "the vintage", "a cinematic", "the orchestral", "a theatrical", "the abstract", "a melodic", "the inspiring", "a vivid", "the original"],
+        ["symphony", "novel", "portrait", "documentary", "sonata", "sculpture", "screenplay", "ballad", "painting", "opera", "anthology", "concerto", "mural", "memoir", "musical", "poem"],
+        ["at the gallery", "in the theater", "at the conservatory", "in the auditorium", "at the festival", "in the amphitheater", "at the playhouse", "in the showroom", "at the coliseum", "in the cinema", "at the arena", "in the hall", "at the exhibition", "in the bookstore", "at the stage", "in the archive"],
+        ["last weekend", "with applause", "on Saturday", "for the audience", "on Sunday", "with passion", "on Tuesday", "for the critics", "on Thursday", "with elegance", "on Monday", "for the students", "on Wednesday", "with pride", "in October", "for the patrons"]
+    ],
+    # THEME 4: Khoa học, Vũ trụ & Công nghệ Đổi mới
+    [
+        ["Liam", "Aria", "Mason", "Luna", "Logan", "Layla", "Carter", "Penelope", "Owen", "Riley", "Luke", "Zoey", "Grayson", "Aurora", "Wyatt", "Natalie"],
+        ["calibrated", "simulated", "deployed", "analyzed", "engineered", "optimized", "tested", "launched", "upgraded", "compiled", "monitored", "designed", "verified", "assembled", "configured", "debugged"],
+        ["the quantum", "a neural", "the solar", "a robotic", "the optical", "a wireless", "the orbital", "a modular", "the thermal", "a digital", "the magnetic", "a laser", "the autonomous", "a photonic", "the satellite", "a hybrid"],
+        ["telescope", "processor", "algorithm", "prototype", "sensor", "database", "spectrometer", "interface", "transmitter", "microchip", "generator", "reactor", "radar", "simulator", "drone", "receiver"],
+        ["in the observatory", "at the laboratory", "in the datacenter", "at the complex", "in the cleanroom", "at the launchpad", "in the workshop", "at the institute", "in the dome", "at the facility", "in the hangar", "at the headquarters", "in the planetarium", "at the outpost", "in the bunker", "at the terminal"],
+        ["at midnight", "with precision", "before launch", "on duty", "with accuracy", "after testing", "at nightfall", "with success", "before review", "on target", "with care", "after calibration", "at peak", "with confidence", "before briefing", "as expected"]
+    ]
+]
+
+# Từ nối tự nhiên ở đầu các câu tiếp theo (Không nằm trong bảng từ khóa nên bộ giải mã tự động bỏ qua)
+CAMO_TRANSITIONS = [
+    "", "Meanwhile, ", "Honestly, ", "Interestingly, ", "Luckily, ",
+    "Fortunately, ", "Actually, ", "Besides, ", "Earlier, "
+]
+
+# Xây dựng bảng tra cứu từ khóa -> giá trị 4-bit (0..15) cho toàn bộ 480 cụm từ
+CAMO_TRIGGER_MAP = {}
+for _theme in CAMO_THEMES:
+    for _slot_list in _theme:
+        for _val_idx, _phrase in enumerate(_slot_list):
+            _kw = _phrase.split()[-1].lower().strip(".,!?")
+            CAMO_TRIGGER_MAP[_kw] = _val_idx
+
+def encode_english_camouflage(cipher_text: str) -> str:
+    """
+    Mã hóa bản mã thành những câu chuyện tiếng Anh đa chủ đề:
+    - Dùng hạt giống ngẫu nhiên (salt_marker 229..239) để trộn toàn bộ các byte -> Không bao giờ lặp câu mở đầu!
+    - Mỗi câu tự động chọn ngẫu nhiên 1 trong 5 chủ đề từ vựng khác nhau kèm từ nối tự nhiên.
+    """
+    salt_marker = random.randint(229, 239)
+    salt_num = salt_marker - 228
+    byte_list = [salt_marker]
+
+    n_base = len(BASE_CHARS)
+    for idx, ch in enumerate(cipher_text):
+        if ch in BASE_CHARS:
+            orig_idx = BASE_CHARS.index(ch)
+            masked_idx = (orig_idx + (salt_num * 23) + (idx * 37)) % n_base
+            byte_list.append(masked_idx)
+        else:
+            for b in ch.encode("utf-8"):
+                byte_list.append(240 + (b >> 4))
+                byte_list.append(240 + (b & 0x0F))
+
+    nibbles = []
+    for b in byte_list:
+        nibbles.append((b >> 4) & 0x0F)
+        nibbles.append(b & 0x0F)
+
+    sentences = []
+    used_themes = []
+    for i in range(0, len(nibbles), 6):
+        chunk = nibbles[i:i+6]
+        # Chọn ngẫu nhiên chủ đề không trùng với câu liền trước
+        avail_themes = [t for t in range(len(CAMO_THEMES)) if t not in used_themes[-1:]]
+        theme_idx = random.choice(avail_themes)
+        used_themes.append(theme_idx)
+        slots = CAMO_THEMES[theme_idx]
+
+        prefix = random.choice(CAMO_TRANSITIONS[1:]) if i > 0 and random.random() < 0.65 else ""
+
+        if len(chunk) == 6:
+            s = f"{prefix}{slots[0][chunk[0]]} {slots[1][chunk[1]]} {slots[2][chunk[2]]} {slots[3][chunk[3]]} {slots[4][chunk[4]]} {slots[5][chunk[5]]}."
+        elif len(chunk) == 4:
+            s = f"{prefix}{slots[0][chunk[0]]} {slots[1][chunk[1]]} {slots[2][chunk[2]]} {slots[3][chunk[3]]}."
+        else:
+            s = f"{prefix}{slots[0][chunk[0]]} {slots[1][chunk[1]]} it."
+        sentences.append(s)
+
+    return " ".join(sentences)
+
+def decode_english_camouflage(prose_text: str) -> tuple[bool, str]:
+    """Giải mã mọi câu chuyện tiếng Anh từ cả 5 chủ đề (Hỗ trợ cả tin nhắn có Salt mới và tin nhắn cũ)."""
+    tokens = [t.strip(".,!?;:\"'()") for t in prose_text.strip().lower().split()]
+    tokens = [t for t in tokens if t]
+    if not tokens:
+        return False, "❌ Empty camouflage text."
+
+    # 1. Tương thích ngược với định dạng CAMO_WORDS đời đầu ("protocol, server...")
+    if all(t in CAMO_WORDS for t in tokens) and len(tokens) % 2 == 0:
+        byte_arr = bytearray()
+        for i in range(0, len(tokens), 2):
+            b = (CAMO_WORDS.index(tokens[i]) << 4) | CAMO_WORDS.index(tokens[i+1])
+            byte_arr.append(b)
+        try:
+            return True, byte_arr.decode("utf-8")
+        except Exception:
+            return False, "❌ Corrupted legacy camouflage sequence."
+
+    # 2. Lọc các từ khóa thuộc 5 chủ đề
+    nibbles = [CAMO_TRIGGER_MAP[t] for t in tokens if t in CAMO_TRIGGER_MAP]
+    if not nibbles or len(nibbles) % 2 != 0:
+        return False, "❌ Invalid camouflage prose (Some words were modified or incomplete)."
+
+    raw_bytes = [(nibbles[i] << 4) | nibbles[i+1] for i in range(0, len(nibbles), 2)]
+    n_base = len(BASE_CHARS)
+
+    # Kiểm tra xem có hạt giống ngẫu nhiên (salt_marker 229..239) ở byte đầu tiên không
+    is_salted = (229 <= raw_bytes[0] <= 239)
+    if is_salted:
+        salt_num = raw_bytes[0] - 228
+        data_bytes = raw_bytes[1:]
+    else:
+        salt_num = 0
+        data_bytes = raw_bytes
+
+    out_chars = []
+    idx = 0
+    char_pos = 0
+    while idx < len(data_bytes):
+        b = data_bytes[idx]
+        if b < n_base:
+            orig_idx = (b - (salt_num * 23) - (char_pos * 37)) % n_base if is_salted else b
+            out_chars.append(BASE_CHARS[orig_idx])
+            idx += 1
+            char_pos += 1
+        elif b >= 240 and idx + 1 < len(data_bytes):
+            utf_b = ((b - 240) << 4) | (data_bytes[idx + 1] - 240)
+            out_chars.append(chr(utf_b))
+            idx += 2
+            char_pos += 1
+        else:
+            return False, "❌ Corrupted character index in camouflage text."
+
+    return True, "".join(out_chars)
 
 # 6 thành phần câu giao tiếp đời thường (Mỗi thành phần gồm 16 cụm từ có từ khóa độc nhất)
 CAMO_SLOTS = [

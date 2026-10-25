@@ -35,6 +35,10 @@ import core.messenger_chat as messenger_module
 importlib.reload(messenger_module)
 from core.messenger_chat import render_zalo_messenger_rooms
 
+import core.tactical_inventory as inventory_module
+importlib.reload(inventory_module)
+from core.tactical_inventory import render_sidebar_tactical_hub
+
 # Đảm bảo nạp và luôn làm mới (reload) file core/sudoku_game.py trên Streamlit Cloud
 import importlib
 sys.path.insert(0, os.path.abspath(os.path.dirname(__file__)))
@@ -719,7 +723,8 @@ with st.sidebar:
 
     if st.session_state.get("in_game_arcade", False):
         main_menu = "Cyber Game Arcade (Mini-Games Hub)"
-
+    render_sidebar_tactical_hub(st.session_state.get("ctf_user") or "taolagautruc")
+    
 group_key = build_custom_key(secret_seed, pattern_list, shift_step, custom_pairs) if secret_seed else []
 
 

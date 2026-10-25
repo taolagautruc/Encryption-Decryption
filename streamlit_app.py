@@ -39,6 +39,10 @@ import core.tactical_inventory as inventory_module
 importlib.reload(inventory_module)
 from core.tactical_inventory import render_sidebar_tactical_hub
 
+import core.ai_cyber_mentor as ai_mentor_module
+importlib.reload(ai_mentor_module)
+from core.ai_cyber_mentor import render_ai_cyber_mentor_widget
+
 # Đảm bảo nạp và luôn làm mới (reload) file core/sudoku_game.py trên Streamlit Cloud
 import importlib
 sys.path.insert(0, os.path.abspath(os.path.dirname(__file__)))
@@ -727,7 +731,11 @@ with st.sidebar:
     
 group_key = build_custom_key(secret_seed, pattern_list, shift_step, custom_pairs) if secret_seed else []
 
-
+_, top_right_ai_col = st.columns([4.2, 1.2])
+with top_right_ai_col:
+    with st.popover("🤖 AI Cyber Mentor (Chat & File Scan)", use_container_width=True):
+        render_ai_cyber_mentor_widget(current_lesson=None, decode_lsb_fn=decode_image_lsb, widget_key="global_top_right")
+        
 # ==============================================================================
 # PHẦN 1: HOME DASHBOARD
 # ==============================================================================
@@ -3243,6 +3251,11 @@ elif "5. Security Academy" in main_menu:
 
     les = LESSONS_CURRICULUM[selected_lesson_key]
     lid = les["id"]
+
+    # Hiển thị Khung Chat AI ở góc bên phải của khu vực Học viện
+    acad_main_col, acad_right_ai_col = st.columns([2.35, 1.05])
+    with acad_right_ai_col:
+        render_ai_cyber_mentor_widget(current_lesson=les, decode_lsb_fn=decode_image_lsb, widget_key=f"acad_right_{lid}")
 
     # ==========================================================================
     # HIỂN THỊ BÀI HỌC THEO CHIỀU DỌC DÀI (LONG-SCROLL UNIVERSITY LECTURE)

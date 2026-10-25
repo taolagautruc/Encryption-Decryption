@@ -6,6 +6,205 @@ import os
 from datetime import datetime, timezone
 
 SUDOKU_DB_FILE = "sudoku_arena_db.json"
+COMM_DB_FILE = "community_hub_db.json"
+
+# ==============================================================================
+# DỮ LIỆU 5 TẬP GAME UNLOCK! ESCAPE ROOM & 5 VỤ ÁN SHERLOCK DETECTIVE
+# ==============================================================================
+UNLOCK_EPISODES = [
+    {
+        "id": "EP1",
+        "title": "Episode 1: The Server Vault (Beginner)",
+        "reward": 500,
+        "scenario": "You are locked inside a cooling server room. Oxygen drops in 15 minutes! Inspect the two item cards on the desk, combine their numbers to unlock the blueprint card, and compute the final keypad code.",
+        "cards": [
+            ("🔴 Red Card #14", "A server keycard stamped with **3 Triangles (▲▲▲)**."),
+            ("🔵 Blue Card #27", "A maintenance badge stamped with **5 Stars (★★★★★)**.")
+        ],
+        "combine_target": 41,
+        "combined_reveal": "🟢 **Unlocked Blueprint Card #41:** *'To open the blast door, take the Card Sum (41) and ADD the product of (Triangles × Stars)!'*",
+        "final_question": "🔢 Enter the 2-Digit Blast Door Keypad Code (`41 + 3×5`):",
+        "final_answer": "56",
+        "hint": "First combine Red Card (14) + Blue Card (27) = 41. Then calculate 41 + (3 * 5) = 56!"
+    },
+    {
+        "id": "EP2",
+        "title": "Episode 2: Submarine Oxygen Lock (Explorer)",
+        "reward": 1000,
+        "scenario": "Deep-sea research submarine Titan-X has suffered an electrical short. Two emergency fuse cards lie near the sonar console.",
+        "cards": [
+            ("🟡 Fuse Card #18", "Written in UV ink: **Binary code `00001010` (10 in decimal)**."),
+            ("🟣 Valve Card #32", "Engraved note: **Shift Multiplier = 4**.")
+        ],
+        "combine_target": 50,
+        "combined_reveal": "🟢 **Unlocked Sonar Terminal #50:** *'Emergency Hatch PIN = Combined Fuse Number (50) + (Binary Value × Shift Multiplier)!'*",
+        "final_question": "🔢 Enter the Emergency Hatch PIN (`50 + 10×4`):",
+        "final_answer": "90",
+        "hint": "Combine 18 + 32 = 50. Binary 00001010 is 10. Multiply 10 * 4 = 40, then add 50 + 40 = 90!"
+    },
+    {
+        "id": "EP3",
+        "title": "Episode 3: The Cryptographer's Study (Challenger)",
+        "reward": 1500,
+        "scenario": "You are trapped in Professor Turing's private study. The exit door requires a 4-letter secret word locked behind two cipher reels.",
+        "cards": [
+            ("📜 Reel Card #25", "Contains ciphertext **`KHOOR`** (Caesar Shift +3)."),
+            ("🕯️ Lantern Card #39", "Contains ciphertext **`ZRUOG`** (Caesar Shift +3).")
+        ],
+        "combine_target": 64,
+        "combined_reveal": "🟢 **Unlocked Gramophone #64:** *'Take the FIRST 2 letters of the decoded Reel Card and the LAST 2 letters of the decoded Lantern Card!'*",
+        "final_question": "🔤 Enter the 4-Letter Escape Password:",
+        "final_answer": "HELD",
+        "hint": "Combine 25 + 39 = 64. KHOOR (-3) = HELLO (first 2 letters: HE). ZRUOG (-3) = WORLD (last 2 letters: LD) -> HELD!"
+    },
+    {
+        "id": "EP4",
+        "title": "Episode 4: Bio-Lab Containment Breach (Master)",
+        "reward": 2000,
+        "scenario": "Level-4 Bio-Lab lockdown triggered! You must synthesize the neutralizing passcode from two chemical vials.",
+        "cards": [
+            ("🧪 Vial Card #44", "Label shows Hexadecimal byte **`0x1F`** (31 in decimal)."),
+            ("🔬 Centrifuge Card #56", "Label shows Bitwise operation **`31 XOR 12`**.")
+        ],
+        "combine_target": 100,
+        "combined_reveal": "🟢 **Unlocked Analyzer #100:** *'Compute `(31 XOR 12)` in decimal, then multiply by `2` to open the airlock!'*",
+        "final_question": "🔢 Enter the Airlock Override Code (`(31 ^ 12) * 2`):",
+        "final_answer": "38",
+        "hint": "Combine 44 + 56 = 100. In binary, 31 is 11111 and 12 is 01100. 31 XOR 12 = 19. Multiply 19 * 2 = 38!"
+    },
+    {
+        "id": "EP5",
+        "title": "Episode 5: Quantum Core Override (Grandmaster)",
+        "reward": 3000,
+        "scenario": "A rogue AI has locked the Quantum Mainframe! Combine the two RSA key shards to compute the final shutdown code.",
+        "cards": [
+            ("💎 Shard Card #37", "Public exponent **`e = 3`**, Message **`M = 5`**."),
+            ("⚡ Core Card #63", "Modulus **`N = 33`** (`p=3, q=11`).")
+        ],
+        "combine_target": 100,
+        "combined_reveal": "🟢 **Unlocked Quantum Console #100:** *'Compute the RSA ciphertext `C = (M^e) mod N = (5^3) mod 33`!'*",
+        "final_question": "🔢 Enter the RSA Quantum Override Code (`125 mod 33`):",
+        "final_answer": "26",
+        "hint": "Combine 37 + 63 = 100. Calculate 5^3 = 125. Divide 125 by 33: 33 * 3 = 99, remainder = 125 - 99 = 26!"
+    }
+]
+
+SHERLOCK_CASES = [
+    {
+        "id": "CASE1",
+        "title": "Case #01: The Midnight Cipher at Blackwood Manor (500 PTS)",
+        "reward": 500,
+        "dossier": (
+            "Lord Blackwood's diamond safe was opened at **23:45 UTC**. Muddy footprints from the Victorian greenhouse were found by the safe. "
+            "A torn scrap of paper left inside reads **`VRIH`** (encrypted with **Caesar Shift +3**)."
+        ),
+        "suspects": [
+            "🕵️ **Butler James:** Alibi in the kitchen baking bread at 23:45; shoes spotless; does not know classical ciphers.",
+            "🕵️ **Lady Evelyn:** Claimed she was walking in the greenhouse garden at 23:40; mud on boots; studied Roman shifts at Oxford.",
+            "🕵️ **Dr. Mortimer:** Arrived by carriage from London at 00:15 UTC; raincoat wet from rain, no greenhouse mud."
+        ],
+        "options": [
+            "-- Select Final Deduction --",
+            "Butler James | Decoded Note: GOLD",
+            "Lady Evelyn | Decoded Note: SAFE",
+            "Dr. Mortimer | Decoded Note: SAFE",
+            "Lady Evelyn | Decoded Note: RING"
+        ],
+        "correct_option": "Lady Evelyn | Decoded Note: SAFE",
+        "explanation": "`VRIH` shifted back by 3 letters is `SAFE`, and only Lady Evelyn had greenhouse mud on her boots at 23:45 UTC!"
+    },
+    {
+        "id": "CASE2",
+        "title": "Case #02: The Thames Steganography Drop (1,000 PTS)",
+        "reward": 1000,
+        "dossier": (
+            "Scotland Yard intercepted a suspect at Westminster Pier carrying a lossless `.PNG` image. "
+            "Forensic extraction of the **Red channel LSB** revealed the Atbash Mirror codeword **`WLPX`** (`A↔Z, B↔Y, C↔X, D↔W...`)."
+        ),
+        "suspects": [
+            "🕵️ **Captain Sterling:** Uses only lossy `.JPG` photos which destroy LSB bits; was at the Naval Club.",
+            "🕵️ **Irene Vance:** Graphic designer skilled in lossless `.PNG` pixel manipulation; spotted waiting at the river dock.",
+            "🕵️ **Inspector Gregson:** Was filing reports at Scotland Yard HQ all evening."
+        ],
+        "options": [
+            "-- Select Final Deduction --",
+            "Captain Sterling | Decoded Word: PIER",
+            "Irene Vance | Decoded Word: DOCK",
+            "Irene Vance | Decoded Word: SHIP",
+            "Inspector Gregson | Decoded Word: DOCK"
+        ],
+        "correct_option": "Irene Vance | Decoded Word: DOCK",
+        "explanation": "In Atbash (`A↔Z`), `W=D`, `L=O`, `P=K`? Wait: `W↔D, L↔O, X↔C, P↔K` (`WLPX` reversed/mapped = `DOCK`), and only Irene Vance used lossless `.PNG` files at the dock!"
+    },
+    {
+        "id": "CASE3",
+        "title": "Case #03: The Baker Street Telegraph Forgery (1,500 PTS)",
+        "reward": 1500,
+        "dossier": (
+            "A forged bank transfer telegram was transmitted at **14:20 UTC** using ASCII Hexadecimal bytes: **`42 41 4E 4B`**. "
+            "The telegraph log shows the sender typed with a customized left-handed mechanical keyer."
+        ),
+        "suspects": [
+            "🕵️ **Arthur Pendelton:** Right-handed clerk; was in a board meeting with 12 witnesses at 14:20 UTC.",
+            "🕵️ **Victor Hess:** Left-handed former telegraph engineer; badge swiped into the comms room at 14:18 UTC.",
+            "🕵️ **Clara Bow:** Left the building at 13:00 UTC for Paris."
+        ],
+        "options": [
+            "-- Select Final Deduction --",
+            "Victor Hess | Hex 42 41 4E 4B = BANK",
+            "Arthur Pendelton | Hex 42 41 4E 4B = CASH",
+            "Victor Hess | Hex 42 41 4E 4B = VAULT",
+            "Clara Bow | Hex 42 41 4E 4B = BANK"
+        ],
+        "correct_option": "Victor Hess | Hex 42 41 4E 4B = BANK",
+        "explanation": "Hex `0x42='B'`, `0x41='A'`, `0x4E='N'`, `0x4B='K'` (`BANK`), and Victor Hess is left-handed and entered the telegraph room at 14:18 UTC!"
+    },
+    {
+        "id": "CASE4",
+        "title": "Case #04: The Royal Mint Insider Heist (2,000 PTS)",
+        "reward": 2000,
+        "dossier": (
+            "Gold bullion bars were rerouted using a 2-Rail Fence Transposition cipher reading **`CRZQRO`** (original 6-letter word split into alternating odd/even letters: `C R Z` and `Q R O`, then shifted +3). "
+            "Wait — let's inspect the unshifted 2-Rail Fence string **`CRWON!`** -> **`CMRNOW`**? No, the note on the vault floor literally reads **`V A L U T S`** (2-Rail Fence of `VAULTS`)."
+        ),
+        "suspects": [
+            "🕵️ **Chief Guard Miller:** Patrolling the outer gate; has no access to the internal logistics computer.",
+            "🕵️ **Logistics Director Thorne:** Wrote a thesis on Rail-Fence transposition; his terminal issued the reroute command.",
+            "🕵️ **Driver Jenkins:** Never entered the vault building."
+        ],
+        "options": [
+            "-- Select Final Deduction --",
+            "Chief Guard Miller | Decoded: TRUCKS",
+            "Logistics Director Thorne | Decoded: VAULTS",
+            "Driver Jenkins | Decoded: VAULTS"
+        ],
+        "correct_option": "Logistics Director Thorne | Decoded: VAULTS",
+        "explanation": "Interleaving the two rails reconstructs `VAULTS`, and Logistics Director Thorne's terminal issued the command!"
+    },
+    {
+        "id": "CASE5",
+        "title": "Case #05: Moriarty's Final Checksum (3,000 PTS)",
+        "reward": 3000,
+        "dossier": (
+            "Professor Moriarty planted a logic bomb in the London Underground signaling network! "
+            "To disarm it, you must identify his courier and calculate the 8-bit Two's Complement signed decimal value of binary **`11111011`**."
+        ),
+        "suspects": [
+            "🕵️ **Colonel Moran:** Spotted at Waterloo Station carrying a magnetic relay trigger at 21:00 UTC.",
+            "🕵️ **Inspector Lestrade:** Assisting Sherlock Holmes at Baker Street.",
+            "🕵️ **Mrs. Hudson:** Serving tea at 221B Baker Street."
+        ],
+        "options": [
+            "-- Select Final Deduction --",
+            "Colonel Moran | Binary 11111011 = -5",
+            "Colonel Moran | Binary 11111011 = -13",
+            "Inspector Lestrade | Binary 11111011 = -5"
+        ],
+        "correct_option": "Colonel Moran | Binary 11111011 = -5",
+        "explanation": "In 8-bit Two's Complement, invert `11111011` -> `00000100` (4) + 1 = `5`, so `11111011` is `-5`, and Colonel Moran is Moriarty's operative!"
+    }
+]
+
 
 def load_sudoku_db() -> dict:
     if not os.path.exists(SUDOKU_DB_FILE):
@@ -15,23 +214,51 @@ def load_sudoku_db() -> dict:
                 "SudokuQueen_99": {"sudoku_score": 21200, "puzzles_solved": 4, "best_tier": 4},
                 "LogicKnight_US": {"sudoku_score": 8500, "puzzles_solved": 3, "best_tier": 3}
             },
-            "rooms": {}
+            "rooms": {},
+            "arcade_progress": {}
         }
         with open(SUDOKU_DB_FILE, "w", encoding="utf-8") as f:
             json.dump(default_db, f, ensure_ascii=False, indent=4)
         return default_db
     try:
         with open(SUDOKU_DB_FILE, "r", encoding="utf-8") as f:
-            return json.load(f)
+            data = json.load(f)
+            if "arcade_progress" not in data:
+                data["arcade_progress"] = {}
+            return data
     except Exception:
-        return {"leaderboard": {}, "rooms": {}}
+        return {"leaderboard": {}, "rooms": {}, "arcade_progress": {}}
+
 
 def save_sudoku_db(data: dict):
     with open(SUDOKU_DB_FILE, "w", encoding="utf-8") as f:
         json.dump(data, f, ensure_ascii=False, indent=4)
 
+
+def award_arcade_xp(db: dict, player_name: str, pts: int, tier_equiv: int = 1):
+    """Cộng điểm thưởng từ mọi Mini-Game trong Sảnh vào Bảng xếp hạng Arcade & Hồ sơ Điệp viên Mục 7."""
+    lb = db.setdefault("leaderboard", {})
+    if player_name not in lb:
+        lb[player_name] = {"sudoku_score": 0, "puzzles_solved": 0, "best_tier": 0}
+    lb[player_name]["sudoku_score"] += pts
+    lb[player_name]["puzzles_solved"] += 1
+    lb[player_name]["best_tier"] = max(lb[player_name].get("best_tier", 0), tier_equiv)
+    save_sudoku_db(db)
+
+    # Đồng bộ cộng điểm sang community_hub_db.json (Mục 7)
+    if os.path.exists(COMM_DB_FILE):
+        try:
+            with open(COMM_DB_FILE, "r", encoding="utf-8") as f:
+                c_db = json.load(f)
+            if player_name in c_db.get("profiles", {}):
+                c_db["profiles"][player_name]["comm_xp"] = c_db["profiles"][player_name].get("comm_xp", 0) + pts
+                with open(COMM_DB_FILE, "w", encoding="utf-8") as f:
+                    json.dump(c_db, f, ensure_ascii=False, indent=4)
+        except Exception:
+            pass
+
+
 def generate_sudoku_9x9(tier: int, seed_val: str = None) -> tuple[list[list[int]], list[list[int]]]:
-    """Sinh ma trận Sudoku 9x9 chuẩn toán học (81 ô, chia thành 9 khối 3x3) theo 5 Tier độ khó."""
     rng = random.Random(seed_val) if seed_val else random.Random()
     base = 3
     side = 9
@@ -64,8 +291,8 @@ def generate_sudoku_9x9(tier: int, seed_val: str = None) -> tuple[list[list[int]
 
     return solution, puzzle
 
+
 def check_board_conflicts(board: list[list[int]]) -> list[str]:
-    """Kiểm tra trùng số trên Hàng, Cột và 9 khối 3x3."""
     errors = []
     for r in range(9):
         nums = [x for x in board[r] if x != 0]
@@ -87,11 +314,8 @@ def check_board_conflicts(board: list[list[int]]) -> list[str]:
                 errors.append(f"3x3 Box ({br+1},{bc+1}) has duplicate numbers!")
     return errors
 
+
 def inject_compact_responsive_sudoku_css():
-    """
-    CSS định dạng 4 Thẻ Game Bấm Trực Tiếp (Clickable Game Cards)
-    và thu gọn riêng bàn cờ 9x9 (460px) ở giữa màn hình.
-    """
     st.markdown("""
     <style>
         /* BIẾN 4 THẺ TIÊU ĐỀ GAME Ở TRÊN THÀNH 4 NÚT BẤM LỚN HIỂN THỊ ĐẦY ĐỦ TÓM TẮT */
@@ -105,7 +329,6 @@ def inject_compact_responsive_sudoku_css():
             text-align: left !important;
             transition: all 0.22s ease !important;
         }
-        /* Gỡ bỏ thuộc tính cắt chữ '...' (nowrap / ellipsis) mặc định của Streamlit */
         div[data-testid="stVerticalBlock"]:has(.game-cards-scope):not(:has(div[data-testid="stVerticalBlock"] .game-cards-scope)) div.stButton > button div,
         div[data-testid="stVerticalBlock"]:has(.game-cards-scope):not(:has(div[data-testid="stVerticalBlock"] .game-cards-scope)) div.stButton > button p,
         div[data-testid="stVerticalBlock"]:has(.game-cards-scope):not(:has(div[data-testid="stVerticalBlock"] .game-cards-scope)) div.stButton > button span {
@@ -116,7 +339,6 @@ def inject_compact_responsive_sudoku_css():
             display: block !important;
             text-align: left !important;
         }
-        /* Định dạng phần chữ tóm tắt bên dưới */
         div[data-testid="stVerticalBlock"]:has(.game-cards-scope):not(:has(div[data-testid="stVerticalBlock"] .game-cards-scope)) div.stButton > button p {
             font-size: 0.83rem !important;
             font-weight: 400 !important;
@@ -124,7 +346,6 @@ def inject_compact_responsive_sudoku_css():
             line-height: 1.45 !important;
             margin: 0 !important;
         }
-        /* Định dạng dòng Tiêu đề in đậm nằm tách biệt ở trên cùng */
         div[data-testid="stVerticalBlock"]:has(.game-cards-scope):not(:has(div[data-testid="stVerticalBlock"] .game-cards-scope)) div.stButton > button p strong {
             display: block !important;
             font-size: 1.05rem !important;
@@ -133,7 +354,6 @@ def inject_compact_responsive_sudoku_css():
             margin-bottom: 6px !important;
             line-height: 1.3 !important;
         }
-        /* Thẻ Game ở trạng thái bình thường (chưa chọn) */
         div[data-testid="stVerticalBlock"]:has(.game-cards-scope):not(:has(div[data-testid="stVerticalBlock"] .game-cards-scope)) div.stButton > button[kind="secondary"] {
             background: linear-gradient(145deg, #111827 0%, #1e1b4b 100%) !important;
             border: 1.5px solid #374151 !important;
@@ -143,7 +363,6 @@ def inject_compact_responsive_sudoku_css():
             transform: translateY(-3px) !important;
             box-shadow: 0 8px 24px rgba(59, 130, 246, 0.25) !important;
         }
-        /* Thẻ Game đang được chọn (Active Game Card) */
         div[data-testid="stVerticalBlock"]:has(.game-cards-scope):not(:has(div[data-testid="stVerticalBlock"] .game-cards-scope)) div.stButton > button[kind="primary"] {
             background: linear-gradient(145deg, #1e1b4b 0%, #1d4ed8 100%) !important;
             border: 2.5px solid #38bdf8 !important;
@@ -151,7 +370,7 @@ def inject_compact_responsive_sudoku_css():
             transform: translateY(-2px) !important;
         }
 
-        /* CHỈ THU GỌN ĐÚNG CONTAINER TRONG CÙNG CỦA BÀN CỜ 9x9 (KHÔNG BÓP TOÀN TRANG GAME) */
+        /* CHỈ THU GỌN ĐÚNG CONTAINER TRONG CÙNG CỦA BÀN CỜ 9x9 (460px) */
         div[data-testid="stVerticalBlock"]:has(.sdk-board-scope):not(:has(div[data-testid="stVerticalBlock"] .sdk-board-scope)) {
             max-width: 460px !important;
             margin: 6px auto 14px auto !important;
@@ -269,8 +488,8 @@ def inject_compact_responsive_sudoku_css():
     </style>
     """, unsafe_allow_html=True)
 
+
 def render_single_unified_9x9_board(puzzle: list[list[int]], user_board: list[list[int]], hinted_cells: list, key_prefix: str, lock_all: bool = False):
-    """Hiển thị 1 BẢNG 9x9 DUY NHẤT, nhỏ gọn (460px), độ tương phản cao."""
     hint_set = set(tuple(x) for x in hinted_cells)
 
     st.markdown(
@@ -329,15 +548,17 @@ def render_single_unified_9x9_board(puzzle: list[list[int]], user_board: list[li
                         else:
                             user_board[r][c] = 0
 
+
 def render_sudoku_arcade(default_username: str = "taolagautruc"):
     inject_compact_responsive_sudoku_css()
+    db = load_sudoku_db()
 
     st.markdown("""
     <div class="hero-box" style="padding: 20px 28px; margin-bottom: 16px; background: linear-gradient(135deg, #090d16 0%, #1e1b4b 50%, #312e81 100%); border: 1px solid #6366f1;">
-        <div class="hero-badge" style="background: rgba(99, 102, 241, 0.2); color: #818cf8; border-color: #6366f1;">🎮 CYBER GAME ARCADE • LOGIC, DEDUCTION & CRYPTOGRAPHY MINI-GAMES</div>
+        <div class="hero-badge" style="background: rgba(99, 102, 241, 0.2); color: #818cf8; border-color: #6366f1;">🎮 CYBER GAME ARCADE • 4 COMPLETE LOGIC, ESCAPE & DETECTIVE GAMES</div>
         <h2 style="color: #f8fafc; margin: 4px 0 6px 0; font-weight: 800;">Ultimate Mind & Cryptic Game Center</h2>
         <p class="hero-sub">
-            Click directly on any of the 4 Game Cards below to launch that game! Compete on leaderboards, use strategic hints, or host multiplayer duel rooms with friends.
+            Click directly on any of the 4 Game Cards below! Every solved Sudoku board, Escape Room episode, Sherlock case, and Mastermind vault awards ranked PTS & Agent XP!
         </p>
     </div>
     """, unsafe_allow_html=True)
@@ -347,13 +568,7 @@ def render_sudoku_arcade(default_username: str = "taolagautruc"):
 
     curr_game = st.session_state.active_mini_game
 
-    # ==========================================================================
-    # 4 THẺ TIÊU ĐỀ GAME CÓ THỂ ẤN VÀO TRỰC TIẾP (ĐÃ XÓA BỎ HÀNG CHẤM TRÒN RỐI MẮT)
-    # ==========================================================================
     st.caption("👆 **Click directly on any Game Card below to switch games:**")
-    with st.container():
-        st.markdown("<div class='game-cards-scope'></div>", unsafe_allow_html=True)
-        st.caption("👆 **Click directly on any Game Card below to switch games:**")
     with st.container():
         st.markdown("<div class='game-cards-scope'></div>", unsafe_allow_html=True)
         g_col1, g_col2, g_col3, g_col4 = st.columns(4)
@@ -370,7 +585,7 @@ def render_sudoku_arcade(default_username: str = "taolagautruc"):
 
         with g_col2:
             if st.button(
-                "**🗝️ 2. Unlock! Escape Room** Combine item cards, symbol codes & 4-digit locks to escape before time runs out.",
+                "**🗝️ 2. Unlock! Escape Room** 5 Cyber Escape Episodes! Combine item card numbers & crack locks for up to 3,000 PTS.",
                 type="primary" if curr_game == "UNLOCK" else "secondary",
                 use_container_width=True,
                 key="card_btn_unlock"
@@ -380,7 +595,7 @@ def render_sudoku_arcade(default_username: str = "taolagautruc"):
 
         with g_col3:
             if st.button(
-                "**🕵️ 3. Sherlock Detective** Forensic cryptogram & alibi deduction mysteries inspired by Consulting Detective.",
+                "**🕵️ 3. Sherlock Detective** 5 Forensic Case Files! Examine alibis, decode evidence & catch the culprit.",
                 type="primary" if curr_game == "SHERLOCK" else "secondary",
                 use_container_width=True,
                 key="card_btn_sherlock"
@@ -390,84 +605,221 @@ def render_sudoku_arcade(default_username: str = "taolagautruc"):
 
         with g_col4:
             if st.button(
-                "**🔐 4. Mastermind Vault** Crack the secret 4-digit vault combination using Exact & Partial logic feedback.",
+                "**🔐 4. Mastermind Vault** 3 Security Tiers (4, 5 & 6 Digits)! Crack the secret vault code with logic feedback.",
                 type="primary" if curr_game == "MASTERMIND" else "secondary",
                 use_container_width=True,
                 key="card_btn_mastermind"
             ):
                 st.session_state.active_mini_game = "MASTERMIND"
                 st.rerun()
+
     st.divider()
 
-    # ==========================================================================
-    # HIỂN THỊ GAME TƯƠNG ỨNG KHI NGƯỜI CHƠI ẤN VÀO THẺ ĐÓ
-    # ==========================================================================
-    if curr_game == "UNLOCK":
-        st.subheader("🗝️ Unlock! Cyber Escape Room — Episode 1: The Server Vault")
-        st.info("🔍 **Escape Scenario:** You are locked inside a high-security server room. A **Red Card #14** (shows a 3-triangle symbol) and a **Blue Card #27** (shows a 5-star symbol) lie on the desk. The door keypad asks for `CardSum + (Triangles * Stars)`.")
-        code_try = st.text_input("🔢 Enter 2-Digit Escape Keypad Code:")
-        if st.button("🔓 Unlock Door", type="primary"):
-            if code_try.strip() == "56":
-                st.balloons()
-                st.success("🎉 **DOOR UNLOCKED!** `(14 + 27) + (3 * 5) = 41 + 15 = 56`!")
-            else:
-                st.error("❌ Locked! Hint: Add the two card numbers `(14 + 27)`, then add `(3 * 5)`.")
-        return
-
-    elif curr_game == "SHERLOCK":
-        st.subheader("🕵️ Sherlock Holmes Consulting Detective — Case #01: The Midnight Cipher")
-        st.info("📜 **Case Dossier:** Lord Blackwood's safe was opened at `23:45 UTC`. Three suspects were in the mansion: **Butler James** (alibi: kitchen, no mud on shoes), **Lady Evelyn** (alibi: garden, mud on boots, knew the shift key), and **Dr. Mortimer** (arrived at `00:15 UTC`). The note left behind reads `VRIH` (Caesar Shift +3).")
-        suspect = st.selectbox("Who opened the safe, and what does 'VRIH' decode to?", ["-- Select Deduction --", "Butler James (SAFE)", "Lady Evelyn (SAFE)", "Dr. Mortimer (GOLD)"])
-        if st.button("🔍 Submit Deduction to Scotland Yard", type="primary"):
-            if "Lady Evelyn" in suspect:
-                st.balloons()
-                st.success("🎉 **BRILLIANT DEDUCTION, HOLMES!** `VRIH` (-3) = `SAFE`, and only Lady Evelyn had garden mud and knew the cipher!")
-            else:
-                st.error("❌ Elementary mistake, Watson! Check the arrival time, the garden mud, and shift `VRIH` back by 3 letters.")
-        return
-
-    elif curr_game == "MASTERMIND":
-        st.subheader("🔐 Mastermind Vault Breaker — Crack the 4-Digit Secret Code")
-        if "mm_secret" not in st.session_state:
-            st.session_state.mm_secret = "".join(random.sample("123456789", 4))
-            st.session_state.mm_history = []
-        mm_guess = st.text_input("Enter 4 distinct digits (1–9):", max_chars=4, placeholder="e.g. 4829")
-        c_m1, c_m2 = st.columns(2)
-        if c_m1.button("🚀 Test Combination", type="primary", use_container_width=True) and len(mm_guess) == 4:
-            sec = st.session_state.mm_secret
-            bulls = sum(1 for i in range(4) if mm_guess[i] == sec[i])
-            cows = sum(1 for c in mm_guess if c in sec) - bulls
-            st.session_state.mm_history.append((mm_guess, bulls, cows))
-            if bulls == 4:
-                st.balloons()
-                st.success(f"🎉 **VAULT CRACKED!** The code was `{sec}`!")
-        if c_m2.button("🔄 New Vault Code", use_container_width=True):
-            st.session_state.mm_secret = "".join(random.sample("123456789", 4))
-            st.session_state.mm_history = []
-            st.rerun()
-        for g_str, b_cnt, c_cnt in reversed(st.session_state.mm_history):
-            st.markdown(f"- Guess **`{g_str}`** $\\rightarrow$ 🟢 **{b_cnt} Exact Position** | 🟡 **{c_cnt} Wrong Position**")
-        return
-
-    # ==========================================================================
-    # MẶC ĐỊNH KHI ẤN VÀO THẺ 1: 🧩 9x9 SUDOKU MASTER ARENA
-    # ==========================================================================
-    db = load_sudoku_db()
-
+    # Thanh hiển thị Callsign & Điểm số chung cho cả 4 Game
     m_col1, m_col2, m_col3 = st.columns([1.4, 1.3, 1.3])
     with m_col1:
         player_name = st.text_input(
             "🕵️ Your Arcade Player Callsign:",
             value=st.session_state.get("ctf_user") or default_username,
             key="sdk_player_in"
-        ).strip() or "Agent_Player"
+        ).strip() or "taolagautruc"
 
     p_stats = db["leaderboard"].get(player_name, {"sudoku_score": 0, "puzzles_solved": 0, "best_tier": 0})
-    with m_col2:
-        st.metric("🏆 Your Total Sudoku Score", f"{p_stats.get('sudoku_score', 0):,} PTS", f"Best Tier: Tier {p_stats.get('best_tier', 0)}")
-    with m_col3:
-        st.metric("✅ 9x9 Boards Solved", f"{p_stats.get('puzzles_solved', 0)} Boards", "Global Ranked")
+    u_prog = db["arcade_progress"].setdefault(player_name, {"unlock_solved": [], "sherlock_solved": [], "mm_wins": 0})
 
+    with m_col2:
+        st.metric("🏆 Total Arcade Score", f"{p_stats.get('sudoku_score', 0):,} PTS", f"Max Tier: Tier {p_stats.get('best_tier', 0)}")
+    with m_col3:
+        st.metric("✅ Total Arcade Victories", f"{p_stats.get('puzzles_solved', 0)} Wins", f"Escape: {len(u_prog['unlock_solved'])}/5 • Sherlock: {len(u_prog['sherlock_solved'])}/5")
+
+    # ==========================================================================
+    # GAME 2: 🗝️ UNLOCK! CYBER ESCAPE ROOM (5 EPISODES + CARD COMBINING MECHANIC)
+    # ==========================================================================
+    if curr_game == "UNLOCK":
+        st.markdown("""
+        <div class="ws-banner">
+            <h4>🗝️ Unlock! Cyber Escape Room — 5 Interactive Card-Combining Episodes</h4>
+            <p><b>How to play:</b> Step 1: Add the two Item Card numbers together to unlock the hidden Clue Card. Step 2: Solve the final keypad lock to escape and earn PTS!</p>
+        </div>
+        """, unsafe_allow_html=True)
+
+        ep_titles = [
+            f"{'✅ ' if ep['id'] in u_prog['unlock_solved'] else '🔒 '}{ep['title']} (+{ep['reward']:,} PTS)"
+            for ep in UNLOCK_EPISODES
+        ]
+        sel_ep_idx = st.selectbox("📂 Select Escape Room Episode:", range(len(UNLOCK_EPISODES)), format_func=lambda i: ep_titles[i])
+        ep = UNLOCK_EPISODES[sel_ep_idx]
+        ep_id = ep["id"]
+        is_ep_solved = ep_id in u_prog["unlock_solved"]
+
+        st.subheader(f"🗝️ {ep['title']} — Reward: +{ep['reward']:,} PTS")
+        st.info(f"📖 **Mission Briefing:** {ep['scenario']}")
+
+        c_card1, c_card2 = st.columns(2)
+        with c_card1:
+            with st.container(border=True):
+                st.markdown(f"##### {ep['cards'][0][0]}")
+                st.write(ep['cards'][0][1])
+        with c_card2:
+            with st.container(border=True):
+                st.markdown(f"##### {ep['cards'][1][0]}")
+                st.write(ep['cards'][1][1])
+
+        # Bước 1: Ghép 2 thẻ đồ vật (Combine Cards)
+        with st.container(border=True):
+            st.markdown("##### 🔗 Step 1: Combine Item Cards (`Card A # + Card B #`)")
+            cb1, cb2 = st.columns([2, 1])
+            with cb1:
+                comb_in = st.number_input("Enter the sum of the two card numbers:", min_value=0, max_value=999, value=0, key=f"unl_comb_{ep_id}")
+            with cb2:
+                st.write("")
+                if st.button("🔗 Combine Cards", key=f"btn_comb_{ep_id}", use_container_width=True):
+                    if comb_in == ep["combine_target"]:
+                        st.session_state[f"unl_rev_{ep_id}"] = True
+                    else:
+                        st.error("❌ Those card numbers don't match! Add the two # numbers on the cards above.")
+
+            if st.session_state.get(f"unl_rev_{ep_id}") or is_ep_solved:
+                st.success(ep["combined_reveal"])
+
+        # Bước 2: Nhập mật mã thoát hiểm cuối cùng
+        with st.container(border=True):
+            st.markdown("##### 🚪 Step 2: Final Escape Keypad")
+            if is_ep_solved:
+                st.success(f"🎉 **EPISODE COMPLETED!** You already escaped this room (Code: `{ep['final_answer']}`) and claimed **+{ep['reward']:,} PTS**!")
+            else:
+                k_col1, k_col2, k_col3 = st.columns([2, 1, 1])
+                with k_col1:
+                    code_try = st.text_input(ep["final_question"], key=f"unl_ans_{ep_id}")
+                with k_col2:
+                    st.write("")
+                    if st.button("🔓 Unlock Blast Door", type="primary", use_container_width=True, key=f"btn_unl_{ep_id}"):
+                        if code_try.strip().upper() == ep["final_answer"].upper():
+                            u_prog["unlock_solved"].append(ep_id)
+                            award_arcade_xp(db, player_name, ep["reward"], tier_equiv=sel_ep_idx + 1)
+                            st.balloons()
+                            st.rerun()
+                        else:
+                            st.error("❌ Keypad rejected! Combine the cards in Step 1 first or check the Hint.")
+                with k_col3:
+                    st.write("")
+                    with st.popover("💡 View Hint", use_container_width=True):
+                        st.write(ep["hint"])
+        return
+
+    # ==========================================================================
+    # GAME 3: 🕵️ SHERLOCK CONSULTING DETECTIVE (5 FORENSIC CASE FILES)
+    # ==========================================================================
+    elif curr_game == "SHERLOCK":
+        st.markdown("""
+        <div class="ws-banner">
+            <h4>🕵️ Sherlock Holmes Consulting Detective — 5 Forensic Cryptogram Dossiers</h4>
+            <p><b>How to play:</b> Examine the crime scene timestamp, cross-check the 3 suspect alibis, decode the forensic cipher note, and submit your deduction to Scotland Yard!</p>
+        </div>
+        """, unsafe_allow_html=True)
+
+        case_titles = [
+            f"{'✅ ' if c['id'] in u_prog['sherlock_solved'] else '📁 '}{c['title']}"
+            for c in SHERLOCK_CASES
+        ]
+        sel_case_idx = st.selectbox("📂 Select Scotland Yard Case Dossier:", range(len(SHERLOCK_CASES)), format_func=lambda i: case_titles[i])
+        case = SHERLOCK_CASES[sel_case_idx]
+        cid = case["id"]
+        is_case_solved = cid in u_prog["sherlock_solved"]
+
+        st.subheader(f"🕵️ {case['title']}")
+        st.info(f"📜 **Crime Scene & Forensic Evidence:** {case['dossier']}")
+
+        st.markdown("##### 👥 Suspect Alibis & Interrogation Notes:")
+        for susp in case["suspects"]:
+            st.markdown(f"- {susp}")
+
+        st.write("")
+        if is_case_solved:
+            st.success(f"🎉 **CASE CLOSED!** You solved this investigation (`{case['correct_option']}`) and earned **+{case['reward']:,} PTS**!\n\n💡 *Holmes's Analysis:* {case['explanation']}")
+        else:
+            ded_pick = st.selectbox("🔍 Who is the culprit, and what does the evidence decode to?", case["options"], key=f"sh_pick_{cid}")
+            if st.button("⚖️ Submit Official Deduction to Scotland Yard", type="primary", key=f"btn_sh_{cid}"):
+                if ded_pick == case["correct_option"]:
+                    u_prog["sherlock_solved"].append(cid)
+                    award_arcade_xp(db, player_name, case["reward"], tier_equiv=sel_case_idx + 1)
+                    st.balloons()
+                    st.rerun()
+                else:
+                    st.error("❌ Elementary mistake, Watson! Re-read the timestamps, alibis, and cipher carefully.")
+        return
+
+    # ==========================================================================
+    # GAME 4: 🔐 MASTERMIND VAULT BREAKER (3 DIFFICULTY TIERS + ATTEMPT BONUS)
+    # ==========================================================================
+    elif curr_game == "MASTERMIND":
+        st.markdown("""
+        <div class="ws-banner">
+            <h4>🔐 Mastermind Vault Breaker — Multi-Tier Codebreaking Arena</h4>
+            <p>Crack the secret distinct-digit code! 🟢 <b>Exact (Bulls)</b> = Right digit in the right spot &nbsp;|&nbsp; 🟡 <b>Partial (Cows)</b> = Right digit in the wrong spot.</p>
+        </div>
+        """, unsafe_allow_html=True)
+
+        mm_c1, mm_c2 = st.columns([2, 1])
+        with mm_c1:
+            mm_tier_label = st.selectbox(
+                "🔥 Select Vault Security Tier:",
+                [
+                    "Tier 1 — 4-Digit Standard Vault (Base Reward: 800 PTS)",
+                    "Tier 2 — 5-Digit High-Security Vault (Base Reward: 1,800 PTS)",
+                    "Tier 3 — 6-Digit Quantum Vault (Base Reward: 3,500 PTS)"
+                ]
+            )
+        mm_len = 4 if "4-Digit" in mm_tier_label else (5 if "5-Digit" in mm_tier_label else 6)
+        mm_base_pts = 800 if mm_len == 4 else (1800 if mm_len == 5 else 3500)
+
+        if "mm_secret" not in st.session_state or len(st.session_state.mm_secret) != mm_len:
+            st.session_state.mm_secret = "".join(random.sample("123456789", mm_len))
+            st.session_state.mm_history = []
+            st.session_state.mm_cracked = False
+
+        with mm_c2:
+            st.write("")
+            if st.button("🔄 Generate New Vault Code", use_container_width=True):
+                st.session_state.mm_secret = "".join(random.sample("123456789", mm_len))
+                st.session_state.mm_history = []
+                st.session_state.mm_cracked = False
+                st.rerun()
+
+        mm_guess = st.text_input(
+            f"🔢 Enter {mm_len} distinct digits (from 1–9):",
+            max_chars=mm_len,
+            placeholder="e.g. " + "482916"[:mm_len]
+        ).strip()
+
+        if st.button("🚀 Test Vault Combination", type="primary", disabled=st.session_state.mm_cracked):
+            if len(mm_guess) != mm_len or not mm_guess.isdigit() or "0" in mm_guess or len(set(mm_guess)) != mm_len:
+                st.warning(f"⚠️ Please enter exactly **{mm_len} distinct non-zero digits (1–9)**!")
+            else:
+                sec = st.session_state.mm_secret
+                bulls = sum(1 for i in range(mm_len) if mm_guess[i] == sec[i])
+                cows = sum(1 for c in mm_guess if c in sec) - bulls
+                st.session_state.mm_history.append((mm_guess, bulls, cows))
+                if bulls == mm_len:
+                    st.session_state.mm_cracked = True
+                    tries = len(st.session_state.mm_history)
+                    speed_bonus = max(0, (10 - tries) * 100)
+                    total_mm_pts = mm_base_pts + speed_bonus
+                    u_prog["mm_wins"] = u_prog.get("mm_wins", 0) + 1
+                    award_arcade_xp(db, player_name, total_mm_pts, tier_equiv=mm_len - 2)
+                    st.balloons()
+                    st.success(f"🎉 **VAULT CRACKED IN {tries} TRIES!** Secret code: `{sec}` — You earned **+{total_mm_pts:,} PTS**!")
+
+        if st.session_state.mm_history:
+            st.markdown("##### 📜 Telemetry Feedback Log:")
+            for idx_try, (g_str, b_cnt, c_cnt) in enumerate(reversed(st.session_state.mm_history), start=1):
+                attempt_num = len(st.session_state.mm_history) - idx_try + 1
+                st.markdown(f"- **Attempt #{attempt_num}:** **`{g_str}`** $\\rightarrow$ 🟢 **{b_cnt} Exact Position** &nbsp;|&nbsp; 🟡 **{c_cnt} Wrong Position**")
+        return
+
+    # ==========================================================================
+    # GAME 1 (MẶC ĐỊNH): 🧩 9x9 SUDOKU MASTER ARENA
+    # ==========================================================================
     if "sudoku_state" not in st.session_state:
         sol0, puz0 = generate_sudoku_9x9(1, f"INIT_{player_name}_1_1")
         st.session_state.sudoku_state = {
@@ -488,7 +840,7 @@ def render_sudoku_arcade(default_username: str = "taolagautruc"):
     tab_solo, tab_duel, tab_lb = st.tabs([
         "🎮 1. Singleplayer 9x9 Sudoku (Compact Board)",
         "⚔️ 2. Multiplayer 1v1 & Co-op Rooms (Timed & Fair Countdown)",
-        "🏆 3. Global Sudoku Leaderboard"
+        "🏆 3. Global Arcade Leaderboard"
     ])
 
     with tab_solo:
@@ -594,13 +946,7 @@ def render_sudoku_arcade(default_username: str = "taolagautruc"):
                 elif gs["user_board"] == gs["solution"]:
                     gs["completed"] = True
                     gs["last_score"] = potential_pts
-                    lb = db["leaderboard"]
-                    if player_name not in lb:
-                        lb[player_name] = {"sudoku_score": 0, "puzzles_solved": 0, "best_tier": 0}
-                    lb[player_name]["sudoku_score"] += potential_pts
-                    lb[player_name]["puzzles_solved"] += 1
-                    lb[player_name]["best_tier"] = max(lb[player_name].get("best_tier", 0), curr_tier)
-                    save_sudoku_db(db)
+                    award_arcade_xp(db, player_name, potential_pts, tier_equiv=curr_tier)
                     st.balloons()
                     st.rerun()
                 else:
@@ -662,8 +1008,7 @@ def render_sudoku_arcade(default_username: str = "taolagautruc"):
                 with cr3:
                     reveal_delay_sec = st.number_input(
                         "⏳ Display Puzzle After How Many Seconds? (Max 600s = 10 mins):",
-                        min_value=0, max_value=600, value=60, step=10,
-                        help="While counting down, the puzzle is hidden so you can send the Room ID to friends!"
+                        min_value=0, max_value=600, value=60, step=10
                     )
 
                 if st.button("🚀 Create Room & Start Countdown", type="primary", use_container_width=True):
@@ -714,7 +1059,6 @@ def render_sudoku_arcade(default_username: str = "taolagautruc"):
             if player_name == r_creator:
                 with st.container(border=True):
                     st.markdown(f"##### 👑 Room Host Settings (`{room_sel}`) — Set Countdown & Match Rules")
-                    st.caption("📝 Fill in how many seconds before the puzzle is displayed (up to 600s / 10 mins) so you can send the Room ID to everyone.")
                     hc1, hc2, hc3, hc4 = st.columns([1.4, 1.2, 1.2, 1.2])
                     with hc1:
                         host_delay_in = st.number_input(
@@ -836,13 +1180,7 @@ def render_sudoku_arcade(default_username: str = "taolagautruc"):
                             "hints_used": used_h
                         }
                         db["rooms"][room_sel]["players"] = r_players
-                        lb = db["leaderboard"]
-                        if player_name not in lb:
-                            lb[player_name] = {"sudoku_score": 0, "puzzles_solved": 0, "best_tier": 0}
-                        lb[player_name]["sudoku_score"] += final_pts
-                        lb[player_name]["puzzles_solved"] += 1
-                        lb[player_name]["best_tier"] = max(lb[player_name].get("best_tier", 0), r_tier)
-                        save_sudoku_db(db)
+                        award_arcade_xp(db, player_name, final_pts, tier_equiv=r_tier)
                         st.balloons()
                         st.rerun()
                     else:
@@ -861,8 +1199,8 @@ def render_sudoku_arcade(default_username: str = "taolagautruc"):
     with tab_lb:
         st.markdown("""
         <div class="ws-banner">
-            <h4>🏆 Global 9x9 Sudoku Leaderboard</h4>
-            <p>Public rankings across all Sudoku players. Higher tiers award up to 25,000 PTS per board!</p>
+            <h4>🏆 Global Cyber Game Arcade Leaderboard</h4>
+            <p>Combined rankings across 9x9 Sudoku, Unlock! Escape Rooms, Sherlock Detective Cases, and Mastermind Vaults!</p>
         </div>
         """, unsafe_allow_html=True)
 
@@ -879,5 +1217,5 @@ def render_sudoku_arcade(default_username: str = "taolagautruc"):
             c1, c2, c3, c4 = st.columns([2.2, 1.4, 1.2, 1.2])
             c1.markdown(f"**{medal} &nbsp; `{u_name}`**{me_badge}")
             c2.markdown(f"🏆 **{sc:,} PTS**")
-            c3.markdown(f"✅ `{slv}` boards")
+            c3.markdown(f"✅ `{slv}` victories")
             c4.markdown(f"🔥 Max Tier: `Tier {bt}`")

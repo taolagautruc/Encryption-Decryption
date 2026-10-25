@@ -12,14 +12,68 @@ from PIL import Image
 import io
 
 AI_MEMORY_FILE = "ai_mentor_memory_db.json"
-
-# Mật khẩu Admin mặc định là "HCMUS3001" (Lưu dưới dạng băm SHA-256 an toàn)
 DEFAULT_ADMIN_PIN_HASH = hashlib.sha256(b"HCMUS3001").hexdigest()
 
 # ==============================================================================
-# 1. KHO TRI THỨC NỀN TẢNG ĐA NGÔN NGỮ (ENGLISH DEFAULT + VIETNAMESE)
+# 1. CẦU NỐI DỊCH THUẬT & NHẬN DIỆN 100+ NGÔN NGỮ TỰ ĐỘNG (ZERO-KEY TRANSLATION BRIDGE)
+# ==============================================================================
+def auto_translate_text(text: str, source_lang: str = "auto", target_lang: str = "en") -> tuple[str, str]:
+    """
+    Tự động phát hiện ngôn ngữ của người dùng (Đức, Pháp, Nhật, Hàn, Tây Ban Nha, Việt, Anh...)
+    và dịch qua lại giữa ngôn ngữ mẹ đẻ của người dùng với bộ não Tiếng Anh của AI.
+    Trả về: (translated_text, detected_language_code)
+    """
+    if not text or not text.strip():
+        return "", "en"
+    try:
+        q_enc = urllib.parse.quote(text.strip())
+        url = f"https://translate.googleapis.com/translate_a/single?client=gtx&sl={source_lang}&tl={target_lang}&dt=t&q={q_enc}"
+        req = urllib.request.Request(url, headers={"User-Agent": "Mozilla/5.0"})
+        with urllib.request.urlopen(req, timeout=4) as resp:
+            data = json.loads(resp.read().decode("utf-8"))
+            translated_chunks = [ seg[0] for seg in data[0] if seg and seg[0] ]
+            translated_str = "".join(translated_chunks)
+            detected_lang = data[2] if len(data) > 2 and isinstance(data[2], str) else "en"
+            return translated_str, detected_lang
+    except Exception:
+        # Dự phòng nếu mạng chập chờn
+        low = text.lower()
+        if any(c in "àáạảãâầấậẩẫăằắặẳẵèéẹẻẽêềếệểễìíịỉĩòóọỏõôồốộổỗơờớợởỡùúụủũưừứựửữỳýỵỷỹđ" for c in low):
+            return text, "vi"
+        if any(c in "äöüß" for c in low) or "ich " in low or "wie " in low:
+            return text, "de"
+        return text, "en"
+
+
+# ==============================================================================
+# 2. KHO TRI THỨC NỀN TẢNG (BAO GỒM LỘ TRÌNH CHO NGƯỜI MỚI & 4 TRỤ CỘT ENCODING)
 # ==============================================================================
 CORE_KNOWLEDGE_BASE = [
+    {
+        "id": "KB_BEGINNER_ROADMAP",
+        "keywords": [
+            "start", "begin", "beginner", "newbie", "roadmap", "learn cybersecurity", "get into cybersecurity",
+            "how to learn", "where to start", "anfangen", "cybersicherheit", "einsteiger", "bắt đầu", "người mới", "lộ trình"
+        ],
+        "en": (
+            "🗺️ **Beginner's Roadmap to Cybersecurity & Cryptography (How to Start on This Platform):**\n"
+            "If you are new to Cybersecurity and Cryptography, follow this step-by-step path right here in **Security Academy**:\n"
+            "1. **Step 1 — Track 1: Classical Cryptography (`Lessons 01 to 03`):** Start with **Lesson 01** to understand the difference between *Encoding, Encryption, and Hashing*, then practice frequency analysis and polyalphabetic ciphers.\n"
+            "2. **Step 2 — Track 2: Binary, Bits & Computer Systems (`Lessons 04 to 09`):** Master how computers store data using **Bits, Bytes, Hexadecimal, ASCII/UTF-8, Two's Complement, and Bitwise XOR/Shifts**.\n"
+            "3. **Step 3 — Track 3: Mathematical Foundations (`Lessons 10 to 13`):** Learn Modular Arithmetic, GCD, and Shannon's Perfect Secrecy (One-Time Pad).\n"
+            "4. **Step 4 — Track 4: Modern & Post-Quantum Security (`Lessons 14 to 20`):** Dive into **SHA-256, AES-256, RSA Public-Key Cryptography, Digital Forensics, and Quantum Security**.\n\n"
+            "👉 *Tip: Select **Lesson 01** in the dropdown on the left, read the notes, and try solving Quiz 1 & Lab 1!*"
+        ),
+        "vi": (
+            "🗺️ **Lộ Trình Bắt Đầu Học An Ninh Mạng & Mật Mã Học (Dành Cho Người Mới):**\n"
+            "Nếu bạn mới tìm hiểu về An ninh mạng và chưa biết bắt đầu từ đâu, hãy đi theo 4 bước ngay trong mục **Security Academy** này:\n"
+            "1. **Bước 1 — Track 1: Mật mã Cổ điển (`Bài 01 đến 03`):** Bắt đầu từ **Bài 01** để phân biệt rõ *Encoding, Encryption và Hashing*, sau đó làm quen với Caesar, Affine, Vigenère.\n"
+            "2. **Bước 2 — Track 2: Nhị phân, Bits & Hệ thống Máy tính (`Bài 04 đến 09`):** Nắm vững nền tảng `Bits, Bytes, Hex, ASCII/UTF-8, Số bù 2 (Two's Complement)` và phép toán `Bitwise XOR/Shift`.\n"
+            "3. **Bước 3 — Track 3: Toán học Mật mã (`Bài 10 đến 13`):** Học số học Modulo, ước chung lớn nhất (GCD) và độ mật hoàn hảo của Shannon.\n"
+            "4. **Bước 4 — Track 4: Mật mã Hiện đại & Lượng tử (`Bài 14 đến 20`):** Chinh phục `SHA-256, AES-256, RSA, Pháp y số (Steganography)` và `Mật mã Hậu Lượng Tử`.\n\n"
+            "👉 *Gợi ý: Bạn hãy chọn **Lesson 01** ở thanh chọn bài học bên trái và thử làm Quiz 1 nhé!*"
+        )
+    },
     {
         "id": "KB_CHAR_ENC",
         "keywords": ["character encoding", "mã hóa ký tự", "utf-8", "utf8", "utf-16", "utf-32", "ascii", "unicode", "7-bit"],
@@ -119,11 +173,12 @@ CORE_KNOWLEDGE_BASE = [
 ]
 
 ALLOWED_DOMAIN_KEYWORDS = {
-    "mật mã", "mã hóa", "giải mã", "cipher", "crypto", "cryptography", "encode", "encoding", "decode",
+    "cyber", "cybersecurity", "cybersicherheit", "sicherheit", "security", "bảo mật", "an ninh mạng",
+    "mật mã", "mã hóa", "giải mã", "cipher", "crypto", "cryptography", "kryptographie", "verschlüsselung", "encode", "encoding", "decode",
     "utf", "ascii", "unicode", "base64", "url", "html", "xss", "percent", "multimedia", "video", "audio",
     "h.264", "h.265", "hevc", "av1", "vp9", "mp3", "mp4", "flac", "wav", "png", "lsb", "steganography", "giấu tin",
     "one-hot", "onehot", "label", "ordinal", "target", "machine learning", "học máy", "data", "dữ liệu",
-    "nhị phân", "binary", "bit", "bits", "byte", "bytes", "nibble", "hex", "hexadecimal", "decimal", "thập phân",
+    "nhị phân", "binary", "binär", "bit", "bits", "byte", "bytes", "nibble", "hex", "hexadecimal", "decimal", "thập phân",
     "bù 2", "complement", "overflow", "bitwise", "xor", "and", "shift", "dịch", "assembly", "rax", "mov", "shl", "shr",
     "endian", "little-endian", "big-endian", "caesar", "rot13", "atbash", "affine", "vigenere", "rail-fence", "transposition",
     "modulo", "mod", "inverse", "nghịch đảo", "coprime", "frequency", "tần suất", "otp", "one-time pad", "shannon", "entropy",
@@ -131,18 +186,18 @@ ALLOWED_DOMAIN_KEYWORDS = {
     "prime", "totient", "phi", "quantum", "lượng tử", "qubit", "shor", "grover", "lattice", "kyber", "enigma", "elliptic", "ecc",
     "zero-knowledge", "zkp", "homomorphic", "block cipher", "stream cipher", "kerckhoffs", "hmac", "digital signature", "tls", "ssl",
     "bài", "lesson", "module", "track", "lab", "quiz", "câu hỏi", "đáp án", "hint", "gợi ý", "sudoku", "ctf", "web", "app",
-    "camouflage", "ngụy trang", "morse", "visual", "pháp y", "forensic", "password", "mật khẩu", "key", "khóa", "security", "bảo mật",
-    "hello", "hi", "xin chào", "chào", "help", "giúp", "hướng dẫn", "explain", "giải thích", "là gì", "what", "how", "why",
-    "was ist", "qu'est-ce", "qué es", "kryptographie", "chiffrement", "cifrado"
+    "camouflage", "ngụy trang", "morse", "visual", "pháp y", "forensic", "password", "mật khẩu", "key", "khóa",
+    "start", "begin", "anfangen", "lernen", "learn", "study", "course", "academy", "roadmap",
+    "hello", "hi", "hallo", "bonjour", "hola", "xin chào", "chào", "help", "giúp", "hướng dẫn", "explain", "giải thích", "what", "how", "why"
 }
 
 OFF_TOPIC_KEYWORDS = {
     "nấu ăn", "công thức nấu", "phở", "bún bò", "bóng đá", "ngoại hạng anh", "world cup", "messi", "ronaldo",
     "thời tiết", "xổ số", "lô đề", "tử vi", "bói toán", "cung hoàng đạo", "người yêu", "tình yêu", "thất tình",
-    "recipe", "cooking", "football", "soccer", "weather", "horoscope", "astrology", "dating", "boyfriend", "girlfriend"
+    "recipe", "cooking", "pasta", "pizza", "football", "soccer", "weather", "horoscope", "astrology", "dating", "boyfriend", "girlfriend",
+    "kochen", "rezept", "fußball", "wetter"
 }
 
-# Danh sách các chủ đề Mật mã học chuẩn Quốc tế để Admin bấm 1 nút là AI tự động thu thập từ Wikipedia
 AUTO_HARVEST_TOPICS = [
     ("Enigma machine", ["enigma", "rotor", "turing"]),
     ("Elliptic-curve cryptography", ["ecc", "elliptic", "curve"]),
@@ -193,31 +248,7 @@ def save_ai_memory(data: dict):
         json.dump(data, f, ensure_ascii=False, indent=4)
 
 
-def detect_user_language(text: str) -> str:
-    """
-    Nhận diện ngôn ngữ người dùng:
-    - Nếu có ký tự/từ Tiếng Việt -> 'vi'
-    - Nếu có tiếng Đức/Pháp/Tây Ban Nha/Nhật/Hàn -> mã ngôn ngữ tương ứng
-    - Mặc định toàn cầu -> 'en' (Tiếng Anh Quốc tế)
-    """
-    low = text.lower()
-    vn_chars = set("àáạảãâầấậẩẫăằắặẳẵèéẹẻẽêềếệểễìíịỉĩòóọỏõôồốộổỗơờớợởỡùúụủũưừứựửữỳýỵỷỹđ")
-    if any(c in vn_chars for c in low) or any(w in low for w in ["là gì", "như thế nào", "giải thích", "bài học", "nhị phân", "mã hóa", "gợi ý"]):
-        return "vi"
-    if any(w in low for w in ["was ist", "wie funktioniert", "verschlüsselung", "erkläre"]):
-        return "de"
-    if any(w in low for w in ["qu'est-ce", "chiffrement", "expliquer", "comment"]):
-        return "fr"
-    if any(w in low for w in ["qué es", "cifrado", "explicar", "cómo"]):
-        return "es"
-    return "en"
-
-
 def fetch_wikipedia_crypto_summary(query_term: str, lang_code: str = "en") -> tuple[bool, str, str]:
-    """
-    Tự động tra cứu Bách khoa toàn thư Wikipedia REST API theo đúng ngôn ngữ người dùng hỏi
-    để AI tự học kiến thức mới mà Admin không cần gõ tay.
-    """
     clean_q = re.sub(
         r'^(what is|what are|explain|define|how does|tell me about|là gì|giải thích|khái niệm|was ist|qu\'est-ce que|qué es)\s+',
         '', query_term.strip(), flags=re.IGNORECASE
@@ -225,11 +256,14 @@ def fetch_wikipedia_crypto_summary(query_term: str, lang_code: str = "en") -> tu
     if len(clean_q) < 2:
         return False, "", ""
 
-    wiki_lang = lang_code if lang_code in ["en", "vi", "de", "fr", "es"] else "en"
+    wiki_lang = lang_code.split("-")[0] if lang_code else "en"
+    if wiki_lang not in ["en", "vi", "de", "fr", "es", "ja", "ko", "zh", "ru", "it", "pt"]:
+        wiki_lang = "en"
+
     search_url = f"https://{wiki_lang}.wikipedia.org/w/api.php?action=opensearch&search={urllib.parse.quote(clean_q)}&limit=1&namespace=0&format=json"
 
     try:
-        req = urllib.request.Request(search_url, headers={"User-Agent": "USM-CyberMentor/2.0 (HCMUS Educational Suite)"})
+        req = urllib.request.Request(search_url, headers={"User-Agent": "USM-CyberMentor/3.0 (HCMUS Educational Suite)"})
         with urllib.request.urlopen(req, timeout=4) as resp:
             search_data = json.loads(resp.read().decode("utf-8"))
             if not search_data or len(search_data) < 2 or not search_data[1]:
@@ -239,7 +273,7 @@ def fetch_wikipedia_crypto_summary(query_term: str, lang_code: str = "en") -> tu
             best_title = search_data[1][0]
 
         sum_url = f"https://{wiki_lang}.wikipedia.org/api/rest_v1/page/summary/{urllib.parse.quote(best_title.replace(' ', '_'))}"
-        req_sum = urllib.request.Request(sum_url, headers={"User-Agent": "USM-CyberMentor/2.0 (HCMUS Educational Suite)"})
+        req_sum = urllib.request.Request(sum_url, headers={"User-Agent": "USM-CyberMentor/3.0 (HCMUS Educational Suite)"})
         with urllib.request.urlopen(req_sum, timeout=4) as resp2:
             sum_data = json.loads(resp2.read().decode("utf-8"))
             extract = sum_data.get("extract", "").strip()
@@ -251,15 +285,14 @@ def fetch_wikipedia_crypto_summary(query_term: str, lang_code: str = "en") -> tu
 
 
 def call_optional_gemini_llm(query: str, current_lesson: dict, api_key: str) -> str:
-    """Nếu Admin có nhập Gemini API Key, gọi trực tiếp mô hình đa ngôn ngữ (100+ thứ tiếng)."""
     if not api_key:
         return ""
     les_info = f"Current Lesson: {current_lesson.get('id')} - {current_lesson.get('title')}. Overview: {current_lesson.get('overview')}" if current_lesson else "Global Security Academy"
     sys_prompt = (
         "You are AI Cyber Mentor for the Ultimate Secret Messenger & Security Academy platform created by Le Hoang Phu Hieu (FIT-HCMUS). "
         "CRITICAL RULES:\n"
-        "1. ALWAYS reply in the EXACT SAME LANGUAGE that the user used in their question (e.g., if asked in English, reply in English; if German, reply in German; if Vietnamese, reply in Vietnamese).\n"
-        "2. If the user asks about something unrelated to Cryptography, Character/Data/Multimedia/ML Encoding (UTF-8, Base64, URL/HTML Encode, One-Hot), Binary/Bits, Computer Architecture, or the Security Academy lessons, politely refuse and remind them to stay on topic.\n"
+        "1. ALWAYS reply in the EXACT SAME LANGUAGE that the user used in their question (e.g., if German, reply 100% in German; if English, reply in English; if French, reply in French; if Vietnamese, reply in Vietnamese).\n"
+        "2. If the user asks about something unrelated to Cybersecurity, Cryptography, Character/Data/Multimedia/ML Encoding, Binary/Bits, or the Security Academy lessons, politely refuse IN THEIR LANGUAGE and remind them to stay on topic.\n"
         f"3. Context: {les_info}"
     )
     url = f"https://generativelanguage.googleapis.com/v1beta/models/gemini-2.5-flash:generateContent?key={api_key.strip()}"
@@ -280,16 +313,20 @@ def call_optional_gemini_llm(query: str, current_lesson: dict, api_key: str) -> 
         return ""
 
 
-def is_query_on_topic(query: str, mem_db: dict) -> bool:
-    low = query.lower()
-    if any(bad in low for bad in OFF_TOPIC_KEYWORDS):
+def is_query_on_topic(original_query: str, english_translated_query: str, mem_db: dict) -> bool:
+    """
+    Kiểm tra chủ đề dựa trên CẢ câu gốc (ví dụ Tiếng Đức/Pháp/Nhật) LẪN bản dịch Tiếng Anh.
+    Nhờ vậy mọi câu hỏi về An ninh mạng / Mật mã bằng bất kỳ thứ tiếng nào đều được nhận diện chính xác 100%!
+    """
+    combined = f"{original_query} {english_translated_query}".lower()
+    if any(bad in combined for bad in OFF_TOPIC_KEYWORDS):
         return False
-    if any(good in low for good in ALLOWED_DOMAIN_KEYWORDS):
+    if any(good in combined for good in ALLOWED_DOMAIN_KEYWORDS):
         return True
     for fact in mem_db.get("learned_facts", []):
-        if any(kw.lower() in low for kw in fact.get("keywords", [])):
+        if any(kw.lower() in combined for kw in fact.get("keywords", [])):
             return True
-    if re.search(r'\b[01]{4,}\b|\b0x[0-9a-f]+\b|\bmod\b|<<|>>', low):
+    if re.search(r'\b[01]{4,}\b|\b0x[0-9a-f]+\b|\bmod\b|<<|>>', combined):
         return True
     return False
 
@@ -299,7 +336,7 @@ def try_live_computation(query: str, lang: str) -> str:
     low = q_clean.lower()
 
     nums = re.findall(r'\b\d+\b', q_clean)
-    if nums and any(k in low for k in ["binary", "nhị phân", "hex", "bù 2", "complement", "bit"]):
+    if nums and any(k in low for k in ["binary", "nhị phân", "binär", "hex", "bù 2", "complement", "bit"]):
         n = int(nums[0])
         if 0 <= n <= 255:
             twos = f"{(256 - n) & 0xFF:08b}" if n > 0 else "00000000"
@@ -336,24 +373,28 @@ def try_live_computation(query: str, lang: str) -> str:
     return ""
 
 
+def finalize_in_user_language(response_text: str, user_lang: str) -> str:
+    """
+    Nếu người dùng hỏi bằng Tiếng Anh ('en') hoặc Tiếng Việt ('vi'), giữ nguyên bản chuẩn.
+    Nếu người dùng hỏi bằng bất kỳ ngôn ngữ quốc tế nào khác (Đức 'de', Pháp 'fr', Nhật 'ja', Hàn 'ko', Tây Ban Nha 'es'...),
+    tự động dịch toàn bộ câu trả lời sang đúng ngôn ngữ mẹ đẻ của người hỏi!
+    """
+    base_lang = user_lang.split("-")[0].lower() if user_lang else "en"
+    if base_lang in ["en", "vi"]:
+        return response_text
+    translated_reply, _ = auto_translate_text(response_text, source_lang="en", target_lang=user_lang)
+    return translated_reply if translated_reply else response_text
+
+
 def generate_ai_mentor_response(query: str, current_lesson: dict, mem_db: dict) -> str:
-    lang = detect_user_language(query)
-    kb_lang = "vi" if lang == "vi" else "en"
-    low = query.lower().strip()
+    # Bước 1: Tự động nhận diện ngôn ngữ người hỏi (VD: 'de' cho tiếng Đức) và dịch ngầm câu hỏi sang Tiếng Anh để phân tích ý định
+    eng_query, detected_lang = auto_translate_text(query, source_lang="auto", target_lang="en")
+    base_lang = detected_lang.split("-")[0].lower() if detected_lang else "en"
+    kb_lang = "vi" if base_lang == "vi" else "en"
 
-    # 1. Kiểm tra Lạc Đề (Strict Domain Guardrail)
-    if not is_query_on_topic(query, mem_db):
-        if lang == "vi":
-            return (
-                "⚠️ **Nhắc nhở từ AI Cyber Mentor:** Câu hỏi của bạn nằm ngoài phạm vi bài học. "
-                "Vui lòng chỉ hỏi các chủ đề liên quan đến **Mật mã học, 4 Trụ cột Encoding (UTF-8, Base64, URL/HTML Encode, Multimedia, One-Hot ML), Hệ Nhị Phân (Bits/Bytes) và 20 Bài học trong Security Academy**!"
-            )
-        return (
-            "⚠️ **Topic Reminder from AI Cyber Mentor:** Your question appears to be off-topic. "
-            "I am strictly trained to assist you with **Cryptography, the 4 Encoding Pillars (UTF-8/ASCII, Base64/URL/HTML, Multimedia Codecs, ML Categorical Encoding), Binary/Bits, Steganography, and the 20 Security Academy Modules**. Please ask a question related to these topics!"
-        )
+    combined_low = f"{query.lower()} {eng_query.lower()}"
 
-    # 2. Nếu Admin đã kết nối Gemini API Key -> Trả lời đa ngôn ngữ bằng LLM
+    # Bước 2: Nếu Admin có gắn Gemini API Key -> Gọi trực tiếp LLM đa ngôn ngữ
     api_key = mem_db.get("gemini_api_key", "")
     try:
         if not api_key and "GEMINI_API_KEY" in st.secrets:
@@ -365,18 +406,31 @@ def generate_ai_mentor_response(query: str, current_lesson: dict, mem_db: dict) 
         if llm_ans:
             return llm_ans
 
-    # 3. Kiểm tra Bộ Nhớ Đã Kiểm Duyệt của Admin
+    # Bước 3: Kiểm tra Lạc Đề (Trên cả câu gốc và câu đã dịch sang Tiếng Anh)
+    if not is_query_on_topic(query, eng_query, mem_db):
+        if kb_lang == "vi":
+            return (
+                "⚠️ **Nhắc nhở từ AI Cyber Mentor:** Câu hỏi của bạn nằm ngoài phạm vi bài học. "
+                "Vui lòng chỉ hỏi các chủ đề liên quan đến **An ninh mạng (Cybersecurity), Mật mã học, 4 Trụ cột Encoding (UTF-8, Base64, URL/HTML Encode, Multimedia, One-Hot ML), Hệ Nhị Phân (Bits/Bytes) và 20 Bài học trong Security Academy**!"
+            )
+        off_topic_en = (
+            "⚠️ **Topic Reminder from AI Cyber Mentor:** Your question appears to be off-topic. "
+            "I am strictly trained to assist you with **Cybersecurity, Cryptography, the 4 Encoding Pillars (UTF-8/ASCII, Base64/URL/HTML, Multimedia Codecs, ML Categorical Encoding), Binary/Bits, Steganography, and the 20 Security Academy Modules**. Please ask a question related to these topics!"
+        )
+        return finalize_in_user_language(off_topic_en, detected_lang)
+
+    # Bước 4: Kiểm tra trong Bộ Nhớ Đã Kiểm Duyệt
     matched_learned = []
     for fact in mem_db.get("learned_facts", []):
-        if any(kw in low for kw in fact.get("keywords", [])) or fact["topic"].lower() in low:
+        if any(kw in combined_low for kw in fact.get("keywords", [])) or fact["topic"].lower() in combined_low:
             matched_learned.append(f"🧠 **[{fact['topic']}]:**\n{fact['content']}")
 
-    # 4. Kiểm tra Tính toán Trực tiếp (Binary / Hex / Encoding)
-    live_calc = try_live_computation(query, kb_lang)
+    # Bước 5: Kiểm tra Tính toán Trực tiếp
+    live_calc = try_live_computation(eng_query, kb_lang)
 
-    # 5. Kiểm tra Bài học đang mở (Current Lesson Walkthrough)
+    # Bước 6: Kiểm tra nếu người dùng hỏi về Bài Học Đang Mở (Current Lesson)
     lesson_context_reply = ""
-    if current_lesson and any(k in low for k in ["this lesson", "current lesson", "bài này", "bài hiện tại", "quiz", "lab", "hint", "gợi ý", "đáp án", "summary", "explain lesson"]):
+    if current_lesson and any(k in combined_low for k in ["this lesson", "current lesson", "bài này", "bài hiện tại", "quiz", "lab", "hint", "gợi ý", "đáp án", "summary", "explain lesson"]):
         lid = current_lesson.get("id", "L01")
         ltitle = current_lesson.get("title", "")
         if kb_lang == "vi":
@@ -384,54 +438,48 @@ def generate_ai_mentor_response(query: str, current_lesson: dict, mem_db: dict) 
                 f"📘 **Hướng dẫn Bài học đang mở ({lid} — {ltitle}):**\n"
                 f"- **Trọng tâm:** {current_lesson.get('overview', '')}\n"
                 f"- **Đáp án Quiz 1:** `{current_lesson.get('q1_ans', '')}` | **Quiz 2:** `{current_lesson.get('q2_ans', '')}`\n"
-                f"- **Hướng dẫn Lab 1:** {current_lesson.get('lab1_q', '')} $\\rightarrow$ **`{current_lesson.get('lab1_ans', '')}`**\n"
-                f"- **Hướng dẫn Lab 2:** {current_lesson.get('lab2_q', '')} $\\rightarrow$ **`{current_lesson.get('lab2_ans', '')}`**"
+                f"- **Hướng dẫn Lab 1:** {current_lesson.get('lab1_q', '')} -> **`{current_lesson.get('lab1_ans', '')}`**\n"
+                f"- **Hướng dẫn Lab 2:** {current_lesson.get('lab2_q', '')} -> **`{current_lesson.get('lab2_ans', '')}`**"
             )
         else:
             lesson_context_reply = (
                 f"📘 **Active Module Guide ({lid} — {ltitle}):**\n"
                 f"- **Core Concept:** {current_lesson.get('overview', '')}\n"
                 f"- **Quiz 1 Key:** `{current_lesson.get('q1_ans', '')}` | **Quiz 2 Key:** `{current_lesson.get('q2_ans', '')}`\n"
-                f"- **Lab 1 Solution:** {current_lesson.get('lab1_q', '')} $\\rightarrow$ **`{current_lesson.get('lab1_ans', '')}`**\n"
-                f"- **Lab 2 Solution:** {current_lesson.get('lab2_q', '')} $\\rightarrow$ **`{current_lesson.get('lab2_ans', '')}`**"
+                f"- **Lab 1 Solution:** {current_lesson.get('lab1_q', '')} -> **`{current_lesson.get('lab1_ans', '')}`**\n"
+                f"- **Lab 2 Solution:** {current_lesson.get('lab2_q', '')} -> **`{current_lesson.get('lab2_ans', '')}`**"
             )
 
-    # 6. Tra cứu Kho Tri Thức Cốt Lõi
-    kb_matches = [item[kb_lang] for item in CORE_KNOWLEDGE_BASE if any(kw in low for kw in item["keywords"])]
+    # Bước 7: Tra cứu Kho Tri Thức Cốt Lõi (Bao gồm Lộ trình cho người mới bắt đầu An ninh mạng & 4 Trụ cột Encoding)
+    kb_matches = [item[kb_lang] for item in CORE_KNOWLEDGE_BASE if any(kw in combined_low for kw in item["keywords"])]
 
     parts = [p for p in (matched_learned + ([live_calc] if live_calc else []) + ([lesson_context_reply] if lesson_context_reply else []) + kb_matches) if p]
     if parts:
-        return "\n\n---\n\n".join(parts[:3])
+        combined_answer = "\n\n---\n\n".join(parts[:3])
+        return finalize_in_user_language(combined_answer, detected_lang)
 
-    # 7. TỰ ĐỘNG TRA CỨU & TỰ HỌC TỪ WIKIPEDIA QUỐC TẾ NẾU CHỦ ĐỀ CHƯA CÓ TRONG BỘ NHỚ
-    ok_wiki, wiki_title, wiki_extract = fetch_wikipedia_crypto_summary(query, lang)
+    # Bước 8: Tra cứu Wikipedia trực tiếp theo ngôn ngữ của người hỏi (hoặc Tiếng Anh rồi dịch sang ngôn ngữ người hỏi)
+    ok_wiki, wiki_title, wiki_extract = fetch_wikipedia_crypto_summary(query, base_lang)
+    if not ok_wiki and base_lang != "en":
+        ok_wiki, wiki_title, wiki_extract = fetch_wikipedia_crypto_summary(eng_query, "en")
+        if ok_wiki:
+            wiki_extract = finalize_in_user_language(wiki_extract, detected_lang)
+
     if ok_wiki:
-        # Tự động lưu vào bộ nhớ đã xác thực từ Wikipedia
         kws_auto = [w.lower() for w in re.split(r'\W+', wiki_title) if len(w) >= 3]
         mem_db["learned_facts"].insert(0, {
             "topic": f"{wiki_title} (Verified Encyclopedia)",
             "keywords": kws_auto or [wiki_title.lower()],
             "content": wiki_extract,
-            "taught_by": f"Auto_Wiki_{lang.upper()}",
+            "taught_by": f"Auto_Wiki_{base_lang.upper()}",
             "timestamp": datetime.now(timezone.utc).strftime("%Y-%m-%d %H:%M UTC")
         })
         save_ai_memory(mem_db)
-        return f"🌐 **[{wiki_title} — Autonomous Encyclopedia Lookup & Learned]:**\n\n{wiki_extract}"
+        return f"🌐 **[{wiki_title}]:**\n\n{wiki_extract}"
 
-    # 8. Phản hồi mặc định theo ngôn ngữ người hỏi
-    lid = current_lesson.get("id", "L01") if current_lesson else "Global"
-    ltitle = current_lesson.get("title", "Security Academy") if current_lesson else "Security Academy"
-    if kb_lang == "vi":
-        return (
-            f"👋 Xin chào! Tôi là **AI Cyber Mentor** (Đang theo dõi: **{lid} — {ltitle}**).\n"
-            f"- Hãy gõ **'Explain this lesson'** hoặc **'Gợi ý bài này'** để xem hướng dẫn Quiz & Lab.\n"
-            f"- Hỏi bất kỳ thuật ngữ nào về **UTF-8, Base64, URL/HTML Encode, One-Hot, Binary/Bits, AES, RSA, Enigma...** bằng Tiếng Anh hoặc Tiếng Việt!"
-        )
-    return (
-        f"👋 Hello! I am your **AI Cyber Mentor** (Tracking: **{lid} — {ltitle}**).\n"
-        f"- Type **'Explain this lesson'** or **'Hint'** for step-by-step Quiz & Lab guidance.\n"
-        f"- Ask me in **English** (or your native language) about **Character/Data/Multimedia/ML Encoding (`UTF-8`, `Base64`, `URL %20`, `One-Hot`), Binary & Bits, AES, RSA, Steganography**, or any cryptography topic!"
-    )
+    # Bước 9: Nếu hỏi chung về An ninh mạng / bắt đầu học -> Đưa Lộ trình 4 bước và dịch sang ngôn ngữ người hỏi
+    fallback_en = CORE_KNOWLEDGE_BASE[0]["vi" if kb_lang == "vi" else "en"]
+    return finalize_in_user_language(fallback_en, detected_lang)
 
 
 def analyze_uploaded_file_or_image(uploaded_file, decode_lsb_fn=None, decode_audio_fn=None) -> str:
@@ -484,11 +532,6 @@ def analyze_uploaded_file_or_image(uploaded_file, decode_lsb_fn=None, decode_aud
 
 
 def render_ai_cyber_mentor_widget(current_lesson: dict = None, decode_lsb_fn=None, decode_audio_fn=None, widget_key: str = "acad_ai"):
-    """
-    Giao diện Quốc tế hóa 100% Tiếng Anh (International UI):
-    - Trả lời theo đúng ngôn ngữ người hỏi (English Default / Multilingual Wiki / Vietnamese).
-    - Khóa tính năng Train AI bằng mật khẩu Admin (Người dùng thường chỉ được gửi đề xuất vào hàng đợi duyệt).
-    """
     mem_db = load_ai_memory()
 
     st.markdown("""
@@ -520,22 +563,23 @@ def render_ai_cyber_mentor_widget(current_lesson: dict = None, decode_lsb_fn=Non
     <div class="ai-mentor-header">
         <div style="display:flex; justify-content:space-between; align-items:center;">
             <span class="ai-mentor-badge">🤖 AI CYBER MENTOR • MODULE {active_lid}</span>
-            <span style="font-size:0.72rem; color:#34d399; font-weight:700;">🧠 Verified KB: {learned_cnt} Topics</span>
+            <span style="font-size:0.72rem; color:#34d399; font-weight:700;">🌍 100+ Languages • {learned_cnt} Topics</span>
         </div>
         <div style="font-size:1.06rem; font-weight:800; color:#f8fafc; margin-top:6px;">Multilingual Cryptography & CS Tutor</div>
-        <div style="font-size:0.77rem; color:#94a3b8; margin-top:2px;">Ask in English or your native language • Auto-Encyclopedia Lookup • File/Image Scanner</div>
+        <div style="font-size:0.77rem; color:#94a3b8; margin-top:2px;">Ask in ANY language (EN, DE, FR, JA, VI...) • Auto-Encyclopedia • File Scanner</div>
     </div>
     """, unsafe_allow_html=True)
 
-    chat_hist_key = f"ai_mentor_history_{widget_key}"
+    # Đổi tên key sang v2 để tự động xóa câu chào tiếng Việt cũ còn lưu trong bộ nhớ phiên (session_state)
+    chat_hist_key = f"ai_mentor_intl_v2_{widget_key}"
     if chat_hist_key not in st.session_state:
         st.session_state[chat_hist_key] = [
             {
                 "role": "assistant",
                 "content": (
-                    "👋 **Welcome! I am your AI Cyber Mentor.**\n"
-                    "- Ask me in **English** (or your native language) about **the active lesson**, **Binary & Bits**, or **the 4 Encoding Pillars** (`UTF-8/ASCII`, `Base64/URL/HTML`, `Video/Audio Codecs`, `One-Hot/Label ML`).\n"
-                    "- I also automatically look up verified cryptography concepts from international encyclopedias!"
+                    "👋 **Welcome! I am your Multilingual AI Cyber Mentor.**\n"
+                    "- Ask me in **any language** (English, Deutsch, Français, Español, 日本語, Tiếng Việt...) about **how to start in Cybersecurity**, **the active lesson**, **Binary & Bits**, or **the 4 Encoding Pillars** (`UTF-8`, `Base64`, `Multimedia`, `One-Hot ML`).\n"
+                    "- I will automatically understand and reply in your exact language!"
                 )
             }
         ]
@@ -546,9 +590,6 @@ def render_ai_cyber_mentor_widget(current_lesson: dict = None, decode_lsb_fn=Non
         "🔐 Admin & Feedback"
     ])
 
-    # ==========================================================================
-    # TAB 1: MULTILINGUAL AI CHAT
-    # ==========================================================================
     with tab_chat:
         q_c1, q_c2 = st.columns(2)
         with q_c1:
@@ -570,21 +611,18 @@ def render_ai_cyber_mentor_widget(current_lesson: dict = None, decode_lsb_fn=Non
                 with st.chat_message(msg["role"]):
                     st.markdown(msg["content"])
 
-        user_q = st.chat_input("Ask in English or your language (e.g. 'What is Base64?', 'Binary 42')...", key=f"in_ai_{widget_key}")
+        user_q = st.chat_input("Ask in any language (e.g. English, Deutsch, Français, Tiếng Việt)...", key=f"in_ai_{widget_key}")
         if user_q and user_q.strip():
             st.session_state[chat_hist_key].append({"role": "user", "content": user_q.strip()})
             ai_reply = generate_ai_mentor_response(user_q.strip(), current_lesson, mem_db)
             st.session_state[chat_hist_key].append({"role": "assistant", "content": ai_reply})
             st.rerun()
 
-        if len(st.session_state[chat_hist_key]) > 2:
+        if len(st.session_state[chat_hist_key]) > 1:
             if st.button("🧹 Clear AI Chat", key=f"clr_ai_{widget_key}", use_container_width=True):
                 st.session_state[chat_hist_key] = st.session_state[chat_hist_key][:1]
                 st.rerun()
 
-    # ==========================================================================
-    # TAB 2: FORENSIC FILE & IMAGE SCANNER
-    # ==========================================================================
     with tab_attach:
         st.caption("📎 Upload an image (`.png, .jpg`), audio (`.wav`), or document (`.txt, .json, .csv, .py`) for AI binary byte inspection, UTF-8/ASCII verification, and hidden LSB steganography scanning:")
         up_file = st.file_uploader(
@@ -601,9 +639,6 @@ def render_ai_cyber_mentor_widget(current_lesson: dict = None, decode_lsb_fn=Non
                 st.session_state[chat_hist_key].append({"role": "assistant", "content": file_report})
                 st.success("✅ Analysis complete! Switch to the **💬 Ask AI** tab to view the full report.")
 
-    # ==========================================================================
-    # TAB 3: ADMIN-ONLY TRAINING LOCK & USER SUGGESTION MODERATION QUEUE
-    # ==========================================================================
     with tab_admin:
         st.markdown("##### 💡 For Students/Users: Suggest a Topic or Feedback")
         st.caption("🔒 To prevent unverified data poisoning, user submissions are sent to the **Admin Moderation Queue** and only enter the AI's memory after the Admin approves them.")
@@ -641,7 +676,6 @@ def render_ai_cyber_mentor_widget(current_lesson: dict = None, decode_lsb_fn=Non
         else:
             st.success("🔓 **Admin Verified!** Full AI Training & Autonomous Harvester Unlocked.")
 
-            # 1. Nút cho AI tự động học hàng loạt chủ đề Mật mã học chuẩn từ Wikipedia Quốc tế
             st.markdown("**🌐 1. Autonomous Encyclopedia Harvester (1-Click Auto-Learn):**")
             if st.button("🚀 Auto-Harvest Core Cryptography Topics from Wikipedia", type="primary", key=f"btn_harv_{widget_key}", use_container_width=True):
                 existing_topics = {f["topic"].lower() for f in mem_db.get("learned_facts", [])}
@@ -663,7 +697,6 @@ def render_ai_cyber_mentor_widget(current_lesson: dict = None, decode_lsb_fn=Non
                 st.success(f"🎉 Autonomous Harvester fetched and indexed **{added_count} verified cryptography topics** from Wikipedia!")
 
             st.divider()
-            # 2. Huấn luyện thủ công bởi Admin
             st.markdown("**✍️ 2. Train Custom Verified Knowledge (Admin Direct Input):**")
             t_topic = st.text_input("Topic Name:", key=f"tr_top_{widget_key}")
             t_kws = st.text_input("Trigger Keywords (comma-separated):", key=f"tr_kw_{widget_key}")
@@ -682,7 +715,6 @@ def render_ai_cyber_mentor_widget(current_lesson: dict = None, decode_lsb_fn=Non
                     st.success(f"✅ Trained topic `{t_topic.strip()}`!")
 
             st.divider()
-            # 3. Duyệt đề xuất của người dùng (Moderation Queue)
             pending = mem_db.get("pending_suggestions", [])
             st.markdown(f"**📋 3. Pending User Suggestions Queue ({len(pending)} items):**")
             if not pending:
@@ -711,7 +743,6 @@ def render_ai_cyber_mentor_widget(current_lesson: dict = None, decode_lsb_fn=Non
                             st.rerun()
 
             st.divider()
-            # 4. Tùy chọn gắn Gemini API Key để mở khóa 100+ ngôn ngữ LLM
             st.markdown("**🌐 4. Optional Cloud LLM Key (Google Gemini API for 100+ Languages):**")
             gem_key = st.text_input("Gemini API Key (Optional):", value=mem_db.get("gemini_api_key", ""), type="password", key=f"gem_k_{widget_key}")
             if st.button("💾 Save API Key", key=f"btn_gem_{widget_key}", use_container_width=True):

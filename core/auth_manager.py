@@ -10,6 +10,7 @@ from email.message import EmailMessage
 from datetime import datetime, timezone
 
 AUTH_DB_FILE = "user_accounts_db.json"
+DEFAULT_ADMIN_PIN_HASH = hashlib.sha256(b"HCMUS3001").hexdigest()
 
 BANNED_FAKE_PREFIXES = {
     "123456", "1234567", "12345678", "123456789", "abcdef", "abcdefg",
@@ -25,6 +26,7 @@ def load_auth_db() -> dict:
             "sha256", b"123456", default_salt.encode("utf-8"), 100000
         ).hex()
         seed_db = {
+            "admin_pin_hash": DEFAULT_ADMIN_PIN_HASH,
             "smtp_config": {
                 "sender_email": "",
                 "app_password": "",
@@ -48,13 +50,19 @@ def load_auth_db() -> dict:
     try:
         with open(AUTH_DB_FILE, "r", encoding="utf-8") as f:
             data = json.load(f)
+            if "admin_pin_hash" not in data:
+                data["admin_pin_hash"] = DEFAULT_ADMIN_PIN_HASH
             if "accounts" not in data:
                 data["accounts"] = {}
             if "smtp_config" not in data:
                 data["smtp_config"] = {"sender_email": "", "app_password": "", "require_login_gate": False}
             return data
     except Exception:
-        return {"smtp_config": {"sender_email": "", "app_password": "", "require_login_gate": False}, "accounts": {}}
+        return {
+            "admin_pin_hash": DEFAULT_ADMIN_PIN_HASH,
+            "smtp_config": {"sender_email": "", "app_password": "", "require_login_gate": False},
+            "accounts": {}
+        }
 
 
 def save_auth_db(data: dict):
@@ -95,7 +103,6 @@ def validate_strict_google_gmail(email: str) -> tuple[bool, str]:
 
 
 def get_smtp_credentials(db: dict) -> tuple[str, str]:
-    """Lấy thông tin Gmail SMTP từ Streamlit Secrets hoặc từ cấu hình Admin."""
     sender = ""
     app_pw = ""
     try:
@@ -111,49 +118,40 @@ def get_smtp_credentials(db: dict) -> tuple[str, str]:
         sender = cfg.get("sender_email", "").strip()
         app_pw = cfg.get("app_password", "").strip()
 
-    # Loại bỏ khoảng trắng thừa trong mật khẩu ứng dụng 16 ký tự của Google
-    app_pw_clean = app_pw.replace(" ", "")
-    return sender, app_pw_clean
+    return sender, app_pw.replace(" ", "")
 
 
 def send_real_otp_email_strict(target_email: str, otp_code: str, purpose: str, db: dict) -> tuple[bool, str]:
     """
-    Gửi mã OTP 6 số ĐỘC QUYỀN qua máy chủ smtp.gmail.com (Cổng 465 SSL).
-    TUYỆT ĐỐI KHÔNG BAO GIỜ HIỂN THỊ MÃ OTP LÊN MÀN HÌNH WEB!
-    Nếu người dùng nhập Gmail ảo/không có thật, họ sẽ không bao giờ có mã OTP để vào.
+    Sử dụng Gmail Tổng Đài của Chủ Web để gửi mã OTP 6 số tới BẤT KỲ Gmail nào của người chơi.
     """
     sender, app_pw = get_smtp_credentials(db)
 
     if not sender or not app_pw:
         return (
             False,
-            "⚠️ **Máy chủ gửi thư Gmail chưa được liên kết!**\n\n"
-            "Chủ web (Admin) vui lòng mở mục **'⚙️ Admin: Real Gmail OTP Server'** ngay bên dưới, "
-            "nhập mã PIN `HCMUS3001` và điền **Sender Gmail + Google 16-Char App Password** (hoặc dán vào Streamlit `Secrets`) "
-            "để hệ thống gửi mã OTP thật về hộp thư Gmail!"
+            "⚠️ **Tổng đài gửi mã OTP chưa được bật!**\n\n"
+            "Chủ web vui lòng mở mục **'⚙️ Web Owner Settings'** ở dưới cùng cột trái để dán 16 chữ cái App Password (chỉ cần làm 1 lần duy nhất để mọi người chơi đều nhận được OTP)."
         )
 
     try:
         msg = EmailMessage()
-        msg["Subject"] = f"[Ultimate Secret Messenger] Mã xác thực OTP ({purpose}): {otp_code}"
+        msg["Subject"] = f"[Ultimate Secret Messenger] Verification OTP ({purpose}): {otp_code}"
         msg["From"] = f"Ultimate Secret Messenger <{sender}>"
         msg["To"] = target_email
 
         html_body = f"""
         <div style="font-family: Arial, sans-serif; max-width: 520px; margin: 0 auto; background: #0f172a; color: #f8fafc; padding: 24px; border-radius: 12px; border: 2px solid #3b82f6;">
             <h2 style="color: #60a5fa; margin-top: 0;">🛡️ Ultimate Secret Messenger</h2>
-            <p style="color: #cbd5e1; font-size: 15px;">Xin chào / Hello,</p>
-            <p style="color: #cbd5e1; font-size: 15px;">Bạn vừa yêu cầu mã xác thực OTP cho thao tác: <b>{purpose}</b>.</p>
+            <p style="color: #cbd5e1; font-size: 15px;">Hello <b>{target_email}</b>,</p>
+            <p style="color: #cbd5e1; font-size: 15px;">Your 6-digit verification code for <b>{purpose}</b> is:</p>
             <div style="background: #1e293b; border: 1.5px dashed #38bdf8; padding: 16px; text-align: center; border-radius: 10px; margin: 20px 0;">
-                <span style="font-size: 13px; color: #94a3b8; display: block; margin-bottom: 6px;">MÃ XÁC THỰC 6 SỐ CỦA BẠN (6-DIGIT OTP):</span>
                 <span style="font-size: 32px; font-weight: 800; letter-spacing: 6px; color: #fde047;">{otp_code}</span>
             </div>
-            <p style="color: #94a3b8; font-size: 13px;">⏳ Mã này có hiệu lực trong vòng <b>5 phút</b>. Tuyệt đối không chia sẻ mã này cho người khác.</p>
-            <hr style="border: 0; border-top: 1px solid #334155; margin: 16px 0;">
-            <p style="color: #64748b; font-size: 12px; margin-bottom: 0;">Ultimate Secret Messenger • Security & Cryptography Platform by Lê Hoàng Phú Hiếu (FIT - VNUHCM-US)</p>
+            <p style="color: #94a3b8; font-size: 13px;">⏳ This code is valid for <b>5 minutes</b>.</p>
         </div>
         """
-        msg.set_content(f"Your Ultimate Secret Messenger OTP Code for {purpose} is: {otp_code} (Valid for 5 minutes).")
+        msg.set_content(f"Your Ultimate Secret Messenger OTP Code for {purpose} is: {otp_code}")
         msg.add_alternative(html_body, subtype="html")
 
         with smtplib.SMTP_SSL("smtp.gmail.com", 465, timeout=10) as server:
@@ -163,16 +161,10 @@ def send_real_otp_email_strict(target_email: str, otp_code: str, purpose: str, d
         return (
             True,
             f"📧 **Đã gửi mã OTP 6 số tới hộp thư `{target_email}`!**\n\n"
-            f"👉 Hãy mở ứng dụng **Gmail** của bạn (kiểm tra cả Hộp thư đến và thư mục Quảng cáo/Spam) để lấy mã 6 số nhập vào ô bên dưới!"
-        )
-    except smtplib.SMTPAuthenticationError:
-        return (
-            False,
-            "❌ **Lỗi xác thực Google SMTP:** Mật khẩu ứng dụng (App Password) chưa đúng! "
-            "Lưu ý: Bạn phải dùng **Mật khẩu ứng dụng 16 ký tự** tạo tại `myaccount.google.com/apppasswords` chứ không phải mật khẩu đăng nhập Gmail thông thường."
+            f"👉 Hãy mở ứng dụng **Gmail** của tài khoản `{target_email}` để lấy 6 chữ số nhập vào Bước 2 bên dưới!"
         )
     except Exception as e:
-        return False, f"❌ Không thể gửi email tới `{target_email}`: {str(e)}"
+        return False, f"❌ Lỗi gửi thư tới `{target_email}`: {str(e)}"
 
 
 def sync_authenticated_identity(callsign: str, email: str):
@@ -211,7 +203,7 @@ def render_sidebar_gmail_auth() -> tuple[bool, str, str]:
     """, unsafe_allow_html=True)
 
     # ==========================================================================
-    # TRẠNG THÁI 1: ĐÃ ĐĂNG NHẬP BẰNG GMAIL THẬT
+    # TRẠNG THÁI 1: ĐÃ ĐĂNG NHẬP THÀNH CÔNG
     # ==========================================================================
     if st.session_state["auth_logged_in"]:
         email_now = st.session_state["auth_email"]
@@ -221,7 +213,7 @@ def render_sidebar_gmail_auth() -> tuple[bool, str, str]:
 
         st.markdown(f"""
         <div class="gmail-profile-card">
-            <div style="font-size:0.7rem; color:#34d399; font-weight:800; letter-spacing:0.8px;">🟢 VERIFIED GMAIL ACCOUNT</div>
+            <div style="font-size:0.7rem; color:#34d399; font-weight:800; letter-spacing:0.8px;">🟢 VERIFIED PLAYER ACCOUNT</div>
             <div style="font-size:0.92rem; font-weight:800; color:#ffffff; margin-top:3px; word-break:break-all;">📧 {email_now}</div>
             <div style="font-size:0.82rem; color:#fde047; margin-top:4px;">🕵️ Agent ID: <b>{callsign_now}</b></div>
         </div>
@@ -236,13 +228,10 @@ def render_sidebar_gmail_auth() -> tuple[bool, str, str]:
         return True, callsign_now, email_now
 
     # ==========================================================================
-    # TRẠNG THÁI 2: CHƯA ĐĂNG NHẬP
+    # TRẠNG THÁI 2: CHƯA ĐĂNG NHẬP (DÀNH CHO MỌI NGƯỜI CHƠI)
     # ==========================================================================
-    st.markdown("### 📧 Gmail Account Center")
-    if smtp_ready:
-        st.caption(f"🟢 **Real Gmail OTP Active** (`{sender_cfg}`) — Fake emails cannot register!")
-    else:
-        st.caption("🟠 **Waiting for Admin SMTP Link** — Open the Admin box below to link your Google App Password.")
+    st.markdown("### 📧 Player Account Login")
+    st.caption("New player? Click **'➕ Register'** first to create an account with your Gmail!")
 
     tab_login, tab_reg, tab_forgot = st.tabs([
         "🔑 Sign In",
@@ -250,16 +239,16 @@ def render_sidebar_gmail_auth() -> tuple[bool, str, str]:
         "🔄 Forgot Pass"
     ])
 
-    # --- TAB 1: ĐĂNG NHẬP ---
+    # --- TAB 1: ĐĂNG NHẬP (DÀNH CHO GMAIL ĐÃ ĐĂNG KÝ Ở TAB REGISTER) ---
     with tab_login:
-        login_email = st.text_input("📧 Gmail Address:", placeholder="yourname@gmail.com", key="in_login_gmail").strip().lower()
-        login_pass = st.text_input("🔒 Password:", type="password", placeholder="Enter your password...", key="in_login_pass")
+        login_email = st.text_input("📧 Your Gmail:", placeholder="player@gmail.com", key="in_login_gmail").strip().lower()
+        login_pass = st.text_input("🔒 Your Password:", type="password", placeholder="Enter password...", key="in_login_pass")
 
         if st.button("🚀 Sign In", type="primary", use_container_width=True, key="btn_gmail_signin"):
             if not login_email or not login_pass:
                 st.error("❌ Please enter both Gmail and Password!")
             elif login_email not in accounts:
-                st.error("❌ Account not found! Switch to '➕ Register' to verify your Gmail via OTP.")
+                st.warning("⚠️ Gmail này chưa từng đăng ký! Bạn hãy bấm sang tab **'➕ Register'** bên cạnh để tạo tài khoản trước nhé!")
             else:
                 acc = accounts[login_email]
                 calc_hash = hash_password(login_pass, acc["salt"])
@@ -270,29 +259,29 @@ def render_sidebar_gmail_auth() -> tuple[bool, str, str]:
                     st.toast(f"✅ Welcome back, {acc['callsign']}!", icon="📧")
                     st.rerun()
                 else:
-                    st.error("❌ Incorrect password! Use '🔄 Forgot Pass' to receive a reset OTP via Gmail.")
+                    st.error("❌ Sai mật khẩu! Bấm sang tab '🔄 Forgot Pass' nếu bạn quên mật khẩu.")
 
-    # --- TAB 2: ĐĂNG KÝ (BẮT BUỘC NHẬN MÃ OTP QUA HỘP THƯ GMAIL THẬT 100%) ---
+    # --- TAB 2: ĐĂNG KÝ TÀI KHOẢN MỚI (BẤT KỲ GMAIL NÀO CŨNG ĐĂNG KÝ ĐƯỢC) ---
     with tab_reg:
-        st.caption("🔒 A 6-digit OTP will be sent directly to your Gmail inbox. Fake/non-existent Gmails cannot receive the code!")
-        reg_email = st.text_input("📧 Your Real Gmail (`@gmail.com`):", placeholder="your.real.email@gmail.com", key="in_reg_gmail").strip().lower()
-        reg_callsign = st.text_input("🕵️ Agent Display Name:", placeholder="e.g. taolagautruc", key="in_reg_callsign").strip()
+        st.caption("✨ Bất kỳ người chơi nào cũng có thể nhập Gmail cá nhân vào đây để nhận mã OTP 6 số và tạo tài khoản:")
+        reg_email = st.text_input("📧 Player's Gmail (`@gmail.com`):", placeholder="any_user@gmail.com", key="in_reg_gmail").strip().lower()
+        reg_callsign = st.text_input("🕵️ In-Game Nickname:", placeholder="e.g. Sherlock_VN", key="in_reg_callsign").strip()
         reg_pass = st.text_input("🔒 Create Password (Min 6 chars):", type="password", key="in_reg_pass")
         reg_pass2 = st.text_input("🔒 Confirm Password:", type="password", key="in_reg_pass2")
 
-        if st.button("📨 Step 1: Send OTP to My Gmail Inbox", use_container_width=True, key="btn_send_reg_otp"):
+        if st.button("📨 Step 1: Send 6-Digit OTP to This Gmail", use_container_width=True, key="btn_send_reg_otp"):
             ok_mail, mail_msg = validate_strict_google_gmail(reg_email)
             if not ok_mail:
                 st.error(mail_msg)
             elif reg_email in accounts:
-                st.warning("⚠️ This Gmail is already registered! Please sign in or use '🔄 Forgot Pass'.")
+                st.info("✅ Gmail này đã có tài khoản rồi! Bạn chỉ cần chuyển sang tab **'🔑 Sign In'** để đăng nhập.")
             elif len(reg_pass) < 6:
-                st.error("❌ Password must be at least 6 characters!")
+                st.error("❌ Mật khẩu phải có ít nhất 6 ký tự!")
             elif reg_pass != reg_pass2:
-                st.error("❌ Passwords do not match!")
+                st.error("❌ Hai mật khẩu nhập vào không khớp nhau!")
             else:
                 otp_code = f"{random.randint(100000, 999999)}"
-                sent_ok, smtp_msg = send_real_otp_email_strict(reg_email, otp_code, "Account Registration", db)
+                sent_ok, smtp_msg = send_real_otp_email_strict(reg_email, otp_code, "New Player Registration", db)
                 if sent_ok:
                     st.session_state["pending_reg_data"] = {
                         "email": reg_email,
@@ -306,13 +295,13 @@ def render_sidebar_gmail_auth() -> tuple[bool, str, str]:
                     st.error(smtp_msg)
 
         if "pending_reg_data" in st.session_state and st.session_state["pending_reg_data"].get("email") == reg_email:
-            otp_in = st.text_input("🔢 Enter 6-Digit OTP from Your Gmail Inbox:", max_chars=6, placeholder="Check your Gmail...", key="in_reg_otp_code").strip()
-            if st.button("✅ Step 2: Verify OTP & Activate Account", type="primary", use_container_width=True, key="btn_verify_reg_otp"):
+            otp_in = st.text_input("🔢 Enter 6-Digit OTP from Gmail Inbox:", max_chars=6, key="in_reg_otp_code").strip()
+            if st.button("✅ Step 2: Verify OTP & Complete Registration", type="primary", use_container_width=True, key="btn_verify_reg_otp"):
                 pend = st.session_state["pending_reg_data"]
                 if time.time() > pend["exp"]:
-                    st.error("⏰ OTP expired (5 minutes limit)! Please click Step 1 to send a new OTP.")
+                    st.error("⏰ Mã OTP đã hết hạn (quá 5 phút)! Hãy bấm lại Step 1.")
                 elif hashlib.sha256(otp_in.encode("utf-8")).hexdigest() != pend["otp_hash"]:
-                    st.error("❌ Incorrect OTP code! Please check the exact 6 digits sent to your Gmail inbox.")
+                    st.error("❌ Mã OTP không đúng! Vui lòng kiểm tra lại hộp thư Gmail của bạn.")
                 else:
                     salt = hashlib.sha256(f"{pend['email']}_{time.time()}".encode("utf-8")).hexdigest()[:16]
                     p_hash = hash_password(pend["pass"], salt)
@@ -333,14 +322,14 @@ def render_sidebar_gmail_auth() -> tuple[bool, str, str]:
                     st.balloons()
                     st.rerun()
 
-    # --- TAB 3: QUÊN MẬT KHẨU (GỬI MÃ OTP KHÔI PHỤC TỚI HỘP THƯ GMAIL THẬT 100%) ---
+    # --- TAB 3: QUÊN MẬT KHẨU ---
     with tab_forgot:
-        st.caption("🔄 Enter your registered Gmail. We will send a 6-digit Password Reset OTP directly to your Gmail inbox!")
-        fg_email = st.text_input("📧 Your Registered Gmail:", placeholder="yourname@gmail.com", key="in_fg_email").strip().lower()
+        st.caption("🔄 Quên mật khẩu? Nhập Gmail của bạn để nhận mã OTP 6 số đặt lại mật khẩu mới:")
+        fg_email = st.text_input("📧 Your Registered Gmail:", placeholder="player@gmail.com", key="in_fg_email").strip().lower()
 
-        if st.button("📨 Send 6-Digit Reset OTP to Gmail", use_container_width=True, key="btn_fg_send_otp"):
+        if st.button("📨 Send Reset OTP to Gmail", use_container_width=True, key="btn_fg_send_otp"):
             if fg_email not in accounts:
-                st.error("❌ No registered account found with this Gmail address!")
+                st.error("❌ Gmail này chưa được đăng ký trên hệ thống!")
             else:
                 rst_otp = f"{random.randint(100000, 999999)}"
                 sent_ok, smtp_msg = send_real_otp_email_strict(fg_email, rst_otp, "Password Reset", db)
@@ -355,16 +344,16 @@ def render_sidebar_gmail_auth() -> tuple[bool, str, str]:
                     st.error(smtp_msg)
 
         if "pending_reset_otp" in st.session_state and st.session_state["pending_reset_otp"].get("email") == fg_email:
-            rst_code_in = st.text_input("🔢 Enter 6-Digit OTP from Your Gmail:", max_chars=6, key="in_fg_otp").strip()
+            rst_code_in = st.text_input("🔢 Enter 6-Digit OTP from Gmail:", max_chars=6, key="in_fg_otp").strip()
             fg_new_pass = st.text_input("🔑 Enter New Password (Min 6 chars):", type="password", key="in_fg_newpass2")
             if st.button("✅ Verify OTP & Save New Password", type="primary", use_container_width=True, key="btn_fg_otp_save"):
                 r_pend = st.session_state["pending_reset_otp"]
                 if time.time() > r_pend["exp"]:
                     st.error("⏰ OTP expired!")
                 elif hashlib.sha256(rst_code_in.encode("utf-8")).hexdigest() != r_pend["otp_hash"]:
-                    st.error("❌ Incorrect OTP code!")
+                    st.error("❌ Mã OTP không đúng!")
                 elif len(fg_new_pass) < 6:
-                    st.error("❌ Password must be at least 6 characters!")
+                    st.error("❌ Mật khẩu mới phải từ 6 ký tự trở lên!")
                 else:
                     acc = accounts[fg_email]
                     new_salt = hashlib.sha256(f"{fg_email}_{time.time()}".encode("utf-8")).hexdigest()[:16]
@@ -372,48 +361,50 @@ def render_sidebar_gmail_auth() -> tuple[bool, str, str]:
                     acc["password_hash"] = hash_password(fg_new_pass, new_salt)
                     save_auth_db(db)
                     del st.session_state["pending_reset_otp"]
-                    st.success("✅ Password reset successfully! Switch to '🔑 Sign In' to log in.")
+                    st.success("✅ Đổi mật khẩu thành công! Hãy quay lại tab '🔑 Sign In' để đăng nhập.")
 
     # ==========================================================================
-    # BẢNG CẤU HÌNH MÁY CHỦ GMAIL OTP DÀNH RIÊNG CHO CHỦ WEB (ADMIN)
+    # GÓC CÀI ĐẶT DÀNH RIÊNG CHO CHỦ WEB (ĐÃ ẨN MẬT KHẨU & CHO ĐỔI PIN TRỰC TIẾP)
     # ==========================================================================
-    with st.expander("⚙️ Admin: Real Gmail OTP Server", expanded=not smtp_ready):
-        st.caption("🔑 Enter Admin PIN (`HCMUS3001`) to link your Gmail & 16-char Google App Password (`myaccount.google.com/apppasswords`):")
-        adm_pin = st.text_input("Admin PIN:", type="password", key="smtp_adm_pin")
-        if adm_pin.strip() == "HCMUS3001":
+    with st.expander("⚙️ Web Owner Settings (Admin Only)", expanded=False):
+        st.caption("🔒 Khu vực dành riêng cho Chủ Web (Phú Hiếu). Người chơi không cần bấm vào đây.")
+        adm_pin_in = st.text_input("🔑 Enter Owner PIN:", type="password", key="smtp_adm_pin")
+
+        saved_admin_hash = db.get("admin_pin_hash", DEFAULT_ADMIN_PIN_HASH)
+        is_owner = (hashlib.sha256(adm_pin_in.strip().encode("utf-8")).hexdigest() == saved_admin_hash) if adm_pin_in else False
+
+        if is_owner:
+            st.success("🔓 Đã mở khóa bảng Chủ Web!")
             cfg = db.get("smtp_config", {})
-            s_mail = st.text_input("1. Admin Sender Gmail:", value=cfg.get("sender_email", "hieulehoangphu@gmail.com"))
-            s_apw = st.text_input("2. Google 16-Char App Password:", value=cfg.get("app_password", ""), type="password", placeholder="xxxx xxxx xxxx xxxx")
-            req_gate = st.checkbox("🔒 Lock entire web app until user signs in with verified Gmail", value=cfg.get("require_login_gate", False))
 
-            c_adm1, c_adm2 = st.columns(2)
-            with c_adm1:
-                if st.button("💾 Save SMTP Link", type="primary", use_container_width=True):
-                    db["smtp_config"] = {
-                        "sender_email": s_mail.strip(),
-                        "app_password": s_apw.strip().replace(" ", ""),
-                        "require_login_gate": req_gate
-                    }
-                    save_auth_db(db)
-                    st.success("✅ Linked Gmail SMTP Server!")
-                    st.rerun()
-            with c_adm2:
-                if st.button("📨 Test Send Email", use_container_width=True):
-                    db["smtp_config"] = {
-                        "sender_email": s_mail.strip(),
-                        "app_password": s_apw.strip().replace(" ", ""),
-                        "require_login_gate": req_gate
-                    }
-                    save_auth_db(db)
-                    ok_t, msg_t = send_real_otp_email_strict(s_mail.strip(), "888999", "SMTP Server Test", db)
-                    if ok_t:
-                        st.success("✅ Sent test email! Check your inbox!")
-                    else:
-                        st.error(msg_t)
+            st.markdown("**1️⃣ Cấu hình Tổng đài gửi thư OTP (Chỉ cài 1 lần):**")
+            s_mail = st.text_input("Gmail làm Tổng đài gửi OTP:", value=cfg.get("sender_email", "hieulehoangphu@gmail.com"))
+            s_apw = st.text_input("16 chữ cái Google App Password:", value=cfg.get("app_password", ""), type="password")
+            req_gate = st.checkbox("🔒 Bắt buộc người chơi phải đăng nhập Gmail mới được dùng web", value=cfg.get("require_login_gate", False))
 
-    # Nếu Admin bật chế độ bắt buộc đăng nhập mới được dùng web (Strict Login Gate)
+            if st.button("💾 Lưu Tổng Đài Gửi OTP", type="primary", use_container_width=True):
+                db["smtp_config"] = {
+                    "sender_email": s_mail.strip(),
+                    "app_password": s_apw.strip().replace(" ", ""),
+                    "require_login_gate": req_gate
+                }
+                save_auth_db(db)
+                st.success("✅ Đã lưu Tổng đài gửi thư! Giờ mọi Gmail của người chơi đều nhận được OTP!")
+                st.rerun()
+
+            st.divider()
+            st.markdown("**2️⃣ Đổi Mã PIN Chủ Web (Không cần sửa code):**")
+            new_owner_pin = st.text_input("Nhập Mã PIN Chủ Web mới bạn muốn đổi:", type="password", placeholder="Ví dụ: 999999")
+            if st.button("🔄 Cập Nhật Mã PIN Mới", use_container_width=True):
+                if len(new_owner_pin.strip()) < 4:
+                    st.warning("Mã PIN mới nên có ít nhất 4 ký tự!")
+                else:
+                    db["admin_pin_hash"] = hashlib.sha256(new_owner_pin.strip().encode("utf-8")).hexdigest()
+                    save_auth_db(db)
+                    st.success("✅ Đã đổi Mã PIN Chủ Web thành công! Lần sau bạn hãy dùng mã PIN mới này nhé.")
+
     if db.get("smtp_config", {}).get("require_login_gate", False) and not st.session_state["auth_logged_in"]:
-        st.warning("🔒 **Authentication Required:** Please sign in with your verified Gmail account on the left Sidebar to access the platform!")
+        st.warning("🔒 **Vui lòng đăng nhập hoặc đăng ký tài khoản Gmail ở thanh bên trái để sử dụng hệ thống!**")
         st.stop()
 
     return False, "Guest_Agent", ""

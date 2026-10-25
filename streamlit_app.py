@@ -45,7 +45,7 @@ from core.ai_cyber_mentor import render_ai_cyber_mentor_widget
 
 import core.auth_manager as auth_module
 importlib.reload(auth_module)
-from core.auth_manager import render_sidebar_gmail_auth
+render_sidebar_gmail_auth = auth_module.render_sidebar_gmail_auth
 
 # Đảm bảo nạp và luôn làm mới (reload) file core/sudoku_game.py trên Streamlit Cloud
 import importlib

@@ -227,13 +227,16 @@ def calculate_entropy_metrics(secret_seed: str, pattern_list: list, shift_step: 
     return bits, time_str
 
 def encrypt_core(plain_text: str, key: list, reverse_rule: bool, mode: str = "NONE", target_ts: int = 0) -> str:
-    payload = f"TMODE:{mode}:{target_ts}|{plain_text}"
+    # Nén gọn header thành '~|' nếu không dùng hẹn giờ để bản mã và câu ngụy trang ngắn gọn tối đa
+    payload = f"~|{plain_text}" if (mode == "NONE" and target_ts == 0) else f"TMODE:{mode}:{target_ts}|{plain_text}"
     res = "".join(key[BASE_CHARS.index(c)] if c in BASE_CHARS else c for c in payload)
     return res[::-1] if reverse_rule else res
 
 def decrypt_core(cypher_text: str, key: list, reverse_rule: bool) -> tuple[bool, str]:
     txt = cypher_text[::-1] if reverse_rule else cypher_text
     raw = "".join(BASE_CHARS[key.index(c)] if c in key else c for c in txt)
+    if raw.startswith("~|"):
+        return True, raw[2:]
     if not raw.startswith("TMODE:") or "|" not in raw:
         return False, "❌ Decryption Failed: Incorrect Group Passphrase, Symbol Pattern, or Shift Rules!"
     header, actual_msg = raw.split("|", 1)
@@ -252,43 +255,111 @@ def decrypt_core(cypher_text: str, key: list, reverse_rule: bool) -> tuple[bool,
         return False, f"⏳ TIME-CAPSULE LOCKED! Please wait {m}m {s}s before decoding."
     return True, actual_msg
 
-# --- 1B. ENGLISH CAMOUFLAGE ENGINE (2-WAY MARKOV PROSE) ---
+# --- 1B. NATURAL ENGLISH CAMOUFLAGE ENGINE (CONCISE & MEANINGFUL SENTENCES) ---
 CAMO_WORDS = [
     "system", "network", "protocol", "update", "server", "client", "module", "process",
     "data", "buffer", "channel", "request", "session", "router", "packet", "cluster"
 ]
 
+# 6 thành phần câu giao tiếp đời thường (Mỗi thành phần gồm 16 cụm từ có từ khóa độc nhất)
+CAMO_SLOTS = [
+    # 0. Chủ ngữ (16 tên riêng)
+    ["Alex", "Sarah", "David", "Emma", "Ryan", "Olivia", "Daniel", "Sophia",
+     "Lucas", "Mia", "Ethan", "Chloe", "Noah", "Grace", "Leo", "Lily"],
+    # 1. Động từ hành động (16 từ)
+    ["checked", "reviewed", "shared", "prepared", "updated", "finished", "organized", "confirmed",
+     "brought", "scheduled", "sent", "wrote", "printed", "saved", "packed", "booked"],
+    # 2. Tính từ / Định từ bổ nghĩa (16 cụm)
+    ["the new", "our weekly", "the final", "today's", "that", "a quick", "the main", "yesterday's",
+     "the revised", "a special", "the monthly", "our group", "the backup", "a detailed", "the priority", "next"],
+    # 3. Danh từ tân ngữ (16 danh từ đời thường)
+    ["report", "schedule", "coffee", "itinerary", "notebook", "draft", "budget", "catalogue",
+     "guidebook", "menu", "dossier", "album", "journal", "playlist", "ticket", "summary"],
+    # 4. Trạng ngữ chỉ địa điểm (16 cụm)
+    ["at the bistro", "in the library", "near the office", "on the desk", "in the lounge", "at the station", "by the lobby", "in the studio",
+     "at the campus", "in the classroom", "near the park", "at the hotel", "on the train", "in the folder", "at home", "online"],
+    # 5. Trạng ngữ chỉ thời gian (16 cụm)
+    ["this morning", "before noon", "around five", "just now", "last night", "after lunch", "on time", "for tomorrow",
+     "very early", "this evening", "a moment ago", "before class", "on Friday", "with friends", "without delay", "as planned"]
+]
+
+# Bảng từ khóa tra cứu ngược (96 từ khóa độc nhất -> giá trị 4-bit từ 0..15)
+CAMO_TRIGGER_MAP = {}
+for _slot_list in CAMO_SLOTS:
+    for _val_idx, _phrase in enumerate(_slot_list):
+        _key_word = _phrase.split()[-1].lower()
+        CAMO_TRIGGER_MAP[_key_word] = _val_idx
+
 def encode_english_camouflage(cipher_text: str) -> str:
-    raw_bytes = cipher_text.encode("utf-8")
-    words = []
-    for b in raw_bytes:
-        high = (b >> 4) & 0x0F
-        low = b & 0x0F
-        words.append(CAMO_WORDS[high])
-        words.append(CAMO_WORDS[low])
+    """
+    Nén từng ký tự mật mã theo vị trí trong BASE_CHARS (1 byte/ký tự)
+    và sinh ra các câu giao tiếp tiếng Anh ngắn gọn, tự nhiên, có ý nghĩa.
+    """
+    byte_list = []
+    for ch in cipher_text:
+        if ch in BASE_CHARS:
+            byte_list.append(BASE_CHARS.index(ch))
+        else:
+            for b in ch.encode("utf-8"):
+                byte_list.append(240 + (b >> 4))
+                byte_list.append(240 + (b & 0x0F))
+
+    nibbles = []
+    for b in byte_list:
+        nibbles.append((b >> 4) & 0x0F)
+        nibbles.append(b & 0x0F)
+
     sentences = []
-    for i in range(0, len(words), 8):
-        chunk = words[i:i+8]
-        chunk[0] = chunk[0].capitalize()
-        sentences.append(" ".join(chunk) + ".")
+    # Mỗi câu tiếng Anh hoàn chỉnh chứa tới 6 nibbles (3 ký tự mật mã)
+    for i in range(0, len(nibbles), 6):
+        chunk = nibbles[i:i+6]
+        if len(chunk) == 6:
+            s = f"{CAMO_SLOTS[0][chunk[0]]} {CAMO_SLOTS[1][chunk[1]]} {CAMO_SLOTS[2][chunk[2]]} {CAMO_SLOTS[3][chunk[3]]} {CAMO_SLOTS[4][chunk[4]]} {CAMO_SLOTS[5][chunk[5]]}."
+        elif len(chunk) == 4:
+            s = f"{CAMO_SLOTS[0][chunk[0]]} {CAMO_SLOTS[1][chunk[1]]} {CAMO_SLOTS[2][chunk[2]]} {CAMO_SLOTS[3][chunk[3]]}."
+        else:
+            s = f"{CAMO_SLOTS[0][chunk[0]]} {CAMO_SLOTS[1][chunk[1]]} it."
+        sentences.append(s)
     return " ".join(sentences)
 
 def decode_english_camouflage(prose_text: str) -> tuple[bool, str]:
-    cleaned = prose_text.replace(".", " ").replace(",", " ").strip().lower().split()
-    if not cleaned or len(cleaned) % 2 != 0:
-        return False, "❌ Invalid camouflage structure (Word count must be even)."
-    byte_arr = bytearray()
-    for i in range(0, len(cleaned), 2):
-        w1, w2 = cleaned[i], cleaned[i+1]
-        if w1 not in CAMO_WORDS or w2 not in CAMO_WORDS:
-            return False, f"❌ Unrecognized camouflage word detected: '{w1}' or '{w2}'."
-        b = (CAMO_WORDS.index(w1) << 4) | CAMO_WORDS.index(w2)
-        byte_arr.append(b)
-    try:
-        return True, byte_arr.decode("utf-8")
-    except Exception:
-        return False, "❌ Corrupted byte sequence during camouflage extraction."
+    """Giải mã câu chuyện tiếng Anh tự nhiên (và hỗ trợ cả định dạng cũ) về lại bản mã gốc."""
+    tokens = prose_text.replace(".", " ").replace(",", " ").strip().lower().split()
+    if not tokens:
+        return False, "❌ Empty camouflage text."
 
+    # Tương thích ngược với các tin nhắn cũ dùng CAMO_WORDS ("protocol, server, client...")
+    if all(t in CAMO_WORDS for t in tokens) and len(tokens) % 2 == 0:
+        byte_arr = bytearray()
+        for i in range(0, len(tokens), 2):
+            b = (CAMO_WORDS.index(tokens[i]) << 4) | CAMO_WORDS.index(tokens[i+1])
+            byte_arr.append(b)
+        try:
+            return True, byte_arr.decode("utf-8")
+        except Exception:
+            return False, "❌ Corrupted legacy camouflage sequence."
+
+    # Giải mã câu tiếng Anh tự nhiên dựa trên từ khóa ngữ pháp
+    nibbles = [CAMO_TRIGGER_MAP[t] for t in tokens if t in CAMO_TRIGGER_MAP]
+    if not nibbles or len(nibbles) % 2 != 0:
+        return False, "❌ Invalid camouflage prose (Some words were modified or incomplete)."
+
+    raw_bytes = [(nibbles[i] << 4) | nibbles[i+1] for i in range(0, len(nibbles), 2)]
+    out_chars = []
+    idx = 0
+    while idx < len(raw_bytes):
+        b = raw_bytes[idx]
+        if b < len(BASE_CHARS):
+            out_chars.append(BASE_CHARS[b])
+            idx += 1
+        elif b >= 240 and idx + 1 < len(raw_bytes):
+            utf_b = ((b - 240) << 4) | (raw_bytes[idx + 1] - 240)
+            out_chars.append(chr(utf_b))
+            idx += 2
+        else:
+            return False, "❌ Corrupted character index in camouflage text."
+    return True, "".join(out_chars)
+    
 # --- 1C. LSB IMAGE STEGANOGRAPHY ENGINE (PIXEL-LEVEL HIDING) ---
 STEGO_DELIM = "<<END_STEGO>>"
 

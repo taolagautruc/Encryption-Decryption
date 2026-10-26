@@ -1911,7 +1911,7 @@ elif "4. Crypto Challenges" in main_menu:
                                 save_ctf_db(ctf_db)
                                 st.rerun()
 
-
+    cmd_center_module.render_tier5_cyber_warfare_ctf(st.session_state.get("ctf_user") or "taolagautruc")
  
 # ==============================================================================
 # PHẦN 5: SECURITY ACADEMY & UNIVERSITY COMPUTER SYSTEMS / CRYPTOGRAPHY LMS (20 MODULES)

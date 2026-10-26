@@ -9,32 +9,26 @@ INV_DB_FILE = "tactical_inventory_db.json"
 TACTICAL_ITEMS_META = {
     "free_hint_pass": {
         "name": "🎫 Free Hint Pass",
-        "vn_name": "Thẻ Miễn Phạt Hint",
         "desc": "Reveals 1 correct Sudoku cell instantly with 0% score penalty & 0s time penalty."
     },
     "forensic_scanner": {
         "name": "🔍 Forensic Scanner",
-        "vn_name": "Máy Quét Pháp Y",
         "desc": "Scans your active 9x9 Sudoku board and highlights any wrong numbers you entered."
     },
     "chrono_freeze": {
         "name": "⏳ Chrono-Freeze (+60s)",
-        "vn_name": "Bình Đóng Băng (+60s)",
         "desc": "Adds +60 seconds of bonus solve time in your active Multiplayer Sudoku room."
     },
     "score_shield": {
         "name": "🛡️ Score Shield",
-        "vn_name": "Khiên Bảo Hộ Điểm",
         "desc": "Protects your score from surrender penalties and restores +1,000 PTS."
     },
     "xp_booster": {
         "name": "⚡ 2x XP Booster",
-        "vn_name": "Thẻ Nhân Đôi XP",
         "desc": "Grants an instant +800 Bonus XP surge to your Agent Profile."
     },
     "mystery_lootbox": {
         "name": "📦 Encrypted Lootbox",
-        "vn_name": "Rương Mật Mã Bí Ẩn",
         "desc": "Open to receive 2 random tactical items + 300 to 1,200 Bonus XP!"
     }
 }
@@ -77,7 +71,6 @@ def save_inv_db(db: dict):
 
 
 def add_agent_comm_xp(username: str, bonus_xp: int):
-    """Cộng điểm XP trực tiếp vào hồ sơ Điệp viên ở Mục 7 (community_hub_db.json)."""
     comm_file = "community_hub_db.json"
     comm_db = _load_json(comm_file)
     if "profiles" not in comm_db:
@@ -96,20 +89,20 @@ def add_agent_comm_xp(username: str, bonus_xp: int):
 
 
 def get_completed_academy_modules_count(username: str) -> int:
-    """Đếm số bài học ở Mục 5 (M01..M20) mà người dùng đã hoàn thành đủ cả 4/4 bài tập (Q1, Q2, L1, L2)."""
     acad_db = _load_json("academy_lms_db.json")
     completed_tasks = set(acad_db.get("students", {}).get(username, {}).get("completed_tasks", []))
     full_modules = 0
-    for m_idx in range(1, 21):
-        mod_id = f"M{m_idx:02d}"
-        req = {f"{mod_id}_Q1", f"{mod_id}_Q2", f"{mod_id}_L1", f"{mod_id}_L2"}
-        if req.issubset(completed_tasks):
+    for m_idx in range(1, 31):
+        mid_m = f"M{m_idx:02d}"
+        mid_l = f"L{m_idx:02d}"
+        req_m = {f"{mid_m}_Q1", f"{mid_m}_Q2", f"{mid_m}_L1", f"{mid_m}_L2"}
+        req_l = {f"{mid_l}_Q1", f"{mid_l}_Q2", f"{mid_l}_L1", f"{mid_l}_L2"}
+        if req_m.issubset(completed_tasks) or req_l.issubset(completed_tasks):
             full_modules += 1
     return full_modules
 
 
 def get_total_puzzles_cracked(username: str) -> int:
-    """Đếm tổng số câu đố CTF (Mục 4) + số bàn cờ Sudoku đã giải xong."""
     ctf_db = _load_json("ctf_arena_db.json")
     sdk_db = _load_json("sudoku_arena_db.json")
     ctf_cnt = len(ctf_db.get("users", {}).get(username, {}).get("solved", []))
@@ -139,76 +132,69 @@ def ensure_user_inventory(db: dict, username: str) -> dict:
 
 
 def use_tactical_item(username: str, item_key: str) -> tuple[bool, str]:
-    """Thực thi công dụng thực chiến của từng vật phẩm khi người chơi bấm Sử dụng."""
     db = load_inv_db()
     u_inv = ensure_user_inventory(db, username)
     curr_qty = u_inv["items"].get(item_key, 0)
     if curr_qty <= 0:
-        return False, "❌ Bạn đã hết vật phẩm này trong Túi đồ!"
+        return False, "❌ You have 0 of this item left in your Backpack!"
 
-    # 1. THẺ MIỄN PHẠT HINT (Mở 1 ô đúng trên bàn cờ Sudoku mà không tính vào số lần dùng Hint)
     if item_key == "free_hint_pass":
         if "sudoku_state" not in st.session_state:
-            return False, "⚠️ Hãy mở bàn cờ Sudoku 9x9 trước khi dùng Thẻ Miễn Phạt Hint!"
+            return False, "⚠️ Please open the 9x9 Sudoku Arena first before using a Free Hint Pass!"
         gs = st.session_state.sudoku_state
         if gs.get("completed"):
-            return False, "⚠️ Bàn cờ hiện tại đã hoàn thành rồi!"
+            return False, "⚠️ Your current Sudoku board is already completed!"
         empty_coords = [
             (r, c) for r in range(9) for c in range(9)
             if gs["puzzle"][r][c] == 0 and gs["user_board"][r][c] != gs["solution"][r][c]
         ]
         if not empty_coords:
-            return False, "✅ Toàn bộ các ô trên bàn cờ của bạn đều đã điền đúng!"
+            return False, "✅ All cells on your current Sudoku board are already correct!"
         r_pick, c_pick = random.choice(empty_coords)
         correct_val = gs["solution"][r_pick][c_pick]
         gs["user_board"][r_pick][c_pick] = correct_val
-        # Ghi nhận thành ô cố định để không bị tính vào hinted_cells (0% phạt điểm!)
         gs["puzzle"][r_pick][c_pick] = correct_val
         u_inv["items"][item_key] -= 1
         save_inv_db(db)
-        return True, f"🎫 Đã mở khóa miễn phí ô **(R{r_pick+1}, C{c_pick+1}) = `{correct_val}`** (Giữ nguyên 100% điểm thưởng)!"
+        return True, f"🎫 Unlocked cell **(R{r_pick+1}, C{c_pick+1}) = `{correct_val}`** with **0% Score Penalty**!"
 
-    # 2. MÁY QUÉT PHÁP Y (Quét lỗi sai trên bàn cờ Sudoku hoặc mở giúp 1 ô đúng)
     elif item_key == "forensic_scanner":
         if "sudoku_state" not in st.session_state:
-            return False, "⚠️ Hãy mở bàn cờ Sudoku 9x9 để quét lỗi!"
+            return False, "⚠️ Please open the 9x9 Sudoku Arena to scan your board!"
         gs = st.session_state.sudoku_state
         wrong_cells = []
         for r in range(9):
             for c in range(9):
                 val = gs["user_board"][r][c]
                 if gs["puzzle"][r][c] == 0 and val != 0 and val != gs["solution"][r][c]:
-                    wrong_cells.append(f"(R{r+1}, C{c+1}: đang điền {val})")
+                    wrong_cells.append(f"(R{r+1}, C{c+1}: typed {val})")
         u_inv["items"][item_key] -= 1
         save_inv_db(db)
         if wrong_cells:
-            return True, "🔍 **Kết quả Quét Pháp Y:** Phát hiện ô điền sai tại: " + ", ".join(wrong_cells[:5])
+            return True, "🔍 **Forensic Scan Result:** Wrong entries found at: " + ", ".join(wrong_cells[:5])
         else:
-            # Nếu không có ô nào sai, thưởng mở giúp 1 ô trống
             empty_coords = [(r, c) for r in range(9) for c in range(9) if gs["user_board"][r][c] == 0]
             if empty_coords:
                 rp, cp = empty_coords[0]
                 ans_v = gs["solution"][rp][cp]
                 gs["user_board"][rp][cp] = ans_v
                 gs["puzzle"][rp][cp] = ans_v
-                return True, f"🔍 Không có ô nào sai! Máy quét đã điền giúp bạn ô **(R{rp+1}, C{cp+1}) = `{ans_v}`**!"
-            return True, "🔍 Mọi con số trên bàn cờ của bạn đều chính xác 100%!"
+                return True, f"🔍 Zero errors found! Bonus cell revealed: **(R{rp+1}, C{cp+1}) = `{ans_v}`**!"
+            return True, "🔍 Every number on your board is 100% accurate!"
 
-    # 3. BÌNH ĐÓNG BĂNG THỜI GIAN (+60 GIÂY TRONG PHÒNG ĐẤU SUDOKU MULTIPLAYER)
     elif item_key == "chrono_freeze":
         sdk_db = _load_json("sudoku_arena_db.json")
         rooms = sdk_db.get("rooms", {})
         if not rooms:
-            return False, "⚠️ Hiện chưa có phòng đấu Sudoku Multiplayer nào đang mở!"
+            return False, "⚠️ No active Multiplayer Sudoku rooms found!"
         for r_code, r_info in rooms.items():
             if username in r_info.get("players", {}):
                 r_info["solve_duration_sec"] = r_info.get("solve_duration_sec", 900) + 60
         _save_json("sudoku_arena_db.json", sdk_db)
         u_inv["items"][item_key] -= 1
         save_inv_db(db)
-        return True, "⏳ **Chrono-Freeze Activated!** Đã cộng thêm **+60 giây** vào thời gian giải phòng đấu Sudoku của bạn!"
+        return True, "⏳ **Chrono-Freeze Activated!** Added **+60 seconds** to your Multiplayer Sudoku timer!"
 
-    # 4. KHIÊN BẢO HỘ ĐIỂM (+1,000 PTS BẢO HIỂM SUDOKU / CTF)
     elif item_key == "score_shield":
         sdk_db = _load_json("sudoku_arena_db.json")
         lb = sdk_db.setdefault("leaderboard", {})
@@ -218,16 +204,14 @@ def use_tactical_item(username: str, item_key: str) -> tuple[bool, str]:
         _save_json("sudoku_arena_db.json", sdk_db)
         u_inv["items"][item_key] -= 1
         save_inv_db(db)
-        return True, "🛡️ **Score Shield Activated!** Đã bọc khiên bảo vệ và cộng bù **+1,000 PTS** vào bảng xếp hạng Sudoku!"
+        return True, "🛡️ **Score Shield Activated!** Added **+1,000 PTS** protection bonus to your Arcade Leaderboard score!"
 
-    # 5. THẺ NHÂN ĐÔI XP (+800 XP TỨC THÌ)
     elif item_key == "xp_booster":
         add_agent_comm_xp(username, 800)
         u_inv["items"][item_key] -= 1
         save_inv_db(db)
-        return True, "⚡ **2x XP Booster Activated!** Đã cộng ngay **+800 XP** vào Hồ sơ Điệp viên & Cửa hàng Cyber Shop!"
+        return True, "⚡ **2x XP Booster Activated!** Granted **+800 XP** directly to your Agent Profile & Cyber Shop!"
 
-    # 6. RƯƠNG MẬT MÃ BÍ ẨN (NHẬN NGẪU NHIÊN 2 VẬT PHẨM + 300..1,200 XP)
     elif item_key == "mystery_lootbox":
         u_inv["items"][item_key] -= 1
         pool = ["free_hint_pass", "forensic_scanner", "chrono_freeze", "score_shield", "xp_booster"]
@@ -239,17 +223,16 @@ def use_tactical_item(username: str, item_key: str) -> tuple[bool, str]:
         add_agent_comm_xp(username, bonus_xp)
         n1 = TACTICAL_ITEMS_META[drop1]["name"]
         n2 = TACTICAL_ITEMS_META[drop2]["name"]
-        return True, f"🎉 **Mở Rương Thành Công!** Bạn nhận được: **1x {n1}**, **1x {n2}** và **+{bonus_xp:,} XP**!"
+        return True, f"🎉 **Lootbox Opened!** You received: **1x {n1}**, **1x {n2}**, and **+{bonus_xp:,} XP**!"
 
-    return False, "❌ Vật phẩm không hợp lệ."
+    return False, "❌ Invalid tactical item."
 
 
 def render_sidebar_tactical_hub(default_username: str = "taolagautruc"):
-    """
-    Hiển thị Trung tâm Điểm danh Hàng ngày, Nhiệm vụ Ngày & Túi đồ Vật phẩm Chiến thuật
-    ngay trên thanh Sidebar để người chơi mở dùng bất cứ lúc nào.
-    """
-    username = (st.session_state.get("ctf_user") or default_username).strip() or "taolagautruc"
+    username = (st.session_state.get("auth_callsign") or st.session_state.get("ctf_user") or default_username).strip() or "taolagautruc"
+    if username == "Guest_Agent":
+        username = st.session_state.get("ctf_user") or default_username
+
     db = load_inv_db()
     u_inv = ensure_user_inventory(db, username)
 
@@ -259,7 +242,6 @@ def render_sidebar_tactical_hub(default_username: str = "taolagautruc"):
     st.markdown("---")
     st.markdown("### 🎁 Daily Rewards & Backpack")
 
-    # --- 1. ĐIỂM DANH HÀNG NGÀY (7-DAY LOGIN STREAK) ---
     already_claimed_today = (u_inv.get("last_claim_date") == today_str)
     curr_streak = u_inv.get("streak", 0)
     next_day_idx = (curr_streak % 7)
@@ -281,14 +263,12 @@ def render_sidebar_tactical_hub(default_username: str = "taolagautruc"):
             save_inv_db(db)
             add_agent_comm_xp(username, r_xp)
             st.balloons()
-            st.toast(f"🎉 Điểm danh Ngày {u_inv['streak']} thành công! (+{r_xp} XP)", icon="🎁")
+            st.toast(f"🎉 Day {u_inv['streak']} Login Reward Claimed! (+{r_xp} XP)", icon="🎁")
             st.rerun()
     else:
         st.success(f"✅ Daily Login Claimed! (🔥 Streak: **{curr_streak} Days**)")
 
-    # --- 2. NHẬN THƯỞNG KHI HỌC XONG BÀI HỌC Ở MỤC 5 & GIẢI ĐỐ MỤC 4 / SUDOKU ---
     with st.expander("📋 Daily Quests & Academy Rewards", expanded=False):
-        # Quest A: Giải đố hàng ngày (Mục 4 hoặc Sudoku)
         total_puz_now = get_total_puzzles_cracked(username)
         baseline_puz = u_inv.get("Daily_Baseline_Puzzles", 0)
         puz_claimed_today = (u_inv.get("daily_puzzle_claim_date") == today_str)
@@ -296,7 +276,7 @@ def render_sidebar_tactical_hub(default_username: str = "taolagautruc"):
         st.markdown("**🕹️ 1. Daily Puzzle Solver Quest**")
         st.caption("Reward: `🎫 1x Free Hint` + `⏳ 1x Chrono-Freeze` + `300 XP`")
         if puz_claimed_today:
-            st.info("✅ Đã nhận thưởng Nhiệm vụ Giải đố hôm nay!")
+            st.info("✅ Daily Puzzle Quest Reward Claimed Today!")
         elif total_puz_now > baseline_puz and total_puz_now > 0:
             if st.button("🎁 Claim Daily Puzzle Reward!", key="btn_claim_daily_puz", type="primary", use_container_width=True):
                 u_inv["daily_puzzle_claim_date"] = today_str
@@ -307,17 +287,16 @@ def render_sidebar_tactical_hub(default_username: str = "taolagautruc"):
                 st.balloons()
                 st.rerun()
         else:
-            st.caption("⏳ *Hãy giải thêm 1 câu đố ở Mục 4 hoặc 1 bàn Sudoku 9x9 để mở khóa!*")
+            st.caption("⏳ *Solve 1 more puzzle in Section 4 (CTF) or 1 Sudoku 9x9 board to unlock!*")
 
         st.divider()
 
-        # Quest B: Hoàn thành trọn vẹn bài học ở Mục 5 (Security Academy)
         full_mods_done = get_completed_academy_modules_count(username)
         already_rewarded_mods = u_inv.get("claimed_academy_mods", 0)
         unclaimed_mods = max(0, full_mods_done - already_rewarded_mods)
 
         st.markdown("**🎓 2. Security Academy Milestone**")
-        st.caption(f"Completed Modules (4/4 tasks): **`{full_mods_done} / 20`**")
+        st.caption(f"Completed Modules (4/4 tasks): **`{full_mods_done} / 30`**")
         if unclaimed_mods > 0:
             if st.button(f"🎁 Claim {unclaimed_mods} Lesson Reward(s)!", key="btn_claim_acad_mod", type="primary", use_container_width=True):
                 u_inv["claimed_academy_mods"] = full_mods_done
@@ -328,9 +307,8 @@ def render_sidebar_tactical_hub(default_username: str = "taolagautruc"):
                 st.balloons()
                 st.rerun()
         else:
-            st.caption("💡 *Mỗi khi học xong đủ 4/4 bài tập của 1 bài học ở Mục 5, bạn sẽ nhận được `🎫 1x Free Hint` + `📦 1x Lootbox` + `500 XP` tại đây!*")
+            st.caption("💡 *Complete all 4/4 tasks of any module in Section 5 to claim `🎫 1x Free Hint` + `📦 1x Lootbox` + `500 XP` here!*")
 
-    # --- 3. TÚI ĐỒ VẬT PHẨM CHIẾN THUẬT (TACTICAL BACKPACK) ---
     total_items_cnt = sum(u_inv["items"].values())
     with st.expander(f"🎒 Tactical Backpack ({total_items_cnt} Items)", expanded=False):
         if "last_item_msg" in st.session_state and st.session_state.last_item_msg:

@@ -312,3 +312,203 @@ def render_home_command_center(default_username: str = "taolagautruc"):
             rc2.markdown(f"⚡ **{r_stat['total_xp']:,} XP** (`Lv.{r_stat['level']}`)")
             rc3.markdown(f"🎓 `{r_stat['acad_full_mods']}/20` Modules")
             rc4.markdown(f"🕹️ `{r_stat['ctf_solved'] + r_stat['arcade_wins']}` Wins")
+
+# ==============================================================================
+# TIER 5 CYBER WARFARE CTF ARENA & INTERACTIVE EXPLOIT SANDBOXES (SECTION 4)
+# ==============================================================================
+TIER5_CTF_CHALLENGES = [
+    {
+        "id": "CTF_T5_01",
+        "title": "Challenge #21: Multi-Layer Web Encoding Chain (UTF-8 -> Base64 -> URL)",
+        "category": "4-Pillar Encoding",
+        "xp": 600,
+        "prompt": (
+            "An intercepted HTTP parameter contains a URL-encoded Base64 string: **`T0tfSklFVQ%3D%3D`**. "
+            "Step 1: URL-decode `%3D%3D` back into `==`. Step 2: Base64-decode the resulting string into UTF-8/ASCII plaintext!"
+        ),
+        "hint": "URL decoding turns 'T0tfSklFVQ%3D%3D' into 'T0tfSklFVQ=='. Decode that from Base64 (or ask AI Cyber Mentor: Decode \"T0tfSklFVQ==\")!",
+        "flag": "OK_HIEU"
+    },
+    {
+        "id": "CTF_T5_02",
+        "title": "Challenge #22: Cross-Site Scripting (XSS) HTML Entity Neutralizer",
+        "category": "Web Security & HTML Encode",
+        "xp": 650,
+        "prompt": (
+            "To block an XSS attack, a web firewall HTML-encoded the angle brackets of an injected tag into **`&lt;svg&gt;`**. "
+            "What was the original 5-character raw HTML tag before encoding?"
+        ),
+        "hint": "'&lt;' is '<' and '&gt;' is '>'. Combine them around 'svg'!",
+        "flag": "<SVG>"
+    },
+    {
+        "id": "CTF_T5_03",
+        "title": "Challenge #23: Lossless Audio & Video Codec Forensics",
+        "category": "Multimedia Encoding",
+        "xp": 700,
+        "prompt": (
+            "A covert operative needs to hide an LSB steganography payload inside an audio recording without losing a single bit to lossy compression, "
+            "while streaming video using High Efficiency Video Coding (H.265). Combine the **4-letter lossless audio codec** and the **4-letter H.265 acronym** with an underscore (Format: `AUDIO_VIDEO`)."
+        ),
+        "hint": "Lossless audio codec = FLAC. H.265 video codec acronym = HEVC. Format: FLAC_HEVC.",
+        "flag": "FLAC_HEVC"
+    },
+    {
+        "id": "CTF_T5_04",
+        "title": "Challenge #24: AI Firewall One-Hot & Target Encoding Vector",
+        "category": "Machine Learning Encoding",
+        "xp": 750,
+        "prompt": (
+            "An AI Intrusion Detection System encodes 4 network services `['FTP', 'SSH', 'HTTPS', 'RDP']` using **One-Hot Encoding**. "
+            "What is the 4-bit One-Hot binary vector for **`HTTPS`** (3rd category), followed by a hyphen and the **Target Encoding** value if 9 out of 10 `RDP` connections are attacks (`0.9`)? (Format: `0010-0.9`)"
+        ),
+        "hint": "HTTPS is index 3 -> 0010. Target encoding of 9/10 -> 0.9. Combine as 0010-0.9!",
+        "flag": "0010-0.9"
+    },
+    {
+        "id": "CTF_T5_05",
+        "title": "Challenge #25: SQL Injection (SQLi) Authentication Bypass",
+        "category": "Database Exploitation",
+        "xp": 900,
+        "prompt": (
+            "Use the **Interactive SQLi Sandbox** below! The vulnerable query is: `SELECT * FROM admins WHERE user='[INPUT]' AND pass='***'`. "
+            "Inject the classic tautology payload that closes the quote, forces `OR '1'='1'`, and comments out the rest of the query with `--` to reveal the secret Vault Flag!"
+        ),
+        "hint": "Type `' OR '1'='1' --` into the Interactive SQLi Sandbox below to extract the flag!",
+        "flag": "SQLI_MASTER_BYPASS"
+    },
+    {
+        "id": "CTF_T5_06",
+        "title": "Challenge #26: JSON Web Token (JWT) Payload Forensics",
+        "category": "API Authentication",
+        "xp": 950,
+        "prompt": (
+            "Inspect this intercepted JWT token: **`eyJhbGciOiJIUzI1NiJ9.eyJhZ2VudCI6ImhpZXUzMDAxIiwiY2xlYXJhbmNlIjoiU0VDUkVUIn0.SflKxwRJSMeKKF2QT4fwpMeJf36POk6yJV_adQssw5c`**. "
+            "Decode the middle Base64URL Payload segment and enter the value of the **`clearance`** field!"
+        ),
+        "hint": "Paste the JWT into the Interactive JWT Inspector Sandbox below to decode the payload JSON!",
+        "flag": "SECRET"
+    },
+    {
+        "id": "CTF_T5_07",
+        "title": "Challenge #27: Elliptic Curve (ECC) Scalar Point Trapdoor",
+        "category": "Modern Asymmetric Crypto",
+        "xp": 1100,
+        "prompt": (
+            "On the finite elliptic curve $y^2 \\equiv x^3 + 2x + 3 \\pmod{17}$, compute the right-hand side $(x^3 + 2x + 3) \\bmod 17$ for coordinate **$x = 3$**."
+        ),
+        "hint": "For x=3: 3^3 + 2(3) + 3 = 27 + 6 + 3 = 36. Now compute 36 mod 17!",
+        "flag": "2"
+    },
+    {
+        "id": "CTF_T5_08",
+        "title": "Challenge #28: Zero-Knowledge Proof (Schnorr) & Homomorphic RSA",
+        "category": "ZKP & Privacy AI",
+        "xp": 1250,
+        "prompt": (
+            "In a Schnorr Zero-Knowledge Proof with prime modulus $q = 19$, random commitment nonce $r = 4$, verifier challenge $c = 3$, and secret witness $k = 6$, "
+            "compute the Prover's response **$s = (r + c \\cdot k) \\bmod 19$**."
+        ),
+        "hint": "Calculate 4 + (3 * 6) = 22. Then compute 22 mod 19!",
+        "flag": "3"
+    }
+]
+
+
+def render_tier5_cyber_warfare_ctf(default_username: str = "taolagautruc"):
+    """
+    Hiển thị Đấu trường CTF Tier 5 (8 Thử thách mới + 2 Máy Giả Lập Tương Tác SQLi & JWT)
+    ngay bên trong Mục 4 (4. Crypto Challenges) và cộng trực tiếp XP vào ctf_arena_db.json.
+    """
+    active_user = (st.session_state.get("auth_callsign") or st.session_state.get("ctf_user") or default_username).strip()
+    if active_user == "Guest_Agent":
+        active_user = st.session_state.get("ctf_user") or default_username
+
+    ctf_db = _load_json("ctf_arena_db.json")
+    users_dict = ctf_db.setdefault("users", {})
+    if active_user not in users_dict:
+        users_dict[active_user] = {"xp": 0, "solved": [], "last_solve": "Never"}
+
+    u_data = users_dict[active_user]
+    solved_list = u_data.setdefault("solved", [])
+
+    st.markdown("---")
+    st.markdown("""
+    <div class="ws-banner" style="background: linear-gradient(135deg, #1e1b4b 0%, #312e81 50%, #090d16 100%); border: 1.5px solid #818cf8;">
+        <h4>⚡ Tier 5 Expansion: Web Security, 4-Pillar Encoding & Modern Crypto Warfare (8 New Challenges)</h4>
+        <p>Apply what you learned in <b>Lessons 21–30</b>! Use the built-in <b>Interactive SQLi & JWT Sandboxes</b> below to test exploits and earn up to <b>+6,900 Bonus CTF XP</b>!</p>
+    </div>
+    """, unsafe_allow_html=True)
+
+    # 2 Máy Giả Lập Tương Tác (Interactive Sandboxes)
+    sb_col1, sb_col2 = st.columns(2)
+    with sb_col1:
+        with st.expander("💉 Interactive SQL Injection (SQLi) Simulator", expanded=False):
+            st.caption("Test authentication bypass payloads against a simulated SQL query:")
+            sqli_in = st.text_input("Username Input:", placeholder="Try: ' OR '1'='1' --", key="sb_sqli_in")
+            live_query = f"SELECT * FROM admins WHERE user = '{sqli_in}' AND pass = 'REDACTED';"
+            st.code(live_query, language="sql")
+            if "' or '1'='1'" in sqli_in.lower() or "1=1" in sqli_in.lower():
+                st.success("🔓 **AUTH BYPASS SUCCESSFUL!** Query evaluated to `TRUE`! Secret Flag: **`SQLI_MASTER_BYPASS`**")
+            elif sqli_in:
+                st.warning("🔒 Login Failed: Query returned 0 rows. Try injecting `' OR '1'='1' --`")
+
+    with sb_col2:
+        with st.expander("🪪 Interactive JWT Token Decoder & Inspector", expanded=False):
+            st.caption("Paste any `Header.Payload.Signature` JWT string to decode its Base64URL claims:")
+            jwt_in = st.text_input(
+                "JWT String:",
+                value="eyJhbGciOiJIUzI1NiJ9.eyJhZ2VudCI6ImhpZXUzMDAxIiwiY2xlYXJhbmNlIjoiU0VDUkVUIn0.SflKxwRJSMeKKF2QT4fwpMeJf36POk6yJV_adQssw5c",
+                key="sb_jwt_in"
+            ).strip()
+            parts = jwt_in.split(".")
+            if len(parts) == 3:
+                try:
+                    import base64 as _b64
+                    pad_h = parts[0] + "=" * ((4 - len(parts[0]) % 4) % 4)
+                    pad_p = parts[1] + "=" * ((4 - len(parts[1]) % 4) % 4)
+                    dec_h = _b64.urlsafe_b64decode(pad_h).decode("utf-8")
+                    dec_p = _b64.urlsafe_b64decode(pad_p).decode("utf-8")
+                    st.markdown(f"- **Header:** `{dec_h}`\n- **Payload:** `{dec_p}`")
+                except Exception as e:
+                    st.error(f"Decode error: {e}")
+            else:
+                st.warning("A standard JWT must have 3 dot-separated sections (`Header.Payload.Signature`).")
+
+    # Danh sách 8 Thử thách CTF Tier 5
+    t5_titles = [
+        f"{'✅ ' if ch['id'] in solved_list else '🎯 '}{ch['title']} (+{ch['xp']} XP)"
+        for ch in TIER5_CTF_CHALLENGES
+    ]
+    sel_idx = st.selectbox("📂 Select Tier 5 Challenge to Solve:", range(len(TIER5_CTF_CHALLENGES)), format_func=lambda i: t5_titles[i], key="sel_t5_ctf")
+    ch = TIER5_CTF_CHALLENGES[sel_idx]
+    cid = ch["id"]
+    is_done = cid in solved_list
+
+    with st.container(border=True):
+        st.markdown(f"##### 🛡️ {ch['title']} &nbsp;•&nbsp; `{ch['category']}` &nbsp;•&nbsp; Reward: **+{ch['xp']} XP**")
+        st.info(ch["prompt"])
+
+        if is_done:
+            st.success(f"✅ **CHALLENGE SOLVED!** Verified Flag: **`{ch['flag']}`** (+{ch['xp']} XP credited to `{active_user}`).")
+        else:
+            fc1, fc2, fc3 = st.columns([2.2, 1.1, 1.0])
+            with fc1:
+                ans_in = st.text_input("🚩 Enter Flag / Solution:", placeholder="Type your decoded answer...", key=f"in_{cid}").strip()
+            with fc2:
+                st.write("")
+                if st.button("🚀 Submit Flag", type="primary", use_container_width=True, key=f"btn_{cid}"):
+                    if ans_in.upper() == ch["flag"].upper():
+                        solved_list.append(cid)
+                        u_data["xp"] = u_data.get("xp", 0) + ch["xp"]
+                        u_data["last_solve"] = datetime.now(timezone.utc).strftime("%Y-%m-%d %H:%M UTC")
+                        _save_json("ctf_arena_db.json", ctf_db)
+                        run_auto_firebase_sync()
+                        st.balloons()
+                        st.rerun()
+                    else:
+                        st.error("❌ Incorrect flag! Check the Hint or use the Interactive Sandbox above.")
+            with fc3:
+                st.write("")
+                with st.popover("💡 View Hint", use_container_width=True):
+                    st.write(ch["hint"])

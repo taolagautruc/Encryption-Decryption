@@ -1917,6 +1917,7 @@ elif "4. Crypto Challenges" in main_menu:
 # PHẦN 5: SECURITY ACADEMY & UNIVERSITY COMPUTER SYSTEMS / CRYPTOGRAPHY LMS (20 MODULES)
 # ==============================================================================
 elif "5. Security Academy" in main_menu:
+    ai_mentor_module.inject_expanded_curriculum(LESSONS_CURRICULUM)
     ACAD_DB_FILE = "academy_lms_db.json"
 
     def load_acad_db() -> dict:
